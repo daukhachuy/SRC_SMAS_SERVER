@@ -1,0 +1,143 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "SMAS_BusinessObject/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/SMAS_BusinessObject.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/SMAS_BusinessObject.dll": {}
+        }
+      },
+      "SMAS_DataAccess/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "SMAS_BusinessObject": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/SMAS_DataAccess.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/SMAS_DataAccess.dll": {}
+        }
+      },
+      "SMAS_Repositories/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "SMAS_BusinessObject": "1.0.0",
+          "SMAS_DataAccess": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/SMAS_Repositories.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/SMAS_Repositories.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SMAS_BusinessObject/1.0.0": {
+      "type": "project",
+      "path": "../SMAS_BusinessObject/SMAS_BusinessObject.csproj",
+      "msbuildProject": "../SMAS_BusinessObject/SMAS_BusinessObject.csproj"
+    },
+    "SMAS_DataAccess/1.0.0": {
+      "type": "project",
+      "path": "../SMAS_DataAccess/SMAS_DataAccess.csproj",
+      "msbuildProject": "../SMAS_DataAccess/SMAS_DataAccess.csproj"
+    },
+    "SMAS_Repositories/1.0.0": {
+      "type": "project",
+      "path": "../SMAS_Repositories/SMAS_Repositories.csproj",
+      "msbuildProject": "../SMAS_Repositories/SMAS_Repositories.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "SMAS_BusinessObject >= 1.0.0",
+      "SMAS_Repositories >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\daukh\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\SMAS_Services.csproj",
+      "projectName": "SMAS_Services",
+      "projectPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\SMAS_Services.csproj",
+      "packagesPath": "C:\\Users\\daukh\\.nuget\\packages\\",
+      "outputPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\daukh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\SMAS_BusinessObject.csproj": {
+              "projectPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\SMAS_BusinessObject.csproj"
+            },
+            "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Repositories\\SMAS_Repositories.csproj": {
+              "projectPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Repositories\\SMAS_Repositories.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
