@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SMAS_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+75cec1f568112812d29dc0575bd6eac746b4e6bc")]
 [assembly: System.Reflection.AssemblyProductAttribute("SMAS_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SMAS_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

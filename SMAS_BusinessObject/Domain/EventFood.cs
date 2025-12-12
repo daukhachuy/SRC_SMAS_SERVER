@@ -1,0 +1,19 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SMAS_BusinessObject.Domain
+{
+    public class EventFood
+    {
+        public int EventId { get; set; }          //FK
+
+        public int FoodId { get; set; }           //FK
+
+        public int Quantity { get; set; }
+
+        public string? Note { get; set; }
+    }
+}

@@ -1,13 +1,89 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\",
+  "WorkspaceRootPath": "C:\\FPT\\1\\SRC_SMAS_SERVER\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\eventfood.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\eventfood.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\blog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\blog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\message.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\message.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\conversation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\conversation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\service.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\service.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\discount.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\discount.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\tableorders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\tableorders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\table.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\table.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\food.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\food.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\notification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\notification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\orders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\orders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\restaurantinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\restaurantinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\salaryrecord.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\salaryrecord.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\staff.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\staff.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\workshift.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\workshift.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\event.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\event.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|c:\\fpt\\1\\src_smas_server\\smas_businessobject\\domain\\reservation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\domain\\reservation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|c:\\fpt\\1\\src_smas_server\\smas_api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|solutionrelative:smas_api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|c:\\fpt\\1\\src_smas_server\\smas_api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|solutionrelative:smas_api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -18,111 +94,260 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 16,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:1:0:{e8b06f52-6d01-11d2-aa7d-00c04f990343}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:133:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:132:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:131:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:130:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:129:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "launchSettings.json",
-              "DocumentMoniker": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\Properties\\launchSettings.json",
-              "RelativeDocumentMoniker": "SMAS_API\\Properties\\launchSettings.json",
-              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\Properties\\launchSettings.json",
-              "RelativeToolTip": "SMAS_API\\Properties\\launchSettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACcAAAADAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-11-30T13:50:49.255Z",
+              "Title": "EventFood.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\EventFood.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\EventFood.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\EventFood.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\EventFood.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T09:24:39.015Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "Blog.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Blog.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Blog.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Blog.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Blog.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T09:23:17.62Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Message.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Message.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Message.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Message.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Message.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAA6wBAAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T09:22:00.178Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Conversation.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Conversation.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Conversation.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Conversation.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Conversation.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T09:21:16.764Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Service.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Service.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Service.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Service.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Service.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T09:19:58.806Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Discount.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Discount.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Discount.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Discount.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Discount.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAcwBoAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T09:15:32.889Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "TableOrders.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\TableOrders.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\TableOrders.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\TableOrders.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\TableOrders.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T08:42:40.715Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Food.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Food.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Food.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Food.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Food.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAgwB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T08:38:35.842Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Notification.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Notification.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Notification.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Notification.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Notification.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAB4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T08:10:14.39Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Orders.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Orders.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Orders.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Orders.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Orders.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAIwA4AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T08:07:14.25Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "RestaurantInfo.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\RestaurantInfo.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\RestaurantInfo.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\RestaurantInfo.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\RestaurantInfo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T08:05:02.269Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "SalaryRecord.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\SalaryRecord.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\SalaryRecord.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\SalaryRecord.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\SalaryRecord.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAoAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T07:13:08.151Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "WorkShift.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\WorkShift.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\WorkShift.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\WorkShift.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\WorkShift.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T06:47:10.881Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Event.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Event.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Event.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Event.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Event.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T06:38:36.787Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Staff.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Staff.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Staff.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Staff.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Staff.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAAAC0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T06:37:05.125Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Reservation.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Reservation.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Reservation.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Reservation.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Reservation.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAuwCwAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-10T07:39:23.829Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Table.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Table.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Table.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Table.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Table.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAxwBMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-10T07:19:57.699Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Category.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Category.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\Category.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\Category.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\Category.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAwAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-10T07:18:23.592Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\User.cs",
+              "RelativeDocumentMoniker": "SMAS_BusinessObject\\Domain\\User.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\Domain\\User.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\Domain\\User.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABUAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T05:28:26.344Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "SMAS_API\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\Properties\\launchSettings.json",
+              "RelativeToolTip": "SMAS_API\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAACcAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-11-30T13:50:49.255Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
               "Title": "WeatherForecastController.cs",
-              "DocumentMoniker": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\Controllers\\WeatherForecastController.cs",
+              "DocumentMoniker": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\Controllers\\WeatherForecastController.cs",
               "RelativeDocumentMoniker": "SMAS_API\\Controllers\\WeatherForecastController.cs",
-              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\Controllers\\WeatherForecastController.cs",
+              "ToolTip": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\Controllers\\WeatherForecastController.cs",
               "RelativeToolTip": "SMAS_API\\Controllers\\WeatherForecastController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-30T13:50:39.926Z",
-              "EditorCaption": ""
-            }
-          ]
-        },
-        {
-          "DockedWidth": 255,
-          "SelectedChildIndex": -1,
-          "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:2:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+              "WhenOpened": "2025-11-30T13:50:39.926Z"
             }
           ]
         }
