@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Enums;
 using SMAS_BusinessObject.Models;
@@ -29,7 +30,7 @@ namespace SMAS_Services.AuthServices
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
 
-            var user = await _userRepositories.GetByUsernameAsync(request.Username);
+            var user = await _userRepositories.GetByUsernameAsync(request.Email);
 
             if (user == null)
             {
@@ -57,5 +58,27 @@ namespace SMAS_Services.AuthServices
                 MsgCode = MSGCode.MSG_003.ToString()
             };
         }
+
+        public async Task<LoginResponse> LoginGoogleAsync(string  email)
+        {
+            var user = await _userRepositories.GetByUsernameAsync(email);
+            if (user == null)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_001.ToString()
+                };
+            }
+
+            var token = _tokenService.GenerateToken(user);
+
+            return new LoginResponse
+            {
+                Token = token,
+                MsgCode = MSGCode.MSG_003.ToString()
+            };
+        }
+
     }
 }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace SMAS_BusinessObject.DTOs.Auth
 {
-    internal class GoogleLoginRequest
+    public class GoogleLoginRequest
     {
+        public string Token { get; set; } 
     }
 }
