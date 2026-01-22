@@ -7,10 +7,6 @@
       "RelativeMoniker": "D:0:0:{7D491AB9-952A-4166-BEAD-AA3B0F3206B7}|SMAS_API\\SMAS_API.csproj|solutionrelative:smas_api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_businessobject\\dtos\\auth\\googleloginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\dtos\\auth\\googleloginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3F0A1ABD-67F1-4208-BF15-5FDD243F7896}|SMAS_Services\\SMAS_Services.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_services\\authservices\\userservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3F0A1ABD-67F1-4208-BF15-5FDD243F7896}|SMAS_Services\\SMAS_Services.csproj|solutionrelative:smas_services\\authservices\\userservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -21,6 +17,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_businessobject\\dtos\\auth\\loginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\dtos\\auth\\loginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_businessobject\\dtos\\auth\\googleloginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|solutionrelative:smas_businessobject\\dtos\\auth\\googleloginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7DFAD1D3-5223-4EFB-AF3B-A4B58C0CEF2F}|SMAS_BusinessObject\\SMAS_BusinessObject.csproj|d:\\fpt\\ki9fpt\\sep490\\src_backend_smas\\src_smas_server\\smas_businessobject\\dtos\\auth\\loginresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -138,13 +138,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "GoogleLoginRequest.cs",
               "DocumentMoniker": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\DTOs\\Auth\\GoogleLoginRequest.cs",
               "RelativeDocumentMoniker": "SMAS_BusinessObject\\DTOs\\Auth\\GoogleLoginRequest.cs",
-              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\DTOs\\Auth\\GoogleLoginRequest.cs*",
-              "RelativeToolTip": "SMAS_BusinessObject\\DTOs\\Auth\\GoogleLoginRequest.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAFAAAAAAAAAA==",
+              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\DTOs\\Auth\\GoogleLoginRequest.cs",
+              "RelativeToolTip": "SMAS_BusinessObject\\DTOs\\Auth\\GoogleLoginRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-22T02:16:18.297Z",
               "EditorCaption": ""
@@ -157,7 +157,7 @@
               "RelativeDocumentMoniker": "SMAS_API\\Controllers\\AuthController.cs",
               "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\Controllers\\AuthController.cs",
               "RelativeToolTip": "SMAS_API\\Controllers\\AuthController.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAAAuwDMAAAATAAAAAAAAAA==",
+              "ViewState": "AgIAAAkAAAAAAAAAAIAwwBQAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-22T02:15:43.996Z",
               "EditorCaption": ""
@@ -172,8 +172,7 @@
               "RelativeToolTip": "SMAS_BusinessObject\\DTOs\\Auth\\LoginResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-22T02:15:06.826Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-22T02:15:06.826Z"
             },
             {
               "$type": "Document",
@@ -185,18 +184,17 @@
               "RelativeToolTip": "SMAS_BusinessObject\\DTOs\\Auth\\JwtSettings.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-22T02:15:04.838Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-22T02:15:04.838Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "LoginRequest.cs",
               "DocumentMoniker": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\DTOs\\Auth\\LoginRequest.cs",
               "RelativeDocumentMoniker": "SMAS_BusinessObject\\DTOs\\Auth\\LoginRequest.cs",
               "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\DTOs\\Auth\\LoginRequest.cs",
               "RelativeToolTip": "SMAS_BusinessObject\\DTOs\\Auth\\LoginRequest.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-22T02:15:03.974Z",
               "EditorCaption": ""
@@ -211,31 +209,30 @@
               "RelativeToolTip": "SMAS_API\\Properties\\launchSettings.json",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABoAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-22T02:12:17.646Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-22T02:12:17.646Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "UserServices.cs",
               "DocumentMoniker": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\AuthServices\\UserServices.cs",
               "RelativeDocumentMoniker": "SMAS_Services\\AuthServices\\UserServices.cs",
-              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\AuthServices\\UserServices.cs*",
-              "RelativeToolTip": "SMAS_Services\\AuthServices\\UserServices.cs*",
-              "ViewState": "AgIAADsAAAAAAAAAAAAIwEgAAAAwAAAAAAAAAA==",
+              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\AuthServices\\UserServices.cs",
+              "RelativeToolTip": "SMAS_Services\\AuthServices\\UserServices.cs",
+              "ViewState": "AgIAADwAAAAAAAAAAAAYwEcAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-21T17:38:14.447Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "IUserServices.cs",
               "DocumentMoniker": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\AuthServices\\IUserServices.cs",
               "RelativeDocumentMoniker": "SMAS_Services\\AuthServices\\IUserServices.cs",
-              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\AuthServices\\IUserServices.cs*",
-              "RelativeToolTip": "SMAS_Services\\AuthServices\\IUserServices.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
+              "ToolTip": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\AuthServices\\IUserServices.cs",
+              "RelativeToolTip": "SMAS_Services\\AuthServices\\IUserServices.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAkwBEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-21T17:38:10.143Z",
               "EditorCaption": ""
@@ -250,8 +247,7 @@
               "RelativeToolTip": "SMAS_DataAccess\\DAO\\AuthDAO.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAIBJwBYAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T17:26:19.422Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:26:19.422Z"
             },
             {
               "$type": "Document",
@@ -263,8 +259,7 @@
               "RelativeToolTip": "SMAS_Repositories\\AuthRepositories\\IUserRepositories.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T17:26:18.43Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:26:18.43Z"
             },
             {
               "$type": "Document",
@@ -276,8 +271,7 @@
               "RelativeToolTip": "SMAS_Repositories\\AuthRepositories\\UserRepositories.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAmwBMAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T17:26:17.23Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:26:17.23Z"
             },
             {
               "$type": "Document",
@@ -289,8 +283,7 @@
               "RelativeToolTip": "SMAS_Services\\SMAS_Services.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-01-21T17:26:13.894Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:26:13.894Z"
             },
             {
               "$type": "Document",
@@ -302,8 +295,7 @@
               "RelativeToolTip": "SMAS_API\\Program.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAAqwBoAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T17:25:54.032Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:25:54.032Z"
             },
             {
               "$type": "Document",
@@ -315,8 +307,7 @@
               "RelativeToolTip": "SMAS_API\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-21T17:25:16.311Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:25:16.311Z"
             },
             {
               "$type": "Document",
@@ -328,8 +319,7 @@
               "RelativeToolTip": "SMAS_DataAccess\\SmasDatabaseContext.cs",
               "ViewState": "AgIAAGEAAAAAAAAAAADwv2QAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-21T17:24:49.558Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-21T17:24:49.558Z"
             }
           ]
         },
