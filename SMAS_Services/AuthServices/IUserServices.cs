@@ -11,5 +11,7 @@ namespace SMAS_Services.AuthServices
     public interface IUserServices
     {
         Task<LoginResponse> LoginAsync(LoginRequest request);
+
+        Task<LoginResponse> LoginGoogleAsync(GoogleLoginRequest request);
     }
 }
