@@ -54,5 +54,21 @@ namespace SMAS_API.Controllers
             var result = await _userServices.LoginGoogleAsync(payload.Email);
             return Ok(result);
         }
-    }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    MsgCode = "MSG_999",
+                    Token = (string?)null
+                });
+            }
+
+            var result = await _userServices.RegisterAsync(request);
+            return Ok(result);
+        }
+    
+}
 }

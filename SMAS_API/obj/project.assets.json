@@ -3662,23 +3662,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\daukh\\.nuget\\packages\\": {},
+    "C:\\Users\\LENOVO\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\SMAS_API.csproj",
+      "projectUniqueName": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\SMAS_API.csproj",
       "projectName": "SMAS_API",
-      "projectPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\SMAS_API.csproj",
-      "packagesPath": "C:\\Users\\daukh\\.nuget\\packages\\",
-      "outputPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_API\\obj\\",
+      "projectPath": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\SMAS_API.csproj",
+      "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
+      "outputPath": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\daukh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3693,11 +3693,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\SMAS_BusinessObject.csproj": {
-              "projectPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\SMAS_BusinessObject.csproj"
+            "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\SMAS_BusinessObject.csproj": {
+              "projectPath": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_BusinessObject\\SMAS_BusinessObject.csproj"
             },
-            "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\SMAS_Services.csproj": {
-              "projectPath": "D:\\FPT\\KI9FPT\\SEP490\\SRC_BACKEND_SMAS\\SRC_SMAS_SERVER\\SMAS_Services\\SMAS_Services.csproj"
+            "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_Services\\SMAS_Services.csproj": {
+              "projectPath": "C:\\FPT\\1\\SRC_SMAS_SERVER\\SMAS_Services\\SMAS_Services.csproj"
             }
           }
         }
@@ -3754,7 +3754,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

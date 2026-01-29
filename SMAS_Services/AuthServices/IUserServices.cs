@@ -13,5 +13,7 @@ namespace SMAS_Services.AuthServices
         Task<LoginResponse> LoginAsync(LoginRequest request);
 
         Task<LoginResponse> LoginGoogleAsync(string  email);
+        Task<LoginResponse> RegisterAsync(RegisterRequest request);
+
     }
 }

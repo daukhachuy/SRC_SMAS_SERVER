@@ -1,0 +1,16 @@
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\bin\Debug\net8.0\SMAS_DataAccess.deps.json
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\bin\Debug\net8.0\SMAS_DataAccess.dll
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\bin\Debug\net8.0\SMAS_DataAccess.pdb
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\bin\Debug\net8.0\SMAS_BusinessObject.dll
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\bin\Debug\net8.0\SMAS_BusinessObject.pdb
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.csproj.AssemblyReference.cache
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.GeneratedMSBuildEditorConfig.editorconfig
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.AssemblyInfoInputs.cache
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.AssemblyInfo.cs
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.csproj.CoreCompileInputs.cache
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.sourcelink.json
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_Dat.49AF45CE.Up2Date
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.dll
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\refint\SMAS_DataAccess.dll
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\SMAS_DataAccess.pdb
+C:\FPT\1\SRC_SMAS_SERVER\SMAS_DataAccess\obj\Debug\net8.0\ref\SMAS_DataAccess.dll
