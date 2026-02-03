@@ -80,5 +80,91 @@ namespace SMAS_Services.AuthServices
             };
         }
 
+        public async Task<LoginResponse> RegisterAsync(RegisterRequest request)
+        {
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Email == request.Email &&
+                u.IsDeleted == false
+            );
+
+            if (existingUser != null)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_005.ToString() // Email exists
+                };
+            }
+
+            // Hash password
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            var user = new User
+            {
+                Email = request.Email,
+                Fullname = request.Fullname,
+                Role = "Customer",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow,
+
+                PasswordHash = passwordHash,
+                PasswordSalt = string.Empty // BCrypt đã gộp salt
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var token = _tokenService.GenerateToken(user);
+
+            return new LoginResponse
+            {
+                Token = token,
+                MsgCode = MSGCode.MSG_003.ToString() // Register success
+            };
+        }
+        public async Task<LoginResponse> RegisterGoogleAsync(string email, string fullname)
+        {
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Email == email && u.IsDeleted == false
+            );
+
+            // ĐÃ TỒN TẠI → KHÔNG CHO REGISTER
+            if (existingUser != null)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_005.ToString() // Email exists
+                };
+            }
+
+            var user = new User
+            {
+                Email = email,
+                Fullname = fullname,
+                Role = "Customer",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow,
+
+                PasswordHash = string.Empty,
+                PasswordSalt = string.Empty
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var token = _tokenService.GenerateToken(user);
+
+            return new LoginResponse
+            {
+                Token = token,
+                MsgCode = MSGCode.MSG_003.ToString() // Register success
+            };
+        }
+
+
+
     }
 }

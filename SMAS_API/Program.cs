@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SMAS_BusinessObject.Configurations;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
@@ -59,6 +60,7 @@ namespace SMAS_API
             builder.Services.AddScoped<IUserRepositories, UserRepositories>();
             builder.Services.AddScoped<IUserServices, UserServices>();
 
+            builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 
             builder.Services.AddScoped<TokenService>();
             builder.Services.AddControllers();
