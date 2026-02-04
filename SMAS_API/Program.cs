@@ -52,10 +52,22 @@ namespace SMAS_API
             });
 
             builder.Services.AddAuthorization();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins(
+                        "https://brave-hill-0480d9600.1.azurestaticapps.net",
+                        "http://localhost:3000"
+                    )
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+                });
+            });
 
 
 
-            
             builder.Services.AddScoped<AuthDAO>();
             builder.Services.AddScoped<IUserRepositories, UserRepositories>();
             builder.Services.AddScoped<IUserServices, UserServices>();
@@ -76,6 +88,8 @@ namespace SMAS_API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             //}
+
+            app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();
 
