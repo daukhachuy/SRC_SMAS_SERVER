@@ -17,10 +17,10 @@ namespace SMAS_Services.AuthServices
     {
         public readonly IUserRepositories _userRepositories;
         private readonly TokenService _tokenService;
-        private readonly SmasDatabaseContext _context;
+        private readonly RestaurantDbContext _context;
 
 
-        public UserServices(IUserRepositories userRepositories , TokenService tokenService, SmasDatabaseContext context)
+        public UserServices(IUserRepositories userRepositories , TokenService tokenService, RestaurantDbContext context)
         {
             _userRepositories = userRepositories;
             _tokenService = tokenService;

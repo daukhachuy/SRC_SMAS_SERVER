@@ -17,7 +17,7 @@ namespace SMAS_API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddDbContext<SmasDatabaseContext>(options =>
+            builder.Services.AddDbContext<RestaurantDbContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionStringDB")));
             // Bind JwtSettings
             builder.Services.Configure<JwtSettings>(
