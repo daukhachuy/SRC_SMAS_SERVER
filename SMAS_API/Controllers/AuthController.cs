@@ -1,4 +1,4 @@
-﻿using Google.Apis.Auth;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -99,6 +99,40 @@ namespace SMAS_API.Controllers
             return Ok(result);
         }
 
+      
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new LoginResponse { Token = null, MsgCode = "MSG_999" });
+            }
+            var result = await _userServices.SendForgotPasswordOtpAsync(request.Email);
+            return Ok(result);
+        }
 
+      
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new LoginResponse { Token = null, MsgCode = "MSG_999" });
+            }
+            var result = await _userServices.VerifyOtpAsync(request.Email, request.Otp);
+            return Ok(result);
+        }
+
+       
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new LoginResponse { Token = null, MsgCode = "MSG_999" });
+            }
+            var result = await _userServices.ResetPasswordAsync(request.Email, request.Otp, request.NewPassword);
+            return Ok(result);
+        }
     }
 }
