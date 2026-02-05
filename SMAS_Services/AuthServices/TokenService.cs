@@ -28,7 +28,8 @@ namespace SMAS_Services.AuthServices
             {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Name, user.Fullname),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim("avatar", user.Avatar ?? "")
         };
 
             var key = new SymmetricSecurityKey(

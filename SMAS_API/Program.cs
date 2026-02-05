@@ -7,7 +7,9 @@ using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using SMAS_Repositories.AuthRepositories;
+using SMAS_Repositories.FoodRepositories;
 using SMAS_Services.AuthServices;
+using SMAS_Services.FoodServices;
 using System.Text;
 
 namespace SMAS_API
@@ -71,6 +73,10 @@ namespace SMAS_API
             builder.Services.AddScoped<AuthDAO>();
             builder.Services.AddScoped<IUserRepositories, UserRepositories>();
             builder.Services.AddScoped<IUserServices, UserServices>();
+
+            builder.Services.AddScoped<FoodDAO>();
+            builder.Services.AddScoped<IFoodRepository, FoodRepository>();
+            builder.Services.AddScoped<IFoodService, FoodService>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 
