@@ -1,10 +1,10 @@
-﻿
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Extensions.Caching.Memory;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Enums;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.AuthRepositories;
+using SMAS_Services.EmailServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,18 +13,29 @@ using System.Threading.Tasks;
 
 namespace SMAS_Services.AuthServices
 {
-    public  class UserServices : IUserServices
+    public class UserServices : IUserServices
     {
-        public readonly IUserRepositories _userRepositories;
+        private readonly IUserRepositories _userRepositories;
         private readonly TokenService _tokenService;
         private readonly RestaurantDbContext _context;
+        private readonly IMemoryCache _cache;
+        private readonly IEmailService _emailService;
 
+        private const string OtpCacheKeyPrefix = "ForgotPasswordOtp:";
+        private static readonly TimeSpan OtpExpiry = TimeSpan.FromMinutes(5);
 
-        public UserServices(IUserRepositories userRepositories , TokenService tokenService, RestaurantDbContext context)
+        public UserServices(
+            IUserRepositories userRepositories,
+            TokenService tokenService,
+            RestaurantDbContext context,
+            IMemoryCache cache,
+            IEmailService emailService)
         {
             _userRepositories = userRepositories;
             _tokenService = tokenService;
             _context = context;
+            _cache = cache;
+            _emailService = emailService;
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
@@ -164,7 +175,82 @@ namespace SMAS_Services.AuthServices
             };
         }
 
+        public async Task<LoginResponse> SendForgotPasswordOtpAsync(string email)
+        {
+            var user = await _userRepositories.GetByUsernameAsync(email);
+            if (user == null || user.IsDeleted == true)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_001.ToString() // Email không tồn tại
+                };
+            }
 
+            var otp = new Random().Next(100000, 999999).ToString();
+            var cacheKey = OtpCacheKeyPrefix + email.Trim().ToLowerInvariant();
+            _cache.Set(cacheKey, otp, OtpExpiry);
 
+            await _emailService.SendOtpEmailAsync(user.Email!, otp);
+
+            return new LoginResponse
+            {
+                Token = null,
+                MsgCode = MSGCode.MSG_006.ToString() // OTP đã gửi
+            };
+        }
+
+        public Task<LoginResponse> VerifyOtpAsync(string email, string otp)
+        {
+            var cacheKey = OtpCacheKeyPrefix + email.Trim().ToLowerInvariant();
+            if (!_cache.TryGetValue(cacheKey, out string? storedOtp) || storedOtp != otp)
+            {
+                return Task.FromResult(new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_007.ToString() // OTP sai hoặc hết hạn
+                });
+            }
+
+            return Task.FromResult(new LoginResponse
+            {
+                Token = null,
+                MsgCode = MSGCode.MSG_009.ToString() // Xác minh OTP thành công 
+            });
+        }
+
+        public async Task<LoginResponse> ResetPasswordAsync(string email, string otp, string newPassword)
+        {
+            var cacheKey = OtpCacheKeyPrefix + email.Trim().ToLowerInvariant();
+            if (!_cache.TryGetValue(cacheKey, out string? storedOtp) || storedOtp != otp)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_007.ToString() // OTP sai hoặc hết hạn
+                };
+            }
+
+            var user = await _userRepositories.GetActiveUserByEmailAsync(email);
+            if (user == null)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_001.ToString()
+                };
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _userRepositories.UpdatePasswordAsync(user.UserId, passwordHash);
+
+            _cache.Remove(cacheKey);
+
+            return new LoginResponse
+            {
+                Token = null,
+                MsgCode = MSGCode.MSG_008.ToString() // Đổi mật khẩu thành công
+            };
+        }
     }
 }

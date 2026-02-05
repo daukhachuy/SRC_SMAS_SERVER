@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.Models;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -16,8 +16,19 @@ namespace SMAS_Repositories.AuthRepositories
         {
             _authDAO = authDAO;
         }
-        public async Task<User?> GetByUsernameAsync(string email) { 
+        public async Task<User?> GetByUsernameAsync(string email)
+        {
             return await _authDAO.GetByEmailAsync(email);
+        }
+
+        public async Task<User?> GetActiveUserByEmailAsync(string email)
+        {
+            return await _authDAO.GetActiveUserByEmailAsync(email);
+        }
+
+        public async Task UpdatePasswordAsync(int userId, string passwordHash)
+        {
+            await _authDAO.UpdatePasswordAsync(userId, passwordHash);
         }
     }
 }

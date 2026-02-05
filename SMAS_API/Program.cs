@@ -9,7 +9,11 @@ using SMAS_DataAccess.DAO;
 using SMAS_Repositories.AuthRepositories;
 using SMAS_Repositories.FoodRepositories;
 using SMAS_Services.AuthServices;
+
+using SMAS_Services.EmailServices;
+
 using SMAS_Services.FoodServices;
+
 using System.Text;
 
 namespace SMAS_API
@@ -70,9 +74,12 @@ namespace SMAS_API
 
 
 
+            builder.Services.AddMemoryCache();
             builder.Services.AddScoped<AuthDAO>();
             builder.Services.AddScoped<IUserRepositories, UserRepositories>();
             builder.Services.AddScoped<IUserServices, UserServices>();
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             builder.Services.AddScoped<FoodDAO>();
             builder.Services.AddScoped<IFoodRepository, FoodRepository>();

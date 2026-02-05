@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Auth;
+using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -16,5 +16,10 @@ namespace SMAS_Services.AuthServices
         Task<LoginResponse> RegisterAsync(RegisterRequest request);
         Task<LoginResponse> RegisterGoogleAsync(string email, string fullname);
 
+        Task<LoginResponse> SendForgotPasswordOtpAsync(string email);
+
+        Task<LoginResponse> VerifyOtpAsync(string email, string otp);
+
+        Task<LoginResponse> ResetPasswordAsync(string email, string otp, string newPassword);
     }
 }
