@@ -6,7 +6,7 @@ using SMAS_Services.FoodServices;
 namespace SMAS_API.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/food")]
     public class FoodController : Controller
     {
         private readonly IFoodService _ifoodservice;
@@ -15,13 +15,13 @@ namespace SMAS_API.Controllers
         {
             _ifoodservice = ifoodservice;
         }
-        [HttpGet("food/category")]
+        [HttpGet("category")]
         public async Task<ActionResult<FoodListResponse>> getall()
         { 
             var result = await _ifoodservice.GetAllFoodsCategoryAsync();
             return Ok(result);
         }
-        [HttpGet("food/discount")]
+        [HttpGet("discount")]
         public async Task<ActionResult<FoodListResponse>> getallfooddiscount()
         {
             var result = await _ifoodservice.GetAllFoodsDiscountAsync();
