@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SMAS_BusinessObject.Configurations;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Models;
@@ -14,7 +15,7 @@ using SMAS_Services.CustomerFeedbackServices;
 using SMAS_Services.EmailServices;
 
 using SMAS_Services.FoodServices;
-
+using System.Security.Claims;
 using System.Text;
 
 namespace SMAS_API
@@ -54,8 +55,11 @@ namespace SMAS_API
 
                     ValidIssuer = jwtSettings.Issuer,
                     ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                    RoleClaimType = ClaimTypes.Role
                 };
+
             });
 
             builder.Services.AddAuthorization();
@@ -74,6 +78,34 @@ namespace SMAS_API
             });
 
 
+            //   [Authorize(Roles = "Admin,Customer,Waiter,Kitchen,Manager")]
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Input JWT : Bearer {token}"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                 }
+                            },
+                        new string[] {}
+                    }
+                 });
+            });
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<AuthDAO>();

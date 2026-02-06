@@ -11,7 +11,8 @@ namespace SMAS_BusinessObject.Enums
         Admin,
         Manager,
         Staff,
-        Chef,
+        Waiter,
+        Kitchen,
         Customer
     }
 }
