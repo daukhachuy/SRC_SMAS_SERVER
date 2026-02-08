@@ -8,10 +8,14 @@ using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using SMAS_Repositories.AuthRepositories;
+using SMAS_Repositories.BlogRepositories;
 using SMAS_Repositories.CustomerFeedbackRepositories;
+using SMAS_Repositories.DiscountRepositories;
 using SMAS_Repositories.FoodRepositories;
 using SMAS_Services.AuthServices;
+using SMAS_Services.BlogServices;
 using SMAS_Services.CustomerFeedbackServices;
+using SMAS_Services.DiscountServices;
 using SMAS_Services.EmailServices;
 
 using SMAS_Services.FoodServices;
@@ -121,6 +125,14 @@ namespace SMAS_API
             builder.Services.AddScoped<CustomerFeedbackDAO>();
             builder.Services.AddScoped<ICustomerFeedbackRepository, CustomerFeedbackRepository>();
             builder.Services.AddScoped<ICustomerFeedbackService, CustomerFeedbackService>();
+
+            builder.Services.AddScoped<BlogDAO>();
+            builder.Services.AddScoped<IBlogRepository, BlogRepository>();
+            builder.Services.AddScoped<IBlogServices, BlogService>();
+
+            builder.Services.AddScoped<DiscountDao>();
+            builder.Services.AddScoped<IDiscountRepository,DiscountRepository>();
+            builder.Services.AddScoped<IDiscountService, DiscountService>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 
