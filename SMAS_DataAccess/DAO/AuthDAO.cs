@@ -28,6 +28,12 @@ namespace SMAS_DataAccess.DAO
                 u.Email == email && (u.IsDeleted == false || u.IsDeleted == null));
         }
 
+        public async Task CreateUserAsync(User user)
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task UpdatePasswordAsync(int userId, string passwordHash)
         {
             var user = await _context.Users.FindAsync(userId);

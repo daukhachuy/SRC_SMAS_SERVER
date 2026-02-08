@@ -30,5 +30,10 @@ namespace SMAS_Repositories.AuthRepositories
         {
             await _authDAO.UpdatePasswordAsync(userId, passwordHash);
         }
+
+        public async Task CreateAsync(User user)
+        {
+            await _authDAO.CreateUserAsync(user);
+        }
     }
 }

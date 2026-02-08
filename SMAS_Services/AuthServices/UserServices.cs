@@ -93,17 +93,13 @@ namespace SMAS_Services.AuthServices
 
         public async Task<LoginResponse> RegisterAsync(RegisterRequest request)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == request.Email &&
-                u.IsDeleted == false
-            );
-
-            if (existingUser != null)
+            var existingUser = await _userRepositories.GetByUsernameAsync(request.Email);
+            if (existingUser != null && !existingUser.IsDeleted.GetValueOrDefault(true))
             {
                 return new LoginResponse
                 {
                     Token = null,
-                    MsgCode = MSGCode.MSG_005.ToString() // Email exists
+                    MsgCode = MSGCode.MSG_005.ToString() // Email đã tồn tại
                 };
             }
 
@@ -123,8 +119,7 @@ namespace SMAS_Services.AuthServices
                 PasswordSalt = string.Empty // BCrypt đã gộp salt
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userRepositories.CreateAsync(user);
 
             var token = _tokenService.GenerateToken(user);
 
@@ -136,17 +131,13 @@ namespace SMAS_Services.AuthServices
         }
         public async Task<LoginResponse> RegisterGoogleAsync(string email, string fullname)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == email && u.IsDeleted == false
-            );
-
-            // ĐÃ TỒN TẠI → KHÔNG CHO REGISTER
-            if (existingUser != null)
+            var existingUser = await _userRepositories.GetByUsernameAsync(email);
+            if (existingUser != null && !existingUser.IsDeleted.GetValueOrDefault(true))
             {
                 return new LoginResponse
                 {
                     Token = null,
-                    MsgCode = MSGCode.MSG_005.ToString() // Email exists
+                    MsgCode = MSGCode.MSG_005.ToString() // Email đã tồn tại
                 };
             }
 
@@ -163,8 +154,7 @@ namespace SMAS_Services.AuthServices
                 PasswordSalt = string.Empty
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userRepositories.CreateAsync(user);
 
             var token = _tokenService.GenerateToken(user);
 
