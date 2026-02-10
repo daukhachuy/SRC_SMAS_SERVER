@@ -1,4 +1,5 @@
 using SMAS_BusinessObject.DTOs.Auth;
+using SMAS_BusinessObject.DTOs.Profile;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -21,5 +22,7 @@ namespace SMAS_Services.AuthServices
         Task<LoginResponse> VerifyOtpAsync(string email, string otp);
 
         Task<LoginResponse> ResetPasswordAsync(string email, string otp, string newPassword);
+        Task<LoginResponse> UpdateProfileAsync(int userId, UpdateProfileRequest request);
+        Task<User?> GetUserProfileAsync(int userId);
     }
 }

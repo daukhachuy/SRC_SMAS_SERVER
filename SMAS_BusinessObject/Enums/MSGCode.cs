@@ -17,6 +17,7 @@ namespace SMAS_BusinessObject.Enums
         MSG_007, // OTP sai hoặc hết hạn
         MSG_008, // Đổi mật khẩu thành công
         MSG_009, // Xác minh OTP thành công
+        MSG_010, // Cập nhật profile thành công
         MSG_999 // Dữ liệu đầu vào rỗng 
     }
 }

@@ -11,10 +11,12 @@ namespace SMAS_Repositories.AuthRepositories
     public class UserRepositories : IUserRepositories
     {
         private readonly AuthDAO _authDAO;
+        private readonly UserDAO _userDAO;
 
-        public UserRepositories(AuthDAO authDAO)
+        public UserRepositories(AuthDAO authDAO, UserDAO userDAO)
         {
             _authDAO = authDAO;
+            _userDAO = userDAO;
         }
         public async Task<User?> GetByUsernameAsync(string email)
         {
@@ -34,6 +36,16 @@ namespace SMAS_Repositories.AuthRepositories
         public async Task CreateAsync(User user)
         {
             await _authDAO.CreateUserAsync(user);
+        }
+
+        public async Task<User?> GetByIdAsync(int userId)
+        {
+            return await _userDAO.GetByIdAsync(userId);
+        }
+
+        public async Task UpdateProfileAsync(User user)
+        {
+            await _userDAO.UpdateProfileAsync(user);
         }
     }
 }

@@ -14,5 +14,7 @@
             Task<User?> GetActiveUserByEmailAsync(string email);
             Task UpdatePasswordAsync(int userId, string passwordHash);
             Task CreateAsync(User user);
+            Task<User?> GetByIdAsync(int userId);
+            Task UpdateProfileAsync(User user);
     }
     }

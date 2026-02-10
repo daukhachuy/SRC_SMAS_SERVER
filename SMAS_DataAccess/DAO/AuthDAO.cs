@@ -12,7 +12,7 @@ namespace SMAS_DataAccess.DAO
     {
         private readonly RestaurantDbContext _context;
 
-        public  AuthDAO(RestaurantDbContext context)
+        public AuthDAO(RestaurantDbContext context)
         {
             _context = context;
         }

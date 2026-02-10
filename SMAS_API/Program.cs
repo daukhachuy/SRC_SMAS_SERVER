@@ -111,6 +111,7 @@ namespace SMAS_API
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<AuthDAO>();
+            builder.Services.AddScoped<UserDAO>();
             builder.Services.AddScoped<IUserRepositories, UserRepositories>();
             builder.Services.AddScoped<IUserServices, UserServices>();
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
