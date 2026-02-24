@@ -1,0 +1,22 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SMAS_BusinessObject.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace SMAS_DataAccess.DAO
+{
+    public class ServiceDAO
+    {
+        private readonly RestaurantDbContext _context;
+
+        public ServiceDAO(RestaurantDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<SMAS_BusinessObject.Models.Service>> GetAllServicesAsync()
+        {
+            return await _context.Services.ToListAsync();
+        }
+    }
+}
