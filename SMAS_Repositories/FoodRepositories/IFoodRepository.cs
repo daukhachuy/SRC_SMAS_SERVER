@@ -11,5 +11,6 @@ namespace SMAS_Repositories.FoodRepositories
     public interface IFoodRepository
     {
         Task<IEnumerable<FoodListResponse>> GetAllFoodsCategoryAsync();
+        Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int topN = 10);
     }
 }

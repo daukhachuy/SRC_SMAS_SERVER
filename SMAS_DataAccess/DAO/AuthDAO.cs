@@ -12,7 +12,7 @@ namespace SMAS_DataAccess.DAO
     {
         private readonly RestaurantDbContext _context;
 
-        public  AuthDAO(RestaurantDbContext context)
+        public AuthDAO(RestaurantDbContext context)
         {
             _context = context;
         }
@@ -26,6 +26,12 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Users.FirstOrDefaultAsync(u =>
                 u.Email == email && (u.IsDeleted == false || u.IsDeleted == null));
+        }
+
+        public async Task CreateUserAsync(User user)
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdatePasswordAsync(int userId, string passwordHash)

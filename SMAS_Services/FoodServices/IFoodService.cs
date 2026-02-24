@@ -12,5 +12,7 @@ namespace SMAS_Services.FoodServices
         Task<IEnumerable<FoodListResponse>> GetAllFoodsCategoryAsync();
 
         Task<IEnumerable<FoodListResponse>> GetAllFoodsDiscountAsync();
+
+        Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int top = 10);
     }
 }

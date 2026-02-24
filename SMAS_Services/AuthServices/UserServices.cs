@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using SMAS_BusinessObject.DTOs.Auth;
+using SMAS_BusinessObject.DTOs.Profile;
 using SMAS_BusinessObject.Enums;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.AuthRepositories;
@@ -93,27 +94,28 @@ namespace SMAS_Services.AuthServices
 
         public async Task<LoginResponse> RegisterAsync(RegisterRequest request)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == request.Email &&
-                u.IsDeleted == false
-            );
-
-            if (existingUser != null)
+            var existingUser = await _userRepositories.GetByUsernameAsync(request.Email);
+            if (existingUser != null && !existingUser.IsDeleted.GetValueOrDefault(true))
             {
                 return new LoginResponse
                 {
                     Token = null,
-                    MsgCode = MSGCode.MSG_005.ToString() // Email exists
+                    MsgCode = MSGCode.MSG_005.ToString() // Email đã tồn tại
                 };
             }
-
+                
             // Hash password
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var user = new User
             {
-                Email = request.Email,
-                Fullname = request.Fullname,
+                Email = request.Email.Trim().ToLowerInvariant(),
+                Fullname = request.Fullname.Trim(),
+                Gender = request.Gender?.Trim(),
+                Dob = request.Dob,
+                Phone = request.Phone?.Trim(),
+                Address = request.Address?.Trim(),
+                Avatar = request.Avatar?.Trim(),
                 Role = "Customer",
                 IsActive = true,
                 IsDeleted = false,
@@ -123,8 +125,7 @@ namespace SMAS_Services.AuthServices
                 PasswordSalt = string.Empty // BCrypt đã gộp salt
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userRepositories.CreateAsync(user);
 
             var token = _tokenService.GenerateToken(user);
 
@@ -136,17 +137,13 @@ namespace SMAS_Services.AuthServices
         }
         public async Task<LoginResponse> RegisterGoogleAsync(string email, string fullname)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == email && u.IsDeleted == false
-            );
-
-            // ĐÃ TỒN TẠI → KHÔNG CHO REGISTER
-            if (existingUser != null)
+            var existingUser = await _userRepositories.GetByUsernameAsync(email);
+            if (existingUser != null && !existingUser.IsDeleted.GetValueOrDefault(true))
             {
                 return new LoginResponse
                 {
                     Token = null,
-                    MsgCode = MSGCode.MSG_005.ToString() // Email exists
+                    MsgCode = MSGCode.MSG_005.ToString() // Email đã tồn tại
                 };
             }
 
@@ -163,8 +160,7 @@ namespace SMAS_Services.AuthServices
                 PasswordSalt = string.Empty
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userRepositories.CreateAsync(user);
 
             var token = _tokenService.GenerateToken(user);
 
@@ -251,6 +247,58 @@ namespace SMAS_Services.AuthServices
                 Token = null,
                 MsgCode = MSGCode.MSG_008.ToString() // Đổi mật khẩu thành công
             };
+        }
+        public async Task<LoginResponse> UpdateProfileAsync(int userId, UpdateProfileRequest request)
+        {
+            var user = await _userRepositories.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted == true)
+            {
+                return new LoginResponse
+                {
+                    Token = null,
+                    MsgCode = MSGCode.MSG_001.ToString()
+                };
+            }
+
+            // chỉ update field được phép
+            if (request.Fullname != null)
+                user.Fullname = request.Fullname.Trim();
+
+            if (request.Gender != null)
+                user.Gender = request.Gender.Trim();
+
+            if (request.Dob.HasValue)
+                user.Dob = request.Dob;
+
+            if (request.Phone != null)
+                user.Phone = request.Phone.Trim();
+
+            if (request.Address != null)
+                user.Address = request.Address.Trim();
+
+            if (request.Avatar != null)
+                user.Avatar = request.Avatar.Trim();
+
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepositories.UpdateProfileAsync(user);
+
+            var newToken = _tokenService.GenerateToken(user);
+
+            return new LoginResponse
+            {
+                Token = newToken,
+                MsgCode = MSGCode.MSG_010.ToString() // Update profile success
+            };
+        }
+        public async Task<User?> GetUserProfileAsync(int userId)
+        {
+            var user = await _userRepositories.GetByIdAsync(userId);
+
+            if (user == null || user.IsDeleted == true)
+                return null;
+
+            return user;
         }
     }
 }

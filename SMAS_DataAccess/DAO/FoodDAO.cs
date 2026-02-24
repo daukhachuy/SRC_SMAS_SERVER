@@ -21,5 +21,19 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Foods.Include(c => c.Categories).ToListAsync();
         }
+
+        public async Task<List<Food>> GetTopBestSellersAsync(int topN)
+        {
+            return await _context.Foods
+                .AsNoTracking()
+                .Where(f =>
+                    (f.IsAvailable == true || f.IsAvailable == null)    
+                )
+                .OrderByDescending(f => f.OrderCount ?? 0)
+                .ThenByDescending(f => f.IsFeatured ?? false)   
+                .ThenBy(f => f.Name)                            
+                .Take(topN)
+                .ToListAsync();
+        }
     }
 }

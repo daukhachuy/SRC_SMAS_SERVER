@@ -9,6 +9,7 @@ using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using SMAS_Repositories.AuthRepositories;
 using SMAS_Repositories.BlogRepositories;
+using SMAS_Repositories.ComboRepositories;
 using SMAS_Repositories.CustomerFeedbackRepositories;
 using SMAS_Repositories.DiscountRepositories;
 using SMAS_Repositories.EventRepositories;
@@ -17,6 +18,7 @@ using SMAS_Repositories.ServiceRepositories;
 using SMAS_Services.AuthServices;
 using SMAS_Services.EventServices;
 using SMAS_Services.BlogServices;
+using SMAS_Services.ComboServices;
 using SMAS_Services.CustomerFeedbackServices;
 using SMAS_Services.DiscountServices;
 using SMAS_Services.EmailServices;
@@ -117,6 +119,7 @@ namespace SMAS_API
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<AuthDAO>();
+            builder.Services.AddScoped<UserDAO>();
             builder.Services.AddScoped<IUserRepositories, UserRepositories>();
             builder.Services.AddScoped<IUserServices, UserServices>();
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
@@ -133,6 +136,10 @@ namespace SMAS_API
             builder.Services.AddScoped<ServiceDAO>();
             builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
             builder.Services.AddScoped<IServiceService, ServiceService>();
+
+            builder.Services.AddScoped<ComboDAO>();
+            builder.Services.AddScoped<IComboRepository, ComboRepository>();
+            builder.Services.AddScoped<IComboService, ComboService>();
 
             builder.Services.AddScoped<CustomerFeedbackDAO>();
             builder.Services.AddScoped<ICustomerFeedbackRepository, CustomerFeedbackRepository>();

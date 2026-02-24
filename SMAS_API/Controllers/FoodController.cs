@@ -28,5 +28,12 @@ namespace SMAS_API.Controllers
             var result = await _ifoodservice.GetAllFoodsDiscountAsync();
             return Ok(result);
         }
+
+        [HttpGet("best-sellers")]
+        public async Task<IActionResult> GetTopBestSellers([FromQuery] int top = 10)
+        {
+            var result = await _ifoodservice.GetTopBestSellersAsync(top);
+            return Ok(result);
+        }
     }
 }

@@ -30,5 +30,10 @@ namespace SMAS_Services.FoodServices
             return foods.Where(f => f.PromotionalPrice.HasValue && 
                                                    f.PromotionalPrice.Value < f.Price);
         }
+
+        public async Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int top = 10)
+        {
+            return await _foodRepository.GetTopBestSellersAsync(top);
+        }
     }
 }
