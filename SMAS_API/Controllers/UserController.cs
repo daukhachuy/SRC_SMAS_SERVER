@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.DTOs.Profile;
 using SMAS_Services.AuthServices;
 using System.Security.Claims;
@@ -19,7 +20,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet("profile")]
-        public async Task<IActionResult> GetMyProfile()
+        public async Task<ActionResult<CustomerDetailResponse>> GetMyProfile()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdClaim, out int userId))
@@ -28,20 +29,9 @@ namespace SMAS_API.Controllers
             var user = await _userServices.GetUserProfileAsync(userId); 
             if (user == null)
                 return NotFound();
+            return Ok(user);
 
-            
-            return Ok(new
-            {
-                user.UserId,
-                user.Fullname,
-                user.Email,
-                user.Gender,
-                user.Dob,
-                user.Phone,
-                user.Address,
-                user.Avatar,
-                user.Role
-            });
+           
         }
 
         [HttpPut("profile")]

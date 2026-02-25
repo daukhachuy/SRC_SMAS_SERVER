@@ -23,6 +23,6 @@ namespace SMAS_Services.AuthServices
 
         Task<LoginResponse> ResetPasswordAsync(string email, string otp, string newPassword);
         Task<LoginResponse> UpdateProfileAsync(int userId, UpdateProfileRequest request);
-        Task<User?> GetUserProfileAsync(int userId);
+        Task<CustomerDetailResponse?> GetUserProfileAsync(int userId);
     }
 }

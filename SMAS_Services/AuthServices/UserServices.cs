@@ -291,14 +291,22 @@ namespace SMAS_Services.AuthServices
                 MsgCode = MSGCode.MSG_010.ToString() // Update profile success
             };
         }
-        public async Task<User?> GetUserProfileAsync(int userId)
+        public async Task<CustomerDetailResponse?> GetUserProfileAsync(int userId)
         {
             var user = await _userRepositories.GetByIdAsync(userId);
 
             if (user == null || user.IsDeleted == true)
                 return null;
 
-            return user;
+            return new CustomerDetailResponse
+                {
+                Fullname = user.Fullname,
+                Gender = user.Gender,
+                Dob = user.Dob,
+                Phone = user.Phone,
+                Address = user.Address,
+                Avatar = user.Avatar
+                };
         }
     }
 }
