@@ -26,6 +26,7 @@ namespace SMAS_DataAccess.DAO
 
         public async Task UpdateProfileAsync(User user)
         {
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 
