@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.Food;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,7 @@ namespace SMAS_Services.FoodServices
         Task<IEnumerable<FoodListResponse>> GetAllFoodsDiscountAsync();
 
         Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int top = 10);
+
+        Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId);
     }
 }

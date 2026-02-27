@@ -35,5 +35,14 @@ namespace SMAS_DataAccess.DAO
                 .Take(topN)
                 .ToListAsync();
         }
+
+
+        public async Task<Buffet?> GetBuffetWithFoodsAsync(int buffetId)
+        {
+            return await _context.Buffets
+                .Include(b => b.BuffetFoods)
+                    .ThenInclude(bf => bf.Food)
+                .FirstOrDefaultAsync(b => b.BuffetId == buffetId);
+        }
     }
 }

@@ -35,5 +35,23 @@ namespace SMAS_API.Controllers
             var result = await _ifoodservice.GetTopBestSellersAsync(top);
             return Ok(result);
         }
+
+        [HttpGet("BuffetId/{id}")]
+        public async Task<IActionResult> GetBuffetDetail(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "BuffetId phải lớn hơn 0"
+                });
+            }
+            var result = await _ifoodservice.GetBuffetWithFoodsAsync(id);
+
+            if (result == null)
+                return NotFound(new { message = "Buffet not found" });
+
+            return Ok(result);
+        }
     }
 }
