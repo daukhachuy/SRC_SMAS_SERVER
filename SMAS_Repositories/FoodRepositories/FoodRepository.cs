@@ -92,5 +92,36 @@ namespace SMAS_Repositories.FoodRepositories
                 }).ToList() ?? new List<CategoryFoodListResponse>()
             });
         }
+
+        public async Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId)
+        {
+            var buffet = await _foodDAO.GetBuffetWithFoodsAsync(buffetId);
+
+            if (buffet == null) return null;
+
+            var result = new BuffetDetailResponseDTO
+            {
+                BuffetId = buffet.BuffetId,
+                Name = buffet.Name,
+                Description = buffet.Description,
+                MainPrice = buffet.MainPrice,
+                ChildrenPrice = buffet.ChildrenPrice,
+                SidePrice = buffet.SidePrice,
+                Image = buffet.Image,
+
+                Foods = buffet.BuffetFoods.Select(bf => new BuffetFoodResponseDTO
+                {
+                    FoodId = bf.Food.FoodId,
+                    FoodName = bf.Food.Name,
+                    Price = bf.Food.Price,
+                    Image = bf.Food.Image,
+                    Quantity = bf.Quantity,
+                    IsUnlimited = bf.IsUnlimited
+                }).ToList()
+            };
+
+            return result;
+        }
+    
     }
 }
