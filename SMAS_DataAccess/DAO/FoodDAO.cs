@@ -44,5 +44,33 @@ namespace SMAS_DataAccess.DAO
                     .ThenInclude(bf => bf.Food)
                 .FirstOrDefaultAsync(b => b.BuffetId == buffetId);
         }
+
+        public async Task<List<Food>> FilterFoodsAsync(List<int>? categoryIds,decimal? minPrice,decimal? maxPrice)
+        {
+            var query = _context.Foods
+                                .Include(f => f.Categories)
+                                .Where(f => f.IsAvailable == true)
+                                .AsQueryable();
+
+            if (categoryIds != null && categoryIds.Any())
+            {
+                query = query.Where(f =>
+                    f.Categories.Any(c => categoryIds.Contains(c.CategoryId)));
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(f =>
+                    (f.PromotionalPrice ?? f.Price) >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(f =>
+                    (f.PromotionalPrice ?? f.Price) <= maxPrice.Value);
+            }
+
+            return await query.OrderByDescending(f => f.CreatedAt).ToListAsync();
+        }
     }
 }

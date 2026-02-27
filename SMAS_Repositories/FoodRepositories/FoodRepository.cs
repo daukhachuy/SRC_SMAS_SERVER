@@ -122,6 +122,28 @@ namespace SMAS_Repositories.FoodRepositories
 
             return result;
         }
-    
+
+
+        public async Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request)
+        {
+            var foods = await _foodDAO.FilterFoodsAsync(
+                request.CategoryIds,
+                request.MinPrice,
+                request.MaxPrice);
+
+            return foods.Select(f => new FoodFilterResponseDTO
+            {
+                FoodId = f.FoodId,
+                Name = f.Name,
+                Description = f.Description,
+                Price = f.Price,
+                PromotionalPrice = f.PromotionalPrice,
+                Image = f.Image,
+                Unit = f.Unit,
+                Rating = f.Rating,
+                Note = f.Note
+            }).ToList();
+        }
+
     }
 }
