@@ -14,5 +14,6 @@ namespace SMAS_BusinessObject.DTOs.Profile
         public string? Phone { get; set; }
         public string? Address { get; set; }
         public string? Avatar { get; set; }
+        public string? NewPassword { get; set; }
     }
 }

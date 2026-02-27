@@ -260,24 +260,33 @@ namespace SMAS_Services.AuthServices
                 };
             }
 
-            // chỉ update field được phép
-            if (request.Fullname != null)
+            // update info
+            if (!string.IsNullOrWhiteSpace(request.Fullname))
                 user.Fullname = request.Fullname.Trim();
 
-            if (request.Gender != null)
+            if (!string.IsNullOrWhiteSpace(request.Gender))
                 user.Gender = request.Gender.Trim();
 
             if (request.Dob.HasValue)
                 user.Dob = request.Dob;
 
-            if (request.Phone != null)
+            if (!string.IsNullOrWhiteSpace(request.Phone))
                 user.Phone = request.Phone.Trim();
 
-            if (request.Address != null)
+            if (!string.IsNullOrWhiteSpace(request.Address))
                 user.Address = request.Address.Trim();
 
-            if (request.Avatar != null)
+            if (!string.IsNullOrWhiteSpace(request.Avatar))
                 user.Avatar = request.Avatar.Trim();
+
+
+            // đổi password nếu có
+            if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                var hashed = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                user.PasswordHash = hashed;
+                user.PasswordSalt = string.Empty;
+            }
 
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -288,7 +297,7 @@ namespace SMAS_Services.AuthServices
             return new LoginResponse
             {
                 Token = newToken,
-                MsgCode = MSGCode.MSG_010.ToString() // Update profile success
+                MsgCode = MSGCode.MSG_010.ToString()
             };
         }
         public async Task<CustomerDetailResponse?> GetUserProfileAsync(int userId)
