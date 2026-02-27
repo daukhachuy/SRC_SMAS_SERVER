@@ -40,5 +40,10 @@ namespace SMAS_Services.FoodServices
         {
             return await _foodRepository.GetBuffetWithFoodsAsync(buffetId);
         }
+
+        public async Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request)
+        {
+            return await _foodRepository.FilterFoodsAsync(request);
+        }
     }
 }

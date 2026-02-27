@@ -53,5 +53,27 @@ namespace SMAS_API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("filter")]
+        public async Task<IActionResult> FilterFoods([FromQuery] FoodFilterRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Validate logic business
+            if (request.MinPrice.HasValue &&
+                request.MaxPrice.HasValue &&
+                request.MinPrice > request.MaxPrice)
+            {
+                return BadRequest(new
+                {
+                    message = "MinPrice không được lớn hơn MaxPrice"
+                });
+            }
+
+            var result = await _ifoodservice.FilterFoodsAsync(request);
+
+            return Ok(result);
+        }
     }
 }

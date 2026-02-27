@@ -17,5 +17,6 @@ namespace SMAS_Services.FoodServices
         Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int top = 10);
 
         Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId);
+        Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request);
     }
 }
