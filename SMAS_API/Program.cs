@@ -31,6 +31,10 @@ using SMAS_Repositories.CategoryRepositories;
 using SMAS_Services.CategoryServices;
 using SMAS_Repositories.BuffetRepositories;
 using SMAS_Services.BufferServices;
+using SMAS_Repositories.ReservationRepositories;
+using SMAS_Services.ReservationServices;
+using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.OrderServices;
 
 namespace SMAS_API
 {
@@ -164,6 +168,14 @@ namespace SMAS_API
             builder.Services.AddScoped<BuffetDAO>();
             builder.Services.AddScoped<IBuffetRepository, BuffetRepository>();
             builder.Services.AddScoped<IBufferServices, BufferService>();
+
+            builder.Services.AddScoped<ReservationDAO>();
+            builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+            builder.Services.AddScoped<IReservationService, ReservationService>();
+
+            builder.Services.AddScoped<OrderDAO>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 

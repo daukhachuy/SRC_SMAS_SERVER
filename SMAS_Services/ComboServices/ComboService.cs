@@ -21,5 +21,16 @@ namespace SMAS_Services.ComboServices
         {
             return await _comboRepository.GetAvailableComboListAsync();
         }
+        public async Task<IEnumerable<ComboListResponse>> GetCombosFilterAsync(CombosFilterRequest request)
+        {
+            var combos = await _comboRepository.GetAvailableComboListAsync();
+
+            if (combos == null || !combos.Any())
+                return Enumerable.Empty<ComboListResponse>();
+
+            return combos
+                        .Where(c => !request.MinPrice.HasValue || c.Price >= request.MinPrice.Value)
+                        .Where(c => !request.MaxPrice.HasValue || c.Price <= request.MaxPrice.Value);
+        }
     }
 }

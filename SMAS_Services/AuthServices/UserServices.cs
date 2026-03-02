@@ -312,6 +312,7 @@ namespace SMAS_Services.AuthServices
                 Fullname = user.Fullname,
                 Gender = user.Gender,
                 Dob = user.Dob,
+                Email = user.Email,
                 Phone = user.Phone,
                 Address = user.Address,
                 Avatar = user.Avatar

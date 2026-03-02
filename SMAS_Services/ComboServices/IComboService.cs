@@ -10,5 +10,7 @@ namespace SMAS_Services.ComboServices
     public interface IComboService
     {
         Task<IEnumerable<ComboListResponse>> GetAvailableCombosAsync();
+
+        Task<IEnumerable<ComboListResponse>> GetCombosFilterAsync(CombosFilterRequest request);
     }
 }

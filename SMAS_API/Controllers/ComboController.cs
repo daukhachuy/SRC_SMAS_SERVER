@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SMAS_BusinessObject.DTOs.Combo;
 using SMAS_Services.ComboServices;
 
 namespace SMAS_API.Controllers
@@ -21,6 +22,26 @@ namespace SMAS_API.Controllers
             return Ok(combos);
         }
 
-        
+        [HttpPost("filter")]
+        public async Task<IActionResult> GetCombosFilter([FromQuery] CombosFilterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (request.MinPrice.HasValue &&
+               request.MaxPrice.HasValue &&
+               request.MinPrice > request.MaxPrice)
+            {
+                return BadRequest(new
+                {
+                    message = "MinPrice không được lớn hơn MaxPrice"
+                });
+            }
+            var filteredCombos = await _comboService.GetCombosFilterAsync(request);
+            return Ok(filteredCombos);
+        }
+      
+
     }
 }
