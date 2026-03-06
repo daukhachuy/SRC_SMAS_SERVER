@@ -11,5 +11,7 @@ namespace SMAS_Repositories.OrderRepositories
     public interface IOrderRepository
     {
         Task<IEnumerable<OrderListResponseDTO>> GetOrdersByUserAndStatusAsync(OrderListStatusRequest request, int userid);
+
+        Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request ,int userid);
     }
 }

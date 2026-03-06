@@ -72,5 +72,14 @@ namespace SMAS_DataAccess.DAO
 
             return await query.OrderByDescending(f => f.CreatedAt).ToListAsync();
         }
+
+
+        public async Task<decimal> GetFoodPriceAsync(int foodId)
+        {
+            return await _context.Foods
+                .Where(f => f.FoodId == foodId)
+                .Select(f => f.PromotionalPrice ?? f.Price) 
+                .FirstOrDefaultAsync();
+        }
     }
 }

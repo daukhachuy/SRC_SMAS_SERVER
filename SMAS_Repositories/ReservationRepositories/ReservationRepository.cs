@@ -49,5 +49,36 @@ namespace SMAS_Repositories.ReservationRepositories
             var reservations = await GetAllReservationsAsync();
             return  reservations.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
         }
+
+        public async Task<ReservationListResponse> CreatePendingReservation(Reservation request)
+        {
+            var r = await _reservation.AddReservation(request);
+
+            return new ReservationListResponse
+            {
+                UserId = r.UserId,
+                Fullname = r.User.Fullname,
+                Phone = r.User.Phone,
+                Email = r.User.Email,
+                ReservationId = r.ReservationId,
+                ReservationCode = r.ReservationCode,
+                ReservationDate = r.ReservationDate,
+                ReservationTime = r.ReservationTime,
+                NumberOfGuests = r.NumberOfGuests,
+                SpecialRequests = r.SpecialRequests,
+                Status = r.Status,
+                ConfirmedAt = r.ConfirmedAt,
+                CancelledAt = r.CancelledAt,
+                CancellationReason = r.CancellationReason,
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                ConfirmedBy = r.ConfirmedBy,
+                ConfirmedByName = r.ConfirmedByNavigation != null ? r.ConfirmedByNavigation.User.Fullname : null
+            };
+        }
+
+        public async Task<bool> CheckDuplicateReservation(int userId, DateOnly date, TimeOnly time) => await _reservation.CheckDuplicateReservation(userId, date, time);
+        public bool CheckCodeExists(string code) => _reservation.CheckCodeExists(code);
+
     }
 }

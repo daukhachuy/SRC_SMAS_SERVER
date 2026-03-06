@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.ReservationDTO;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace SMAS_Services.ReservationServices
     {
         Task<IEnumerable<ReservationListResponse>> GetAllReservationsAsync();
 
-        
+        Task<ReservationListResponse> CreatePendingReservation(ReservationCreateRequestDTO dto, int userid);
+
+
     }
 }

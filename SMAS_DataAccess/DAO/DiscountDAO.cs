@@ -22,5 +22,14 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Discounts.ToListAsync();
         }
+
+        public async Task<Discount?> GetDiscountByIdAsync(string Code)
+        {
+            //DateTime now = DateTime.Now;
+            //return await _context.Discounts.FirstOrDefaultAsync(d => d.Code == Code && d.Status == "Active"
+            //                     && d.StartDate.ToDateTime(TimeOnly.MinValue) <= now
+            //                     && d.EndDate.ToDateTime(TimeOnly.MaxValue) >= now);
+            return await _context.Discounts.FirstOrDefaultAsync(d => d.Code == Code && d.Status == "Active");
+        }
     }
 }

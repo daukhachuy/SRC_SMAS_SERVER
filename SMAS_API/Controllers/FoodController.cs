@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.Food;
+using SMAS_BusinessObject.Models;
 using SMAS_Services.AuthServices;
 using SMAS_Services.FoodServices;
 
@@ -20,12 +21,20 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<FoodListResponse>> getall()
         { 
             var result = await _ifoodservice.GetAllFoodsCategoryAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_017", Message = "Không có món ăn nào !" });
+            }
             return Ok(result);
         }
         [HttpGet("discount")]
         public async Task<ActionResult<FoodListResponse>> getallfooddiscount()
         {
             var result = await _ifoodservice.GetAllFoodsDiscountAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_018", Message = "Không có món ăn nào đang giảm giá !" });
+            }
             return Ok(result);
         }
 
@@ -33,6 +42,10 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> GetTopBestSellers([FromQuery] int top = 10)
         {
             var result = await _ifoodservice.GetTopBestSellersAsync(top);
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_019", Message = "Không có món ăn nào được bán chạy !" });
+            }
             return Ok(result);
         }
 
@@ -49,7 +62,7 @@ namespace SMAS_API.Controllers
             var result = await _ifoodservice.GetBuffetWithFoodsAsync(id);
 
             if (result == null)
-                return NotFound(new { message = "Buffet not found" });
+                return NotFound(new { MsgCode = "MSG_020", Message = "Không tìm thấy buffer !" });
 
             return Ok(result);
         }

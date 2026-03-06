@@ -33,9 +33,33 @@ namespace SMAS_API.Controllers
 
             var result = await _orderService
                 .GetOrdersByUserAndStatusAsync(request , userId);
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_021", Message = "Không có đơn hàng nào !" });
+            }
 
             return Ok(result);
         }
-    
-    }
+
+        [Authorize(Roles = "Customer")]
+        [HttpPost("create/delivery")]
+        public async Task<ActionResult<OrderDeliveryResponse>> CreateOrder([FromBody] CreateOrderDeliveryRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+            var result = await _orderService.CreateOrderDeliveryAsync(request, userId);
+            if (result.Success == false)
+            {
+                return BadRequest(new { MsgCode = 29, Message = result.Message });
+            }
+            return Ok(result);
+        }
+
+
+     }
 }

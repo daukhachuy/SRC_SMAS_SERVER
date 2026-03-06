@@ -13,5 +13,11 @@ namespace SMAS_Repositories.ReservationRepositories
         Task<IEnumerable<ReservationListResponse>> GetAllReservationsAsync();
 
         Task<IEnumerable<ReservationListResponse>> GetAllReservationsByStatusAsync(String status);
+
+        Task<ReservationListResponse> CreatePendingReservation(Reservation request);
+
+        Task<bool> CheckDuplicateReservation(int userId, DateOnly date, TimeOnly time);
+
+        bool CheckCodeExists(string code);
     }
 }

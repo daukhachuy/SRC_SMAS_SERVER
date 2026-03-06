@@ -18,6 +18,24 @@ namespace SMAS_BusinessObject.Enums
         MSG_008, // Đổi mật khẩu thành công
         MSG_009, // Xác minh OTP thành công
         MSG_010, // Cập nhật profile thành công
+        MSG_011, // Bạn đã đặt chỗ vào ngày giờ này rồi
+        MSG_013, // Mã giảm giá không tồn tại
+        MSG_014, // Không có mã giảm giá nào
+        MSG_015, // Không có sự kiện nào
+        MSG_016, // Không có phản hồi nào
+        MSG_017, // Không có món ăn nào
+        MSG_018, // Không có món ăn nào đang giảm giá
+        MSG_019, // Không có món ăn nào được bán chạy
+        MSG_020, // Không tìm thấy buffer
+        MSG_021,
+        MSG_022, // Không có dịch vụ nào đang hoạt động
+        MSG_023,
+        MSG_024,
+        MSG_025, // Không có combo nào đang hoạt động
+        MSG_026, // Không có combo nào phù hợp với tiêu chí lọc
+        MSG_027,
+        MSG_028,
+        MSG_029, // đặt dơn giao hàng không thành công 
         MSG_999 // Dữ liệu đầu vào rỗng 
     }
 }

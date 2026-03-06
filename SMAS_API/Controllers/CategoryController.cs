@@ -20,6 +20,10 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<BlogResponse>> GetAllBlogs()
         {
             var result = await _categoryService.GetAllCategoryAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_027", Message = "Không có danh mục nào !" });
+            }
             return Ok(result);
         }
     }

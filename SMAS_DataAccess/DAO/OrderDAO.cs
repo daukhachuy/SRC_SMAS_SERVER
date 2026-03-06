@@ -37,5 +37,12 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<Order> CreateOrderDeliveryAsync(Order order)
+        {
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
     }
 }
