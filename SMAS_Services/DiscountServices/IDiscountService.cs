@@ -10,5 +10,7 @@ namespace SMAS_Services.DiscountServices
     public interface IDiscountService
     {
         Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync();
+
+        Task<DiscountResponse?> GetDiscountByCodeAsync(string code);
     }
 }

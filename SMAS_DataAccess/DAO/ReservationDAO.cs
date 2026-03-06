@@ -23,5 +23,26 @@ namespace SMAS_DataAccess.DAO
                                               .Include(s => s.ConfirmedByNavigation.User)
                                               .ToListAsync();
         }
+
+        public bool CheckCodeExists(string code) => _context.Reservations.Any(r => r.ReservationCode == code);
+
+        public async Task<bool> CheckDuplicateReservation(int userId, DateOnly date, TimeOnly time)
+        {
+            return await _context.Reservations.AnyAsync(r =>
+                r.UserId == userId &&
+                r.ReservationDate == date &&
+                r.ReservationTime == time &&
+                r.Status != "Cancelled");
+        }
+
+        public async Task<Reservation> AddReservation(Reservation reservation)
+        {
+            _context.Reservations.Add(reservation);
+            await _context.SaveChangesAsync();
+            var addedReservation = await _context.Reservations.Include(u => u.User)
+                                                        .Include(s => s.ConfirmedByNavigation.User)
+                                                        .FirstOrDefaultAsync(r => r.ReservationCode == reservation.ReservationCode);
+            return addedReservation!;
+        }
     }
 }

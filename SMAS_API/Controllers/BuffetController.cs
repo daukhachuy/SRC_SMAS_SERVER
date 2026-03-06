@@ -19,6 +19,10 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<BlogResponse>> GetAllBlogs()
         {
             var result = await _buffetService.GetAllBuffetsAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_028", Message = "Không có buffet nào !" });
+            }
             return Ok(result);
         }
     }

@@ -11,5 +11,7 @@ namespace SMAS_Repositories.DiscountRepositories
     public interface IDiscountRepository
     {
         Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync();
+
+        Task<DiscountResponse?> GetDiscountByCodeAsync(string code);
     }
 }

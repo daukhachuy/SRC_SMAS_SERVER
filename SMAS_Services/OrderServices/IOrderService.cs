@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.OrderDTO;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace SMAS_Services.OrderServices
     public interface IOrderService
     {
         Task<IEnumerable<OrderListResponseDTO>> GetOrdersByUserAndStatusAsync(OrderListStatusRequest request , int userid);
+        Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request , int userid);
     }
 }

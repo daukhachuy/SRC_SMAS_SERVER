@@ -28,7 +28,9 @@ namespace SMAS_API.Controllers
 
             var user = await _userServices.GetUserProfileAsync(userId); 
             if (user == null)
-                return NotFound();
+            {
+                return NotFound(new { MsgCode = "MSG_023", Message = "Không tìm thấy thông tin người dùng !" });
+            }
             return Ok(user);
 
            

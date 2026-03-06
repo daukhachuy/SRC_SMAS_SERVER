@@ -38,5 +38,28 @@ namespace SMAS_Repositories.DiscountRepositories
                 CreatedAt = d.CreatedAt
             });
         }
+
+        public async Task<DiscountResponse?> GetDiscountByCodeAsync(string Code)
+        {
+            var discount = await _context.GetDiscountByIdAsync(Code);
+            if (discount == null) return null;
+            return new DiscountResponse
+            {
+                DiscountId = discount.DiscountId,
+                Code = discount.Code,
+                Description = discount.Description,
+                DiscountType = discount.DiscountType,
+                Value = discount.Value,
+                MinOrderAmount = discount.MinOrderAmount,
+                MaxDiscountAmount = discount.MaxDiscountAmount,
+                StartDate = discount.StartDate,
+                EndDate = discount.EndDate,
+                UsageLimit = discount.UsageLimit,
+                UsedCount = discount.UsedCount,
+                ApplicableFor = discount.ApplicableFor,
+                Status = discount.Status,
+                CreatedAt = discount.CreatedAt
+            };
+        }
     }
 }

@@ -19,6 +19,10 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<IEnumerable<ServiceListResponse>>> GetAll()
         {
             var result = await _serviceService.GetAllServicesAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_022", Message = "Không có dịch vụ nào !" });
+            }
             return Ok(result);
         }
     }

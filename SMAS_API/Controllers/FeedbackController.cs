@@ -19,6 +19,10 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<FeedbackListResponse>> GetAllFeedbacks()
         {
             var result = await _feedbackService.GetAllFeedbacksAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_016", Message = "Không có phản hồi nào !" });
+            }
             return Ok(result);
         }
 
