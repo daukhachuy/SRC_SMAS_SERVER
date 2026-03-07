@@ -19,7 +19,7 @@ namespace SMAS_DataAccess.DAO
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.Include(s => s.Staff).FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User?> GetActiveUserByEmailAsync(string email)
