@@ -24,11 +24,13 @@ namespace SMAS_Services.AuthServices
 
         public string GenerateToken(User user)
         {
+            var role = user.Role ?? "Customer";
+            if (role == "Staff") role = user.Staff.Position;
             var claims = new[]
             {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new Claim(ClaimTypes.Name, user.Fullname),
-            new Claim(ClaimTypes.Role, user.Role),
+            new Claim(ClaimTypes.Name, user.Fullname),          
+            new Claim(ClaimTypes.Role,role),
             new Claim("avatar", user.Avatar ?? "")
         };
 
