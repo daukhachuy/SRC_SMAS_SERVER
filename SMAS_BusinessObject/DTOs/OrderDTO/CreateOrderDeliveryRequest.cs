@@ -47,5 +47,9 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         [MaxLength(255, ErrorMessage = "Ghi chú giao hàng không quá 255 ký tự.")]
         public string? Note { get; set; }
+        //[Required(ErrorMessage = "Địa chỉ giao hàng là bắt buộc.")]
+        //public double Latitude { get; set; }
+        //[Required(ErrorMessage = "Địa chỉ giao hàng là bắt buộc.")]
+        //public double Longitude { get; set; }
     }
 }
