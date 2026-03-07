@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SMAS_BusinessObject.DTOs.OrderDTO;
@@ -225,7 +225,13 @@ namespace SMAS_Repositories.OrderRepositories
                 var result = await _orderDAO.CreateOrderDeliveryAsync(order);
 
                 await transaction.CommitAsync();
-                return new OrderDeliveryResponse { Success = true, Message = $"Đơn hàng của bạn đã thêm thành công." };
+                return new OrderDeliveryResponse
+                {
+                    Success = true,
+                    Message = "Đơn hàng của bạn đã thêm thành công.",
+                    OrderId = result.OrderId,
+                    OrderCode = result.OrderCode
+                };
             }
             catch (Exception)
             {
@@ -234,6 +240,15 @@ namespace SMAS_Repositories.OrderRepositories
             }
         }
 
+        public async Task<Order?> GetOrderByIdAsync(int orderId)
+        {
+            return await _orderDAO.GetOrderByIdAsync(orderId);
+        }
+
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, string orderStatus)
+        {
+            return await _orderDAO.UpdateOrderStatusAsync(orderId, orderStatus);
+        }
 
         public async Task<(double lat, double lon)> GetCoordinatesFromAddress(string address)
         {

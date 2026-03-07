@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -43,6 +43,25 @@ namespace SMAS_DataAccess.DAO
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             return order;
+        }
+
+        public async Task<Order?> GetOrderByIdAsync(int orderId)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+        }
+
+        /// <summary>
+        /// Cập nhật trạng thái đơn hàng (dùng khi webhook PayOS báo thanh toán thành công).
+        /// </summary>
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, string orderStatus)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order == null) return false;
+            order.OrderStatus = orderStatus;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
