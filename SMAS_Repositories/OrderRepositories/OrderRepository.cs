@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Core;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -177,15 +180,44 @@ namespace SMAS_Repositories.OrderRepositories
                 {
                     if (request.DeliveryInfo == null)
                         return new OrderDeliveryResponse { Success = false, Message = "Thiếu thông tin giao hàng." };
+                    //double distance = CalculateDistance(
+                    //            16.0256325, 108.2178437,
+                    //            request.DeliveryInfo.Latitude,
+                    //            request.DeliveryInfo.Longitude
+                    //);
 
+                    var location = await GetCoordinatesFromAddress(request.DeliveryInfo.Address);
+
+                    double userLat = location.lat;
+                    double userLng = location.lon;
+                    if (userLat == 0 && userLng == 0)
+                        return new OrderDeliveryResponse { Success = false, Message = "Không thể xác định tọa độ từ địa chỉ đã cung cấp." };
+
+                    double distance = CalculateDistance(16.0256325, 108.2178437, userLat, userLng);
+
+
+                    if (distance > 20)
+                        return new OrderDeliveryResponse
+                        {
+                            Success = false,
+                            Message = "Địa chỉ nằm ngoài phạm vi giao hàng (20km)."
+                        };
                     order.Delivery = new DeliveryDetail
                     {
                         RecipientName = request.DeliveryInfo.RecipientName,
                         RecipientPhone = request.DeliveryInfo.RecipientPhone,
                         Address = request.DeliveryInfo.Address,
-                        DeliveryStatus = "Pending"
+                        DeliveryStatus = "Pending",
+                        DeliveryCode = "ORD-" + DateTime.Now.Ticks.ToString().Substring(10),
+                        Note = request.DeliveryInfo.Note
+
                     };
-                    order.DeliveryPrice = 20000;
+                    if (distance <= 5)
+                        order.DeliveryPrice = 15000;
+                    else if (distance <= 10)
+                        order.DeliveryPrice = 25000;
+                    else
+                        order.DeliveryPrice = 40000;
                 }
 
                 order.TotalAmount = (order.SubTotal ?? 0) - (order.DiscountAmount ?? 0) + (order.DeliveryPrice ?? 0);
@@ -200,6 +232,55 @@ namespace SMAS_Repositories.OrderRepositories
                 await transaction.RollbackAsync();
                 return new OrderDeliveryResponse { Success = false, Message = "Lỗi hệ thống khi xử lý đơn hàng. Vui lòng thử lại sau." };
             }
+        }
+
+
+        public async Task<(double lat, double lon)> GetCoordinatesFromAddress(string address)
+        {
+            var fullAddress = address + ", Da Nang, Vietnam";
+            var client = new HttpClient();
+
+            client.DefaultRequestHeaders.Add("User-Agent", "RestaurantDeliveryApp");
+
+            var url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(address)}&format=json&limit=1";
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var data = JsonConvert.DeserializeObject<List<NominatimResponse>>(json);
+
+            if (data == null || !data.Any()) return (0, 0);
+
+            var lat = double.Parse(data[0].lat.Replace(",", "."), CultureInfo.InvariantCulture);
+            var lon = double.Parse(data[0].lon.Replace(",", "."), CultureInfo.InvariantCulture);
+
+            return (lat, lon);
+        }
+
+        public class NominatimResponse
+        {
+            public string lat { get; set; }
+            public string lon { get; set; }
+        }
+
+        private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            var R = 6371; // km
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1 * Math.PI / 180) *
+                    Math.Cos(lat2 * Math.PI / 180) *
+                    Math.Sin(dLon / 2) *
+                    Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return R * c;
         }
     }
 }
