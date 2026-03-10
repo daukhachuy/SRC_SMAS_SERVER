@@ -36,7 +36,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpPost("login/google")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request ,[FromServices] IOptions<GoogleAuthSettings> googleSettings)
         {
             if (!ModelState.IsValid)
             {
@@ -50,7 +50,7 @@ namespace SMAS_API.Controllers
                 request.Token,
                 new GoogleJsonWebSignature.ValidationSettings()
                 {
-                    Audience = new[] { "YOUR_CLIENT_ID" }
+                    Audience = googleSettings.Value.ClientIds
                 });
 
             var result = await _userServices.LoginGoogleAsync(payload.Email);
