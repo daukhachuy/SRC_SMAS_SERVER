@@ -33,7 +33,9 @@ using SMAS_Repositories.BuffetRepositories;
 using SMAS_Services.BufferServices;
 using SMAS_Repositories.ReservationRepositories;
 using SMAS_Services.ReservationServices;
+using SMAS_Repositories.ManagerRepositories;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
@@ -178,6 +180,10 @@ namespace SMAS_API
             builder.Services.AddScoped<OrderDAO>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderService, OrderService>();
+
+            builder.Services.AddScoped<ManagerDAO>();
+            builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
+            builder.Services.AddScoped<IManagerService, ManagerService>();
 
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
