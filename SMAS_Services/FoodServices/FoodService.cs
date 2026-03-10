@@ -27,13 +27,23 @@ namespace SMAS_Services.FoodServices
         {
             var foods = await _foodRepository.GetAllFoodsCategoryAsync();
 
-            return foods.Where(f => f.PromotionalPrice.HasValue && 
+            return foods.Where(f => f.PromotionalPrice.HasValue &&
                                                    f.PromotionalPrice.Value < f.Price);
         }
 
         public async Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int top = 10)
         {
             return await _foodRepository.GetTopBestSellersAsync(top);
+        }
+
+        public async Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId)
+        {
+            return await _foodRepository.GetBuffetWithFoodsAsync(buffetId);
+        }
+
+        public async Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request)
+        {
+            return await _foodRepository.FilterFoodsAsync(request);
         }
     }
 }

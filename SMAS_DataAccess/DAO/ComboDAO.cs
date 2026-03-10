@@ -22,13 +22,21 @@ namespace SMAS_DataAccess.DAO
             return await _context.Combos
                 .AsNoTracking()
                 .Include(c => c.ComboFoods)
-                    .ThenInclude(cf => cf.Food)   // load thông tin món ăn
+                    .ThenInclude(cf => cf.Food)   
                 .Where(c =>
                     (c.IsAvailable == true || c.IsAvailable == null) &&
                     (c.ExpiryDate == null || c.ExpiryDate >= DateOnly.FromDateTime(DateTime.UtcNow))
                 )
-                .OrderByDescending(c => c.CreatedAt)   // hoặc order theo tiêu chí bạn muốn
+                .OrderByDescending(c => c.CreatedAt)   
                 .ToListAsync();
+        }
+
+        public async Task<decimal> GetComboPriceAsync(int comboId)
+        {
+            return await _context.Combos
+                .Where(c => c.ComboId == comboId && c.IsAvailable == true)
+                .Select(c => c.Price)
+                .FirstOrDefaultAsync();
         }
     }
 }

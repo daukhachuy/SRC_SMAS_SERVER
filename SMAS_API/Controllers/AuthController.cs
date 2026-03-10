@@ -56,6 +56,9 @@ namespace SMAS_API.Controllers
             var result = await _userServices.LoginGoogleAsync(payload.Email);
             return Ok(result);
         }
+
+
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {

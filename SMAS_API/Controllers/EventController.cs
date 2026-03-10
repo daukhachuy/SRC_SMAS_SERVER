@@ -19,6 +19,10 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<IEnumerable<EventListResponse>>> GetAll()
         {
             var result = await _eventService.GetAllEventsAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_015", Message = "Không có sự kiện nào !" });
+            }
             return Ok(result);
         }
     }

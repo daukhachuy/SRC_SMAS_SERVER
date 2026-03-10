@@ -27,6 +27,18 @@ using SMAS_Services.FoodServices;
 using SMAS_Services.ServiceServices;
 using System.Security.Claims;
 using System.Text;
+using SMAS_Repositories.CategoryRepositories;
+using SMAS_Services.CategoryServices;
+using SMAS_Repositories.BuffetRepositories;
+using SMAS_Services.BufferServices;
+using SMAS_Repositories.ReservationRepositories;
+using SMAS_Services.ReservationServices;
+using SMAS_Repositories.ManagerRepositories;
+using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.ManagerServices;
+using SMAS_Services.OrderServices;
+using SMAS_Services.PaymentServices;
+using SMAS_BusinessObject.DTOs.PayOSDTO;
 
 namespace SMAS_API
 {
@@ -152,6 +164,30 @@ namespace SMAS_API
             builder.Services.AddScoped<DiscountDao>();
             builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
             builder.Services.AddScoped<IDiscountService, DiscountService>();
+
+            builder.Services.AddScoped<CategoryDAO>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+            builder.Services.AddScoped<BuffetDAO>();
+            builder.Services.AddScoped<IBuffetRepository, BuffetRepository>();
+            builder.Services.AddScoped<IBufferServices, BufferService>();
+
+            builder.Services.AddScoped<ReservationDAO>();
+            builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+            builder.Services.AddScoped<IReservationService, ReservationService>();
+
+            builder.Services.AddScoped<OrderDAO>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+
+            builder.Services.AddScoped<ManagerDAO>();
+            builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
+            builder.Services.AddScoped<IManagerService, ManagerService>();
+
+            builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
+            builder.Services.AddHttpClient();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 

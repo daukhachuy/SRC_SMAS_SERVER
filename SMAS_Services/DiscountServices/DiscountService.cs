@@ -19,7 +19,14 @@ namespace SMAS_Services.DiscountServices
 
         public async Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync()
         {
-           return await _discountRepository.GetAllDiscountsAsync();
+           var discounts = await _discountRepository.GetAllDiscountsAsync();
+
+            return discounts.Where(d => d.Status == "Active").ToList();
+        }
+
+        public async Task<DiscountResponse?> GetDiscountByCodeAsync(string Code)
+        {
+            return await _discountRepository.GetDiscountByCodeAsync(Code);
         }
     }
 }
