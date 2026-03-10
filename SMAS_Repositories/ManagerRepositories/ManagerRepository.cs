@@ -1,5 +1,6 @@
 using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.OrderDTO;
+using SMAS_BusinessObject.DTOs.ReservationDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
@@ -90,6 +91,108 @@ namespace SMAS_Repositories.ManagerRepositories
                 CreatedAt = n.CreatedAt,
                 ReadAt = n.ReadAt
             }).ToList();
+        }
+
+        public async Task<SumReservationTodayResponseDTO> GetSumReservationTodayAsync()
+        {
+            var count = await _managerDAO.GetSumReservationTodayAsync();
+            return new SumReservationTodayResponseDTO { TotalCount = count };
+        }
+
+        public async Task<IEnumerable<ReservationListResponse>> GetReservationsWaitConfirmAsync()
+        {
+            var reservations = await _managerDAO.GetReservationsWaitConfirmAsync();
+            return reservations.Select(MapReservationToDto).ToList();
+        }
+
+        public async Task<IEnumerable<ReservationListResponse>> GetAllReservationsDescCreatedAtAsync()
+        {
+            var reservations = await _managerDAO.GetAllReservationsDescCreatedAtAsync();
+            return reservations.Select(MapReservationToDto).ToList();
+        }
+
+        public async Task<IEnumerable<BookEventListResponseDTO>> GetAllBookEventsAscCreatedAtAsync()
+        {
+            var bookEvents = await _managerDAO.GetBookEventsAscCreatedAtAsync();
+            return bookEvents.Select(MapBookEventToDto).ToList();
+        }
+
+        public async Task<IEnumerable<UpcomingEventResponseDTO>> GetUpcomingEventsAsync()
+        {
+            var bookEvents = await _managerDAO.GetUpcomingBookEventsAsync();
+            return bookEvents.Select(be => new UpcomingEventResponseDTO
+            {
+                BookEventId = be.BookEventId,
+                BookingCode = be.BookingCode,
+                EventId = be.EventId,
+                EventTitle = be.Event?.Title,
+                EventType = be.Event?.EventType,
+                CustomerId = be.CustomerId,
+                CustomerName = be.Customer?.Fullname,
+                CustomerPhone = be.Customer?.Phone,
+                NumberOfGuests = be.NumberOfGuests,
+                ReservationDate = be.ReservationDate,
+                ReservationTime = be.ReservationTime,
+                Status = be.Status,
+                TotalAmount = be.TotalAmount,
+                CreatedAt = be.CreatedAt
+            }).ToList();
+        }
+
+        public async Task<NumberContractNeedSignedResponseDTO> GetNumberContractNeedSignedAsync()
+        {
+            var count = await _managerDAO.GetNumberContractNeedSignedAsync();
+            return new NumberContractNeedSignedResponseDTO { TotalCount = count };
+        }
+
+        private static ReservationListResponse MapReservationToDto(Reservation r)
+        {
+            return new ReservationListResponse
+            {
+                UserId = r.UserId,
+                Fullname = r.User?.Fullname ?? "",
+                Phone = r.User?.Phone,
+                Email = r.User?.Email,
+                ReservationId = r.ReservationId,
+                ReservationCode = r.ReservationCode,
+                ReservationDate = r.ReservationDate,
+                ReservationTime = r.ReservationTime,
+                NumberOfGuests = r.NumberOfGuests,
+                SpecialRequests = r.SpecialRequests,
+                Status = r.Status,
+                ConfirmedAt = r.ConfirmedAt,
+                CancelledAt = r.CancelledAt,
+                CancellationReason = r.CancellationReason,
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                ConfirmedBy = r.ConfirmedBy,
+                ConfirmedByName = r.ConfirmedByNavigation?.User?.Fullname
+            };
+        }
+
+        private static BookEventListResponseDTO MapBookEventToDto(BookEvent be)
+        {
+            return new BookEventListResponseDTO
+            {
+                BookEventId = be.BookEventId,
+                BookingCode = be.BookingCode,
+                EventId = be.EventId,
+                EventTitle = be.Event?.Title,
+                CustomerId = be.CustomerId,
+                CustomerName = be.Customer?.Fullname,
+                CustomerPhone = be.Customer?.Phone,
+                CustomerEmail = be.Customer?.Email,
+                NumberOfGuests = be.NumberOfGuests,
+                ReservationDate = be.ReservationDate,
+                ReservationTime = be.ReservationTime,
+                Status = be.Status,
+                TotalAmount = be.TotalAmount,
+                CreatedAt = be.CreatedAt,
+                UpdatedAt = be.UpdatedAt,
+                ConfirmedAt = be.ConfirmedAt,
+                ConfirmedBy = be.ConfirmedBy,
+                ConfirmedByName = be.ConfirmedByNavigation?.User?.Fullname
+            };
         }
 
         private static OrderTodayResponseDTO MapOrderToDto(Order o)
