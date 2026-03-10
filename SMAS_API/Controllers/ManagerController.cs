@@ -82,5 +82,55 @@ namespace SMAS_API.Controllers
             var result = await _managerService.GetNotificationsByUserIdAsync(userId);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Tổng số lượng đặt bàn trong ngày hôm nay
+        /// </summary>
+        [HttpGet("reservations/sum-today")]
+        public async Task<IActionResult> GetSumReservationToday()
+        {
+            var result = await _managerService.GetSumReservationTodayAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Danh sách đặt bàn chờ Manager xác nhận (Pending)
+        /// </summary>
+        [HttpGet("reservations/wait-confirm")]
+        public async Task<IActionResult> GetReservationWaitConfirm()
+        {
+            var result = await _managerService.GetReservationsWaitConfirmAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Tất cả đặt bàn sắp xếp theo thời gian tạo giảm dần (mới nhất trước)
+        /// </summary>
+        [HttpGet("reservations/desc-created-at")]
+        public async Task<IActionResult> GetAllReservationDESCCreatedAt()
+        {
+            var result = await _managerService.GetAllReservationsDescCreatedAtAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Tất cả đặt sự kiện (BookEvent) sắp xếp theo thời gian tạo tăng dần
+        /// </summary>
+        [HttpGet("book-events/asc-created-at")]
+        public async Task<IActionResult> GetAllBookEventASCCreatedAt()
+        {
+            var result = await _managerService.GetAllBookEventsAscCreatedAtAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay)
+        /// </summary>
+        [HttpGet("upcoming-events")]
+        public async Task<IActionResult> GetAllUpcomingEvent()
+        {
+            var result = await _managerService.GetUpcomingEventsAsync();
+            return Ok(result);
+        }
     }
 }

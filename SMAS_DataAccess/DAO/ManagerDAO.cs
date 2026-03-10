@@ -115,5 +115,71 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Tổng số lượng đặt bàn trong ngày hôm nay (theo ReservationDate)
+        /// </summary>
+        public async Task<int> GetSumReservationTodayAsync()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            return await _context.Reservations
+                .CountAsync(r => r.ReservationDate == today);
+        }
+
+        /// <summary>
+        /// Đặt bàn chờ Manager xác nhận (Status = Pending)
+        /// </summary>
+        public async Task<List<Reservation>> GetReservationsWaitConfirmAsync()
+        {
+            return await _context.Reservations
+                .Where(r => r.Status == "Pending")
+                .Include(r => r.User)
+                .Include(r => r.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Tất cả đặt bàn sắp xếp theo CreatedAt giảm dần
+        /// </summary>
+        public async Task<List<Reservation>> GetAllReservationsDescCreatedAtAsync()
+        {
+            return await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Các BookEvent sắp xếp theo CreatedAt tăng dần
+        /// </summary>
+        public async Task<List<BookEvent>> GetBookEventsAscCreatedAtAsync()
+        {
+            return await _context.BookEvents
+                .Include(be => be.Event)
+                .Include(be => be.Customer)
+                .Include(be => be.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .OrderBy(be => be.CreatedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay, loại trừ Cancelled)
+        /// </summary>
+        public async Task<List<BookEvent>> GetUpcomingBookEventsAsync()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            return await _context.BookEvents
+                .Where(be => be.ReservationDate >= today && be.Status != "Cancelled")
+                .Include(be => be.Event)
+                .Include(be => be.Customer)
+                .OrderBy(be => be.ReservationDate)
+                .ThenBy(be => be.ReservationTime)
+                .ToListAsync();
+        }
     }
 }

@@ -1,4 +1,5 @@
 using SMAS_BusinessObject.DTOs.ManagerDTO;
+using SMAS_BusinessObject.DTOs.ReservationDTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,5 +13,10 @@ namespace SMAS_Services.ManagerServices
         Task<IEnumerable<OrderTodayResponseDTO>> GetFourNewestOrdersAsync();
         Task<IEnumerable<StaffWorkTodayResponseDTO>> GetStaffWorkTodayAsync();
         Task<IEnumerable<NotificationResponseDTO>> GetNotificationsByUserIdAsync(int userId);
+        Task<SumReservationTodayResponseDTO> GetSumReservationTodayAsync();
+        Task<IEnumerable<ReservationListResponse>> GetReservationsWaitConfirmAsync();
+        Task<IEnumerable<ReservationListResponse>> GetAllReservationsDescCreatedAtAsync();
+        Task<IEnumerable<BookEventListResponseDTO>> GetAllBookEventsAscCreatedAtAsync();
+        Task<IEnumerable<UpcomingEventResponseDTO>> GetUpcomingEventsAsync();
     }
 }
