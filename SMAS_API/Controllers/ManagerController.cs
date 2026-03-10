@@ -132,5 +132,15 @@ namespace SMAS_API.Controllers
             var result = await _managerService.GetUpcomingEventsAsync();
             return Ok(result);
         }
+
+        /// <summary>
+        /// Số lượng contract cần được ký (Status = Pending)
+        /// </summary>
+        [HttpGet("contracts/number-need-signed")]
+        public async Task<IActionResult> GetNumberContractNeedSigned()
+        {
+            var result = await _managerService.GetNumberContractNeedSignedAsync();
+            return Ok(result);
+        }
     }
 }

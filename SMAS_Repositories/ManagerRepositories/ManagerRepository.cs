@@ -139,6 +139,12 @@ namespace SMAS_Repositories.ManagerRepositories
             }).ToList();
         }
 
+        public async Task<NumberContractNeedSignedResponseDTO> GetNumberContractNeedSignedAsync()
+        {
+            var count = await _managerDAO.GetNumberContractNeedSignedAsync();
+            return new NumberContractNeedSignedResponseDTO { TotalCount = count };
+        }
+
         private static ReservationListResponse MapReservationToDto(Reservation r)
         {
             return new ReservationListResponse

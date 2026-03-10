@@ -69,5 +69,10 @@ namespace SMAS_Services.ManagerServices
         {
             return await _managerRepository.GetUpcomingEventsAsync();
         }
+
+        public async Task<NumberContractNeedSignedResponseDTO> GetNumberContractNeedSignedAsync()
+        {
+            return await _managerRepository.GetNumberContractNeedSignedAsync();
+        }
     }
 }

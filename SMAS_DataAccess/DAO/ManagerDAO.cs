@@ -181,5 +181,14 @@ namespace SMAS_DataAccess.DAO
                 .ThenBy(be => be.ReservationTime)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Số lượng contract cần được ký (Status = Pending)
+        /// </summary>
+        public async Task<int> GetNumberContractNeedSignedAsync()
+        {
+            return await _context.Contracts
+                .CountAsync(c => c.Status == "Pending");
+        }
     }
 }
