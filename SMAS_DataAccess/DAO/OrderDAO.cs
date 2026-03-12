@@ -16,6 +16,141 @@ namespace SMAS_DataAccess.DAO
         {
             _context = context;
         }
+        public async Task<List<Order>> GetAllActiveOrderAsync()
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Buffet)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Combo)
+                .Include(o => o.Payments)
+                .Where(o => o.OrderStatus != "Closed" && o.OrderStatus != "Cancelled")
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Order>> GetAllOrderCompleteAndCancelAsync()
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Buffet)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Combo)
+                .Include(o => o.Payments)
+                .Where(o => o.OrderStatus == "Closed" || o.OrderStatus == "Cancelled")
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Order>> GetAllActiveOrderByOrderTypeAsync(string orderType)
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Buffet)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Combo)
+                .Include(o => o.Payments)
+                .Where(o => o.OrderStatus != "Closed"
+                         && o.OrderStatus != "Cancelled"
+                         && o.OrderType == orderType)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<Order?> GetOrderDetailByOrderCodeAsync(string orderCode)
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Buffet)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Combo)
+                .Include(o => o.Payments)
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+        }
+
+        public async Task<List<Order>> GetAllOrderCompleteAndCancelByOrderTypeAsync(string orderType)
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Buffet)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Combo)
+                .Include(o => o.Payments)
+                .Where(o => (o.OrderStatus == "Closed" || o.OrderStatus == "Cancelled")
+                         && o.OrderType == orderType)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<Order?> GetOrderByCodeNoTrackingAsync(string orderCode)
+        {
+            return await _context.Orders
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+        }
+
+        public async Task<Food?> GetFoodByIdAsync(int foodId)
+        {
+            return await _context.Foods.FirstOrDefaultAsync(f => f.FoodId == foodId && f.IsAvailable == true);
+        }
+
+        public async Task<Combo?> GetComboByIdAsync(int comboId)
+        {
+            return await _context.Combos.FirstOrDefaultAsync(c => c.ComboId == comboId && c.IsAvailable == true);
+        }
+
+        public async Task<Buffet?> GetBuffetByIdAsync(int buffetId)
+        {
+            return await _context.Buffets.FirstOrDefaultAsync(b => b.BuffetId == buffetId && b.IsAvailable == true);
+        }
+        public async Task<OrderItem> AddOrderItemAsync(OrderItem item)
+        {
+            _context.OrderItems.Add(item);
+            await _context.SaveChangesAsync();
+            return item;
+        }
+
+        public async Task UpdateOrderTotalAsync(int orderId, decimal subtotal)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order == null) return;
+
+            order.SubTotal = (order.SubTotal ?? 0) + subtotal;
+            order.TotalAmount = (order.SubTotal ?? 0)
+                              - (order.DiscountAmount ?? 0)
+                              + (order.TaxAmount ?? 0)
+                              + (order.DeliveryPrice ?? 0);
+
+            await _context.SaveChangesAsync();
+        }
 
         public async Task<List<Order>> GetOrdersByUserAndStatusAsync(int userId,string orderType,List<string> statuses)
         {

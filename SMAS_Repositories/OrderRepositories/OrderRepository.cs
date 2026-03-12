@@ -29,6 +29,196 @@ namespace SMAS_Repositories.OrderRepositories
             _context = context;
         }
 
+        public async Task<List<OrderListResponseDTO>> GetAllActiveOrderAsync()
+        {
+            var orders = await _orderDAO.GetAllActiveOrderAsync();
+            return MapToDTO(orders);
+        }
+
+        public async Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelAsync()
+        {
+            var orders = await _orderDAO.GetAllOrderCompleteAndCancelAsync();
+            return MapToDTO(orders);
+        }
+
+        public async Task<List<OrderListResponseDTO>> GetAllActiveOrderByOrderTypeAsync(string orderType)
+        {
+            var orders = await _orderDAO.GetAllActiveOrderByOrderTypeAsync(orderType);
+            return MapToDTO(orders);
+        }
+
+        public async Task<OrderListResponseDTO?> GetOrderDetailByOrderCodeAsync(string orderCode)
+        {
+            var order = await _orderDAO.GetOrderDetailByOrderCodeAsync(orderCode);
+
+            if (order == null) return null;
+
+            return MapToDTO(new List<Order> { order }).First();
+        }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByOrderTypeAsync(string orderType)
+        {
+            var orders = await _orderDAO.GetAllOrderCompleteAndCancelByOrderTypeAsync(orderType);
+            return MapToDTO(orders);
+        }
+
+        public async Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request)
+        {
+            // 1. Validate: phải có đúng 1 loại item
+            var itemCount = new[] { request.FoodId, request.ComboId, request.BuffetId }
+                .Count(id => id.HasValue);
+
+            if (itemCount == 0)
+                return new AddOrderItemResponse { Success = false, Message = "Phải chọn ít nhất một loại item (FoodId, ComboId hoặc BuffetId)." };
+
+            if (itemCount > 1)
+                return new AddOrderItemResponse { Success = false, Message = "Chỉ được chọn một loại item mỗi lần thêm." };
+
+            // 2. Tìm order
+            var order = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
+            if (order == null)
+                return new AddOrderItemResponse { Success = false, Message = $"Không tìm thấy đơn hàng với mã: {orderCode}" };
+
+            if (order.OrderStatus == "Closed" || order.OrderStatus == "Cancelled")
+                return new AddOrderItemResponse { Success = false, Message = "Không thể thêm món vào đơn hàng đã đóng hoặc đã huỷ." };
+
+            // 3. Lấy thông tin item và tính giá
+            decimal unitPrice = 0;
+            var newItem = new OrderItem
+            {
+                OrderId = order.OrderId,
+                Quantity = request.Quantity,
+                Note = request.Note,
+                OpeningTime = DateTime.UtcNow,
+                Status = "Pending"
+            };
+
+            if (request.FoodId.HasValue)
+            {
+                var food = await _orderDAO.GetFoodByIdAsync(request.FoodId.Value);
+                if (food == null)
+                    return new AddOrderItemResponse { Success = false, Message = "Món ăn không tồn tại hoặc đã ngừng phục vụ." };
+
+                unitPrice = food.PromotionalPrice ?? food.Price;
+                newItem.FoodId = food.FoodId;
+                newItem.UnitPrice = unitPrice;
+                newItem.Subtotal = unitPrice * request.Quantity;
+            }
+            else if (request.ComboId.HasValue)
+            {
+                var combo = await _orderDAO.GetComboByIdAsync(request.ComboId.Value);
+                if (combo == null)
+                    return new AddOrderItemResponse { Success = false, Message = "Combo không tồn tại hoặc đã ngừng phục vụ." };
+
+                unitPrice = combo.Price;
+                newItem.ComboId = combo.ComboId;
+                newItem.UnitPrice = unitPrice;
+                newItem.Subtotal = unitPrice * request.Quantity;
+            }
+            else if (request.BuffetId.HasValue)
+            {
+                var buffet = await _orderDAO.GetBuffetByIdAsync(request.BuffetId.Value);
+                if (buffet == null)
+                    return new AddOrderItemResponse { Success = false, Message = "Buffet không tồn tại hoặc đã ngừng phục vụ." };
+
+                unitPrice = buffet.MainPrice;
+                newItem.BuffetId = buffet.BuffetId;
+                newItem.UnitPrice = unitPrice;
+                newItem.Subtotal = unitPrice * request.Quantity;
+            }
+
+            // 4. Lưu OrderItem
+            var saved = await _orderDAO.AddOrderItemAsync(newItem);
+
+            // 5. Cập nhật tổng tiền Order
+            await _orderDAO.UpdateOrderTotalAsync(order.OrderId, newItem.Subtotal ?? 0);
+
+            // 6. Lấy lại order để trả NewTotalAmount
+            var updatedOrder = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
+
+            return new AddOrderItemResponse
+            {
+                Success = true,
+                Message = "Thêm món thành công.",
+                OrderItemId = saved.OrderItemId,
+                OrderCode = orderCode,
+                NewTotalAmount = updatedOrder?.TotalAmount
+            };
+        }
+        // ── Private helper tránh lặp code mapping ──────────────────────────────
+        private static List<OrderListResponseDTO> MapToDTO(List<Order> orders)
+        {
+            return orders.Select(o => new OrderListResponseDTO
+            {
+                OrderId = o.OrderId,
+                OrderCode = o.OrderCode,
+                OrderType = o.OrderType,
+                OrderStatus = o.OrderStatus,
+                NumberOfGuests = o.NumberOfGuests,
+                SubTotal = o.SubTotal,
+                DiscountAmount = o.DiscountAmount,
+                TaxAmount = o.TaxAmount,
+                DeliveryPrice = o.DeliveryPrice,
+                TotalAmount = o.TotalAmount,
+                Note = o.Note,
+                CreatedAt = o.CreatedAt,
+                ClosedAt = o.ClosedAt,
+
+                Customer = new UserInfoDto
+                {
+                    UserId = o.User.UserId,
+                    Fullname = o.User.Fullname,
+                    Phone = o.User.Phone,
+                    Email = o.User.Email
+                },
+
+                ServedBy = o.ServedByNavigation == null ? null : new StaffInfoDto
+                {
+                    UserId = o.ServedByNavigation.User.UserId,
+                    Fullname = o.ServedByNavigation.User.Fullname
+                },
+
+                Delivery = o.Delivery == null ? null : new DeliveryDto
+                {
+                    DeliveryId = o.Delivery.DeliveryId,
+                    RecipientName = o.Delivery.RecipientName,
+                    RecipientPhone = o.Delivery.RecipientPhone,
+                    Address = o.Delivery.Address,
+                    DeliveryStatus = o.Delivery.DeliveryStatus,
+                    DeliveryFee = o.Delivery.DeliveryFee,
+                    EstimatedDeliveryTime = o.Delivery.EstimatedDeliveryTime,
+                    ActualDeliveryTime = o.Delivery.ActualDeliveryTime
+                },
+
+                Items = o.OrderItems.Select(oi => new OrderItemDetailDto
+                {
+                    OrderItemId = oi.OrderItemId,
+                    ItemType = oi.FoodId != null ? "Food"
+                                : oi.BuffetId != null ? "Buffet"
+                                : oi.ComboId != null ? "Combo"
+                                : "Unknown",
+                    ItemName = oi.Food?.Name
+                               ?? oi.Buffet?.Name
+                               ?? oi.Combo?.Name
+                               ?? "N/A",
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    Subtotal = oi.Subtotal,
+                    Status = oi.Status,
+                    OpeningTime = oi.OpeningTime,
+                    ServedTime = oi.ServedTime
+                }).ToList(),
+
+                Payments = o.Payments.Select(p => new PaymentDto
+                {
+                    PaymentId = p.PaymentId,
+                    PaymentMethod = p.PaymentMethod,
+                    PaymentStatus = p.PaymentStatus,
+                    Amount = p.Amount,
+                    PaidAt = p.PaidAt
+                }).ToList()
+
+            }).ToList();
+        }
         public async Task<IEnumerable<OrderListResponseDTO>> GetOrdersByUserAndStatusAsync(OrderListStatusRequest request, int userid)
         {
             var orders = await _orderDAO.GetOrdersByUserAndStatusAsync(userid, request.orderType, request.status);
