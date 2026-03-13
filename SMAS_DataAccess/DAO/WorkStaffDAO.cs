@@ -1,0 +1,90 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SMAS_BusinessObject.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SMAS_DataAccess.DAO
+{
+    public class WorkStaffDAO 
+    {
+        private readonly RestaurantDbContext _context;
+
+        public WorkStaffDAO(RestaurantDbContext context)
+        {
+            _context = context;
+        }
+
+        /// Query trực tiếp từ DB: lấy tất cả WorkStaff có WorkDay = hôm nay và IsWorking = true.
+        /// Include đầy đủ navigation properties để Repository có thể mapping
+        public async Task<IEnumerable<WorkStaff>> GetStaffWorkingTodayAsync()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            return await _context.WorkStaffs
+                .Include(ws => ws.User)
+                    .ThenInclude(u => u.Staff)   // cần: Position
+                .Where(ws => ws.WorkDay == today && ws.IsWorking == true)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Staff>> GetFilterStaffByPositionAsync(List<string> positions)
+        {
+            var query = _context.Staff
+                .Include(s => s.User)
+                .AsQueryable();
+
+            if (positions != null && positions.Any())
+                query = query.Where(s => positions.Contains(s.Position));
+
+            return await query
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<(User? user, IEnumerable<WorkStaff> workStaffs)> GetAllWorkHistoryByStaffIdAsync(int staffId, int month, int year)
+        {
+            var user = await _context.Users
+                .Include(u => u.Staff)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == staffId);
+
+            var workStaffs = await _context.WorkStaffs
+                .Include(ws => ws.Shift)
+                .Where(ws => ws.UserId == staffId
+                          && ws.WorkDay.Month == month
+                          && ws.WorkDay.Year == year)
+                .OrderByDescending(ws => ws.WorkDay)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return (user, workStaffs);
+        }
+
+        public async Task<IEnumerable<WorkStaff>> GetAllWorkNextSevenDayByPositionAsync(List<string> positions)
+        {
+            var from = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+            var to = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+
+            var query = _context.WorkStaffs
+                .Include(ws => ws.Shift)
+                .Include(ws => ws.User)
+                    .ThenInclude(u => u.Staff)
+                .Where(ws => ws.WorkDay >= from && ws.WorkDay <= to)
+                .AsQueryable();
+
+            if (positions != null && positions.Any())
+                query = query.Where(ws => ws.User.Staff != null
+                                       && positions.Contains(ws.User.Staff.Position));
+
+            return await query
+                .OrderBy(ws => ws.ShiftId)
+                .ThenBy(ws => ws.WorkDay)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+    }
+}
