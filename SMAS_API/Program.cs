@@ -23,6 +23,8 @@ using SMAS_Repositories.ManagerRepositories;
 using SMAS_Repositories.OrderRepositories;
 using SMAS_Repositories.ReservationRepositories;
 using SMAS_Repositories.ServiceRepositories;
+using SMAS_Repositories.StaffRepository;
+using SMAS_Repositories.WorkStaffRepository;
 using SMAS_Services.AuthServices;
 using SMAS_Services.BlogServices;
 using SMAS_Services.BookEventService;
@@ -40,6 +42,7 @@ using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
 using SMAS_Services.ReservationServices;
 using SMAS_Services.ServiceServices;
+using SMAS_Services.StaffService;
 using System.Security.Claims;
 using System.Text;
 
@@ -183,6 +186,10 @@ namespace SMAS_API
             builder.Services.AddScoped<BuffetDAO>();
             builder.Services.AddScoped<IBuffetRepository, BuffetRepository>();
             builder.Services.AddScoped<IBufferServices, BufferService>();
+
+            builder.Services.AddScoped<WorkStaffDAO>();
+            builder.Services.AddScoped<IWorkStaffRepository, WorkStaffRepository>();
+            builder.Services.AddScoped<IWorkStaffService, WorkStaffService>();
 
             builder.Services.AddScoped<ReservationDAO>();
             builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
