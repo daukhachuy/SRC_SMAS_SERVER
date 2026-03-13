@@ -103,6 +103,108 @@ namespace SMAS_Repositories.StaffRepository
             };
         }
 
+        public async Task<IEnumerable<WorkShiftDto>> GetAllWorkShiftAsync()
+        {
+            var shifts = await _workStaffDAO.GetAllWorkShiftAsync();
+            return shifts.Select(s => MapToDto(s));
+        }
+
+        private static WorkShiftDto MapToDto(WorkShift s) =>
+            new()
+            {
+                ShiftId = s.ShiftId,
+                ShiftName = s.ShiftName,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                TypeStaff = s.TypeStaff,
+                AdditionalWork = s.AdditionalWork
+            };
+
+        public async Task<bool> IsAlreadyAssignedAsync(int userId, int shiftId, DateOnly workDay)
+        => await _workStaffDAO.IsAlreadyAssignedAsync(userId, shiftId, workDay);
+
+        public async Task<CreateWorkStaffRequestDto> CreateWorkStaffAsync(CreateWorkStaffRequestDto dto)
+        {
+            var entity = new WorkStaff
+            {
+                UserId = dto.UserId,
+                ShiftId = dto.ShiftId,
+                WorkDay = dto.WorkDay,
+                IsWorking = true,
+                Note = dto.Note
+            };
+
+            var created = await _workStaffDAO.CreateWorkStaffAsync(entity);
+
+            // Trả lại dto với dữ liệu đã tạo
+            return new CreateWorkStaffRequestDto
+            {
+                UserId = created.UserId,
+                ShiftId = created.ShiftId,
+                WorkDay = created.WorkDay,
+                Note = created.Note
+            };
+        }
+
+        public async Task<(bool Success, string? ErrorMessage, UpdateWorkStaffRequestDto? Data)> UpdateWorkStaffAsync(int workStaffId, UpdateWorkStaffRequestDto dto)
+        {
+            var entity = await _workStaffDAO.GetByIdAsync(workStaffId);
+            if (entity == null)
+                return (false, "Không tìm thấy ca làm việc.", null);
+
+            // Thay thế nhân viên → kiểm tra trùng ca
+            if (dto.ReplaceUserId.HasValue && dto.ReplaceUserId.Value != entity.UserId)
+            {
+                var isDuplicate = await _workStaffDAO.IsAlreadyAssignedAsync(
+                    dto.ReplaceUserId.Value, entity.ShiftId, entity.WorkDay, workStaffId);
+
+                if (isDuplicate)
+                    return (false, "Nhân viên thay thế đã được phân công ca này trong ngày.", null);
+
+                entity.UserId = dto.ReplaceUserId.Value;
+            }
+
+            // Cập nhật giờ bắt đầu / kết thúc
+            if (dto.CheckInTime.HasValue)
+                entity.CheckInTime = dto.CheckInTime;
+
+            if (dto.CheckOutTime.HasValue)
+                entity.CheckOutTime = dto.CheckOutTime;
+
+            // Tính tổng giờ làm nếu có cả 2 mốc thời gian
+            if (entity.CheckInTime.HasValue && entity.CheckOutTime.HasValue)
+            {
+                var totalHours = (decimal)(entity.CheckOutTime.Value - entity.CheckInTime.Value).TotalHours;
+                entity.DailyTime = Math.Round(totalHours, 2);
+            }
+
+            // Cập nhật trạng thái
+            if (dto.IsWorking.HasValue)
+                entity.IsWorking = dto.IsWorking;
+
+            if (dto.Note != null)
+                entity.Note = dto.Note;
+
+            await _workStaffDAO.UpdateWorkStaffAsync(entity);
+
+            return (true, null, new UpdateWorkStaffRequestDto
+            {
+                ReplaceUserId = entity.UserId,
+                CheckInTime = entity.CheckInTime,
+                CheckOutTime = entity.CheckOutTime,
+                IsWorking = entity.IsWorking,
+                Note = entity.Note
+            });
+        }
+
+        public async Task<(bool Success, string? ErrorMessage)> DeleteWorkStaffAsync(int workStaffId)
+        {
+            var deleted = await _workStaffDAO.DeleteWorkStaffAsync(workStaffId);
+            if (!deleted)
+                return (false, "Không tìm thấy ca làm việc.");
+
+            return (true, null);
+        }
 
         private static StaffWorkingTodayDto MapToDto(WorkStaff ws)
         {
@@ -112,7 +214,7 @@ namespace SMAS_Repositories.StaffRepository
                 FullName = ws.User?.Fullname ?? string.Empty,
                 AvatarUrl = ws.User?.Avatar,
                 Position = ws.User?.Staff?.Position,
-                Note = ws.Note,              
+                Note = ws.Note,
                 CheckInTime = ws.CheckInTime
             };
         }
