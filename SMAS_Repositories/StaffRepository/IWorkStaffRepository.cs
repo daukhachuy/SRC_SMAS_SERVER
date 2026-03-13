@@ -13,5 +13,11 @@ namespace SMAS_Repositories.WorkStaffRepository
         Task<IEnumerable<FilterStaffByPositionDto>> GetFilterStaffByPositionAsync(List<string> positions);
         Task<WorkHistoryResponseDto?> GetAllWorkHistoryByStaffIdAsync(int staffId, int month, int year);
         Task<WorkNextSevenDayResponseDto> GetAllWorkNextSevenDayByPositionAsync(List<string> positions);
+        Task<IEnumerable<WorkShiftDto>> GetAllWorkShiftAsync();
+        Task<bool> IsAlreadyAssignedAsync(int userId, int shiftId, DateOnly workDay);
+        Task<CreateWorkStaffRequestDto> CreateWorkStaffAsync(CreateWorkStaffRequestDto dto);
+        Task<(bool Success, string? ErrorMessage, UpdateWorkStaffRequestDto? Data)> UpdateWorkStaffAsync(int workStaffId, UpdateWorkStaffRequestDto dto);
+        Task<(bool Success, string? ErrorMessage)> DeleteWorkStaffAsync(int workStaffId);
     }
 }
+

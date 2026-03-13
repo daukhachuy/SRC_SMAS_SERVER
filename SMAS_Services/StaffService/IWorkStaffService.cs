@@ -13,5 +13,10 @@ namespace SMAS_Services.StaffService
         Task<IEnumerable<FilterStaffByPositionDto>> GetFilterStaffByPositionAsync(List<string> positions);
         Task<WorkHistoryResponseDto?> GetAllWorkHistoryByStaffIdAsync(int staffId, int month, int year);
         Task<WorkNextSevenDayResponseDto> GetAllWorkNextSevenDayByPositionAsync(List<string> positions);
+        Task<IEnumerable<WorkShiftDto>> GetAllWorkShiftAsync();
+
+        Task<(bool Success, string? ErrorMessage, CreateWorkStaffRequestDto? Data)> CreateWorkStaffAsync(CreateWorkStaffRequestDto dto);
+        Task<(bool Success, string? ErrorMessage, UpdateWorkStaffRequestDto? Data)> UpdateWorkStaffAsync(int workStaffId, UpdateWorkStaffRequestDto dto);
+        Task<(bool Success, string? ErrorMessage)> DeleteWorkStaffAsync(int workStaffId);
     }
 }

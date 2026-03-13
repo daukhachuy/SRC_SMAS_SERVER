@@ -101,5 +101,79 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
+
+        [HttpGet("workshift")]
+        public async Task<IActionResult> GetAllWorkShift()
+        {
+            try
+            {
+                var result = await _workStaffService.GetAllWorkShiftAsync();
+                if (!result.Any()) return Ok(null);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách ca làm.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateWorkStaff([FromBody] CreateWorkStaffRequestDto dto)
+        {
+            try
+            {
+                var (success, error, data) = await _workStaffService.CreateWorkStaffAsync(dto);
+
+                if (!success)
+                    return Conflict(error); // 409 nếu bị trùng ca
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi phân công ca làm việc.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        [HttpPut("{workStaffId}")]
+        public async Task<IActionResult> UpdateWorkStaff(int workStaffId, [FromBody] UpdateWorkStaffRequestDto dto)
+        {
+            try
+            {
+                var (success, error, data) = await _workStaffService.UpdateWorkStaffAsync(workStaffId, dto);
+
+                if (!success)
+                    return BadRequest(error);
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi cập nhật ca làm việc {WorkStaffId}.", workStaffId);
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // DELETE api/workstaff/5
+        [HttpDelete("{workStaffId}")]
+        public async Task<IActionResult> DeleteWorkStaff(int workStaffId)
+        {
+            try
+            {
+                var (success, error) = await _workStaffService.DeleteWorkStaffAsync(workStaffId);
+
+                if (!success)
+                    return NotFound(error);
+
+                return Ok("Xóa ca làm việc thành công.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa ca làm việc {WorkStaffId}.", workStaffId);
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
     }
 }

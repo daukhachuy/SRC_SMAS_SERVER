@@ -86,5 +86,59 @@ namespace SMAS_DataAccess.DAO
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<WorkShift>> GetAllWorkShiftAsync()
+        {
+            return await _context.WorkShifts
+                .Where(s => s.IsActive == true
+                         && s.TypeStaff != null
+                         && (s.TypeStaff.Contains("Waiter") || s.TypeStaff.Contains("Kitchen")))
+                .OrderBy(s => s.StartTime)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<WorkStaff?> GetByIdAsync(int workStaffId)
+        {
+            return await _context.WorkStaffs
+                .Include(ws => ws.User)
+                    .ThenInclude(u => u.Staff)
+                .Include(ws => ws.Shift)
+                .FirstOrDefaultAsync(ws => ws.WorkStaffId == workStaffId);
+        }
+
+        public async Task<WorkStaff?> UpdateWorkStaffAsync(WorkStaff workStaff)
+        {
+            _context.WorkStaffs.Update(workStaff);
+            await _context.SaveChangesAsync();
+            return workStaff;
+        }
+
+        public async Task<bool> DeleteWorkStaffAsync(int workStaffId)
+        {
+            var entity = await _context.WorkStaffs.FindAsync(workStaffId);
+            if (entity == null) return false;
+
+            _context.WorkStaffs.Remove(entity);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> IsAlreadyAssignedAsync(int userId, int shiftId, DateOnly workDay, int excludeWorkStaffId = 0)
+        {
+            return await _context.WorkStaffs
+                .AnyAsync(ws => ws.UserId == userId
+                             && ws.ShiftId == shiftId
+                             && ws.WorkDay == workDay
+                             && (excludeWorkStaffId == 0 || ws.WorkStaffId != excludeWorkStaffId));
+        }
+
+
+        public async Task<WorkStaff> CreateWorkStaffAsync(WorkStaff workStaff)
+        {
+            _context.WorkStaffs.Add(workStaff);
+            await _context.SaveChangesAsync();
+            return workStaff;
+        }
     }
 }

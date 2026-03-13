@@ -36,7 +36,50 @@ namespace SMAS_Services.StaffService
         public async Task<WorkNextSevenDayResponseDto> GetAllWorkNextSevenDayByPositionAsync(List<string> positions)
         {
             return await _workStaffRepository.GetAllWorkNextSevenDayByPositionAsync(positions);
-        } 
+        }
+
+        public async Task<IEnumerable<WorkShiftDto>> GetAllWorkShiftAsync()
+        {
+            return await _workStaffRepository.GetAllWorkShiftAsync();
     }
+        public async Task<(bool Success, string? ErrorMessage, CreateWorkStaffRequestDto? Data)> CreateWorkStaffAsync(CreateWorkStaffRequestDto dto)
+        {
+            // Validate
+            if (dto.UserId <= 0)
+                return (false, "Nhân viên không hợp lệ.", null);
+
+            if (dto.ShiftId <= 0)
+                return (false, "Ca làm việc không hợp lệ.", null);
+
+            if (dto.WorkDay == default)
+                return (false, "Ngày làm việc không hợp lệ.", null);
+
+            if (dto.WorkDay < DateOnly.FromDateTime(DateTime.Today))
+                return (false, "Không thể phân công ca cho ngày đã qua.", null);
+
+            // Kiểm tra trùng ca
+            var isDuplicate = await _workStaffRepository.IsAlreadyAssignedAsync(dto.UserId, dto.ShiftId, dto.WorkDay);
+            if (isDuplicate)
+                return (false, $"Nhân viên đã được phân công ca này vào ngày {dto.WorkDay:dd/MM/yyyy}.", null);
+
+            var result = await _workStaffRepository.CreateWorkStaffAsync(dto);
+            return (true, null, result);
+        }
+
+        public async Task<(bool Success, string? ErrorMessage, UpdateWorkStaffRequestDto? Data)> UpdateWorkStaffAsync(int workStaffId, UpdateWorkStaffRequestDto dto)
+        {
+            // Validate giờ bắt đầu phải trước giờ kết thúc
+            if (dto.CheckInTime.HasValue && dto.CheckOutTime.HasValue
+                && dto.CheckInTime >= dto.CheckOutTime)
+                return (false, "Giờ bắt đầu phải trước giờ kết thúc.", null);
+
+            return await _workStaffRepository.UpdateWorkStaffAsync(workStaffId, dto);
+        }
+
+        public async Task<(bool Success, string? ErrorMessage)> DeleteWorkStaffAsync(int workStaffId)
+            => await _workStaffRepository.DeleteWorkStaffAsync(workStaffId);
+    }
+
 }
+
 
