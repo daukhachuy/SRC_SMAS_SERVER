@@ -155,7 +155,7 @@ namespace SMAS_Services.AuthServices
                 IsActive = true,
                 IsDeleted = false,
                 CreatedAt = DateTime.UtcNow,
-
+                  
                 PasswordHash = string.Empty,
                 PasswordSalt = string.Empty
             };

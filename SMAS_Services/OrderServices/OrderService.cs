@@ -26,5 +26,38 @@ namespace SMAS_Services.OrderServices
         {
             return await _orderRepository.CreateOrderDeliveryAsync(request, userid);
         }
+
+        public async Task<List<OrderListResponseDTO>> GetAllActiveOrderAsync()
+        {
+            return await _orderRepository.GetAllActiveOrderAsync();
+        }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelAsync()
+        {
+            return await _orderRepository.GetAllOrderCompleteAndCancelAsync();
+        }
+
+        public async Task<List<OrderListResponseDTO>> GetAllActiveOrderByOrderTypeAsync(string orderType)
+        {
+            return await _orderRepository.GetAllActiveOrderByOrderTypeAsync(orderType);
+        }
+
+        public async Task<OrderListResponseDTO?> GetOrderDetailByOrderCodeAsync(string orderCode)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode))
+                throw new ArgumentException("Order code không được để trống.", nameof(orderCode));
+
+            return await _orderRepository.GetOrderDetailByOrderCodeAsync(orderCode);
+        }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByOrderTypeAsync(string orderType)
+        {
+            return await _orderRepository.GetAllOrderCompleteAndCancelByOrderTypeAsync(orderType);
+        }
+        public async Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode))
+                return new AddOrderItemResponse { Success = false, Message = "Order code không được để trống." };
+
+            return await _orderRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
+        }
     }
 }

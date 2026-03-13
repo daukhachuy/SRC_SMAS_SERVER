@@ -36,7 +36,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpPost("login/google")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, [FromServices] IOptions<GoogleAuthSettings> googleSettings)
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request ,[FromServices] IOptions<GoogleAuthSettings> googleSettings)
         {
             if (!ModelState.IsValid)
             {

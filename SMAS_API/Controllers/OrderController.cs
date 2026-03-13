@@ -60,6 +60,136 @@ namespace SMAS_API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("active")]
+        public async Task<IActionResult> GetAllActiveOrder()
+        {
+            try
+            {
+                var orders = await _orderService.GetAllActiveOrderAsync();
 
-     }
+                if (orders == null || orders.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Không có đơn hàng nào đang hoạt động." });
+
+                return Ok(new { data = orders, message = "Lấy danh sách đơn hàng thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Customer")]
+        [HttpGet("history")]
+        public async Task<IActionResult> GetAllOrderCompleteAndCancel()
+        {
+            try
+            {
+                var orders = await _orderService.GetAllOrderCompleteAndCancelAsync();
+
+                if (orders == null || orders.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Không có đơn hàng đã hoàn thành hoặc đã huỷ." });
+
+                return Ok(new { data = orders, message = "Lấy danh sách đơn hàng thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("active/type")]
+        public async Task<IActionResult> GetAllActiveOrderByOrderType([FromQuery] string orderType)
+        {
+            if (string.IsNullOrWhiteSpace(orderType))
+                return BadRequest(new { message = "OrderType không được để trống." });
+
+            try
+            {
+                var orders = await _orderService.GetAllActiveOrderByOrderTypeAsync(orderType);
+
+                if (orders == null || orders.Count == 0)
+                    return Ok(new { data = (object?)null, message = $"Không có đơn hàng active với loại: {orderType}" });
+
+                return Ok(new { data = orders, message = "Lấy danh sách đơn hàng thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager,Customer")]
+        [HttpGet("{orderCode}")]
+        public async Task<IActionResult> GetOrderDetailByOrderCode([FromRoute] string orderCode)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderDetailByOrderCodeAsync(orderCode);
+
+                if (order == null)
+                    return Ok(new { data = (object?)null, message = $"Không tìm thấy đơn hàng với mã: {orderCode}" });
+
+                return Ok(new { data = order, message = "Lấy thông tin đơn hàng thành công." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("history/type")]
+        public async Task<IActionResult> GetAllOrderCompleteAndCancelByOrderType([FromQuery] string orderType)
+        {
+            if (string.IsNullOrWhiteSpace(orderType))
+                return BadRequest(new { message = "OrderType không được để trống." });
+
+            try
+            {
+                var orders = await _orderService.GetAllOrderCompleteAndCancelByOrderTypeAsync(orderType);
+
+                if (orders == null || orders.Count == 0)
+                    return Ok(new { data = (object?)null, message = $"Không có đơn hàng với loại: {orderType}" });
+
+                return Ok(new { data = orders, message = "Lấy danh sách đơn hàng thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+    [Authorize(Roles = "Admin,Manager,Staff")]
+    [HttpPost("{orderCode}/items")]
+     public async Task<IActionResult> PostAddOrderItemByOrderCode(
+    [FromRoute] string orderCode,
+    [FromBody] AddOrderItemRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _orderService.AddOrderItemByOrderCodeAsync(orderCode, request);
+
+                if (!result.Success)
+                    return result.Message.Contains("Không tìm thấy")
+                        ? NotFound(new { message = result.Message })
+                        : BadRequest(new { message = result.Message });
+
+                return Ok(new { data = result, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+    }
 }
