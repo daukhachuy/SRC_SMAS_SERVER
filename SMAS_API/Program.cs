@@ -19,6 +19,8 @@ using SMAS_Repositories.CustomerFeedbackRepositories;
 using SMAS_Repositories.DiscountRepositories;
 using SMAS_Repositories.EventRepositories;
 using SMAS_Repositories.FoodRepositories;
+using SMAS_Repositories.IngredientReposotories;
+using SMAS_Repositories.Inventoryrepositories;
 using SMAS_Repositories.ManagerRepositories;
 using SMAS_Repositories.OrderRepositories;
 using SMAS_Repositories.ReservationRepositories;
@@ -35,6 +37,8 @@ using SMAS_Services.DiscountServices;
 using SMAS_Services.EmailServices;
 using SMAS_Services.EventServices;
 using SMAS_Services.FoodServices;
+using SMAS_Services.IngredientServices;
+using SMAS_Services.InventoryServices;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
@@ -195,6 +199,15 @@ namespace SMAS_API
             builder.Services.AddScoped<ManagerDAO>();
             builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
             builder.Services.AddScoped<IManagerService, ManagerService>();
+
+            builder.Services.AddScoped<IngredientDAO>();
+            builder.Services.AddScoped<IIngredientReposotory, IngredientReposotory>();
+            builder.Services.AddScoped<IIngredientService, IngredientService>();
+
+
+            builder.Services.AddScoped<InventoryDAO>();
+            builder.Services.AddScoped<IInventoryrepository, Inventoryrepository>();
+            builder.Services.AddScoped<IInventoryService, InventoryService>();
 
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();

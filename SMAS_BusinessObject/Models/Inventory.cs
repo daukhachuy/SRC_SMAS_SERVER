@@ -21,7 +21,7 @@ public partial class Inventory
 
     public string? WarehouseLocation { get; set; }
 
-    public string? Status { get; set; }
+    public string? Status { get; set; } // status : Expired/UsedUp/Active
 
     public string? Note { get; set; }
 
