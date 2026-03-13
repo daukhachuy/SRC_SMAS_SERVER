@@ -19,5 +19,7 @@ namespace SMAS_Repositories.ManagerRepositories
         Task<IEnumerable<BookEventListResponseDTO>> GetAllBookEventsAscCreatedAtAsync();
         Task<IEnumerable<UpcomingEventResponseDTO>> GetUpcomingEventsAsync();
         Task<NumberContractNeedSignedResponseDTO> GetNumberContractNeedSignedAsync();
+        Task<bool> DeleteReservationByReservationCodeAsync(string reservationCode, string cancellationReason, int? managerUserId);
+        Task<ReservationListResponse?> PatchConfirmReservationAsync(string reservationCode, int? managerUserId);
     }
 }

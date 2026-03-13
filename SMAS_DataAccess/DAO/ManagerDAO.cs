@@ -190,5 +190,62 @@ namespace SMAS_DataAccess.DAO
             return await _context.Contracts
                 .CountAsync(c => c.Status == "Pending");
         }
+
+        /// <summary>
+        /// Manager bấm Cancel đặt bàn theo ReservationCode:
+        /// - Status → Cancelled
+        /// - Ghi CancellationReason (bắt buộc)
+        /// </summary>
+        /// <returns>True nếu đã cập nhật, false nếu không tìm thấy.</returns>
+        public async Task<bool> DeleteReservationByCodeAsync(string reservationCode, string cancellationReason, int? managerUserId)
+        {
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r => r.ReservationCode == reservationCode);
+            if (reservation == null)
+                return false;
+
+            var now = DateTime.UtcNow;
+
+            reservation.Status = "Cancelled";
+            reservation.CancelledAt = now;
+            reservation.CancellationReason = cancellationReason;
+            reservation.UpdatedAt = now;
+            reservation.ConfirmedAt = null;
+            reservation.ConfirmedBy = null;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Confirm reservation đang ở trạng thái Pending:
+        /// - Status → Confirmed
+        /// </summary>
+        public async Task<Reservation?> UpdateReservationConfirmAsync(string reservationCode, int? confirmedByStaffId)
+        {
+            var reservation = await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .FirstOrDefaultAsync(r => r.ReservationCode == reservationCode);
+            if (reservation == null)
+                return null;
+
+            // Chỉ cho confirm khi đang Pending
+            if (!string.Equals(reservation.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var now = DateTime.UtcNow;
+
+            reservation.Status = "Confirmed";
+            reservation.ConfirmedAt = now;
+            reservation.ConfirmedBy = confirmedByStaffId;
+            reservation.CancelledAt = null;
+            reservation.CancellationReason = null;
+            reservation.UpdatedAt = now;
+
+            await _context.SaveChangesAsync();
+            return reservation;
+        }
     }
 }

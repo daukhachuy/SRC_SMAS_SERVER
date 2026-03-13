@@ -74,5 +74,15 @@ namespace SMAS_Services.ManagerServices
         {
             return await _managerRepository.GetNumberContractNeedSignedAsync();
         }
+
+        public async Task<bool> DeleteReservationByReservationCodeAsync(string reservationCode, string cancellationReason, int? managerUserId)
+        {
+            return await _managerRepository.DeleteReservationByReservationCodeAsync(reservationCode, cancellationReason, managerUserId);
+        }
+
+        public async Task<ReservationListResponse?> PatchConfirmReservationAsync(string reservationCode, int? managerUserId)
+        {
+            return await _managerRepository.PatchConfirmReservationAsync(reservationCode, managerUserId);
+        }
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_Services.ManagerServices;
 using System.Security.Claims;
 
@@ -140,6 +141,51 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> GetNumberContractNeedSigned()
         {
             var result = await _managerService.GetNumberContractNeedSignedAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Manager bấm Cancel đặt bàn theo ReservationCode:
+        /// - Status → Cancelled
+        /// - Ghi CancellationReason (bắt buộc)
+        /// </summary>
+        [HttpDelete("reservations/{reservationCode}")]
+        public async Task<IActionResult> DeleteReservationByReservationCode(string reservationCode, [FromBody] CancelReservationRequestDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(reservationCode))
+                return BadRequest("ReservationCode không hợp lệ.");
+            if (dto == null || string.IsNullOrWhiteSpace(dto.CancellationReason))
+                return BadRequest("CancellationReason là bắt buộc.");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? managerUserId = null;
+            if (int.TryParse(userIdClaim, out int uid))
+                managerUserId = uid;
+
+            var deleted = await _managerService.DeleteReservationByReservationCodeAsync(reservationCode.Trim(), dto.CancellationReason.Trim(), managerUserId);
+            if (!deleted)
+                return NotFound("Không tìm thấy đặt bàn với mã này.");
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Manager bấm Confirm khi reservation đang Pending:
+        /// - Status → Confirmed
+        /// </summary>
+        [HttpPatch("reservations/{reservationCode}/confirm")]
+        public async Task<IActionResult> PatchConfirmReservation(string reservationCode)
+        {
+            if (string.IsNullOrWhiteSpace(reservationCode))
+                return BadRequest("ReservationCode không hợp lệ.");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? managerUserId = null;
+            if (int.TryParse(userIdClaim, out int uid))
+                managerUserId = uid;
+
+            var result = await _managerService.PatchConfirmReservationAsync(reservationCode.Trim(), managerUserId);
+            if (result == null)
+                return NotFound("Không tìm thấy đặt bàn với mã này hoặc không ở trạng thái Pending.");
             return Ok(result);
         }
     }

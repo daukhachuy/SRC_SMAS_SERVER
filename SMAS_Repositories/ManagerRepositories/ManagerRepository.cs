@@ -145,6 +145,17 @@ namespace SMAS_Repositories.ManagerRepositories
             return new NumberContractNeedSignedResponseDTO { TotalCount = count };
         }
 
+        public async Task<bool> DeleteReservationByReservationCodeAsync(string reservationCode, string cancellationReason, int? managerUserId)
+        {
+            return await _managerDAO.DeleteReservationByCodeAsync(reservationCode, cancellationReason, managerUserId);
+        }
+
+        public async Task<ReservationListResponse?> PatchConfirmReservationAsync(string reservationCode, int? managerUserId)
+        {
+            var reservation = await _managerDAO.UpdateReservationConfirmAsync(reservationCode, managerUserId);
+            return reservation == null ? null : MapReservationToDto(reservation);
+        }
+
         private static ReservationListResponse MapReservationToDto(Reservation r)
         {
             return new ReservationListResponse
