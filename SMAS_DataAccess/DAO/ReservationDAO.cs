@@ -44,5 +44,18 @@ namespace SMAS_DataAccess.DAO
                                                         .FirstOrDefaultAsync(r => r.ReservationCode == reservation.ReservationCode);
             return addedReservation!;
         }
+
+        public async Task<IEnumerable<Reservation>> GetReservationsByUserIdAsync(int userId)
+        {
+            return await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.ConfirmedByNavigation)
+                    .ThenInclude(s => s.User)
+                .Where(r => r.UserId == userId)
+                .OrderByDescending(r => r.ReservationDate)
+                .ThenByDescending(r => r.ReservationTime)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

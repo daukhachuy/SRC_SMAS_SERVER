@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/reservation")]
     public class ReservationController : Controller
@@ -23,6 +23,17 @@ namespace SMAS_API.Controllers
         {
             var  reservation = await _reservationservice.GetAllReservationsAsync();
             return Ok(reservation);
+        }
+        // GET api/reservation/my  - lấy reservation của người đang đăng nhập
+        [HttpGet("my")]
+        public async Task<ActionResult<IEnumerable<ReservationListResponse>>> GetMyReservations([FromQuery] int? userId = null)
+        {
+            var resolvedUserId = userId ?? GetUserIdFromToken();
+            if (resolvedUserId == null)
+                return Unauthorized("Không xác định được người dùng.");
+
+            var result = await _reservationservice.GetMyReservationsAsync(resolvedUserId.Value);
+            return Ok(result);
         }
 
         [HttpPost("create")]
@@ -46,6 +57,13 @@ namespace SMAS_API.Controllers
             }
             return Ok( result );
 
+        }
+
+        private int? GetUserIdFromToken()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("id")?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
         }
     }
 }
