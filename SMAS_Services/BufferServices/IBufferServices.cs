@@ -10,5 +10,6 @@ namespace SMAS_Services.BufferServices
     public interface IBufferServices
     {
         Task<IEnumerable<BuffetListResponseDTO>> GetAllBuffetsAsync();
+        Task<bool> UpdateStatusByBuffetId(int buffetId);
     }
 }

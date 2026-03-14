@@ -14,5 +14,6 @@ namespace SMAS_Repositories.FoodRepositories
         Task<IEnumerable<FoodListResponse>> GetTopBestSellersAsync(int topN = 10);
         Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId);
         Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request);
+        Task<bool> UpdateStatusByFoodId(int foodId);
     }
 }

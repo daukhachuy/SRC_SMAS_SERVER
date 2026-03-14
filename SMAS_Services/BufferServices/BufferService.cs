@@ -21,5 +21,9 @@ namespace SMAS_Services.BufferServices
         {
             return await _repo.GetAllBuffetsAsync();
         }
+        public async Task<bool> UpdateStatusByBuffetId(int buffetId)
+        {
+            return await _repo.UpdateStatusByBuffetId(buffetId);
+        }
     }
 }

@@ -17,7 +17,7 @@ public partial class DeliveryDetail
 
     public string Address { get; set; } = null!;
 
-    public string? DeliveryStatus { get; set; }
+    public string? DeliveryStatus { get; set; } // Pending/InTransit/Delivered/Failed
 
     public int? AssignedStaffId { get; set; }
 

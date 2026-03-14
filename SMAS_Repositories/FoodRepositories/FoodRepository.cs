@@ -1,4 +1,5 @@
-﻿using SMAS_BusinessObject.DTOs.Food;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
@@ -143,6 +144,11 @@ namespace SMAS_Repositories.FoodRepositories
                 Rating = f.Rating,
                 Note = f.Note
             }).ToList();
+        }
+
+        public async Task<bool> UpdateStatusByFoodId(int foodId)
+        {
+            return await _foodDAO.UpdateStatusByFoodId(foodId);
         }
 
     }

@@ -33,5 +33,10 @@ namespace SMAS_Repositories.BuffetRepositories
             }).ToList();
         }
 
+
+        public async Task<bool> UpdateStatusByBuffetId(int buffetId)
+        {
+            return await _buffetDAO.UpdateStatusByBuffetId(buffetId);
+        }
     }
 }

@@ -18,5 +18,7 @@ namespace SMAS_Services.FoodServices
 
         Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId);
         Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request);
+
+        Task<bool> UpdateStatusByFoodId(int foodId);
     }
 }

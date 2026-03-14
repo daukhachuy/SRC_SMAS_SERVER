@@ -487,5 +487,10 @@ namespace SMAS_Repositories.OrderRepositories
 
             return R * c;
         }
+
+        public async Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request)
+        {
+            return await _orderDAO.UpdateOrderDeliveryFailedAtAsync(request.orderId, request.reason);
+        }
     }
 }

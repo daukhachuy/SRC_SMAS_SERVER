@@ -12,5 +12,7 @@ namespace SMAS_Services.ComboServices
         Task<IEnumerable<ComboListResponse>> GetAvailableCombosAsync();
 
         Task<IEnumerable<ComboListResponse>> GetCombosFilterAsync(CombosFilterRequest request);
+
+        Task<bool> UpdateStatusByComboId(int comboId);
     }
 }

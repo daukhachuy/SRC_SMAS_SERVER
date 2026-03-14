@@ -45,5 +45,10 @@ namespace SMAS_Services.FoodServices
         {
             return await _foodRepository.FilterFoodsAsync(request);
         }
+
+        public async Task<bool> UpdateStatusByFoodId(int foodId)
+        {
+            return await _foodRepository.UpdateStatusByFoodId(foodId);
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.Combo;
 using SMAS_Services.ComboServices;
 
@@ -49,7 +50,19 @@ namespace SMAS_API.Controllers
             }
             return Ok(filteredCombos);
         }
-      
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPatch("status-combo/{id}")]
+        public async Task<IActionResult> UpdateComboStatus(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { message = "ComboId phải lớn hơn 0" });
+            }
+            var result = await _comboService.UpdateStatusByComboId(id);
+            if (!result)
+                return NotFound(new { MsgCode = "MSG_021", Message = "Không tìm thấy combo !" });
+            return Ok(new { MsgCode = "MSG_022", Message = "Cập nhật trạng thái món ăn thành công !" });
+        }
 
     }
 }
