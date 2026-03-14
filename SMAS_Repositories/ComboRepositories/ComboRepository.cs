@@ -47,5 +47,10 @@ namespace SMAS_Repositories.ComboRepositories
                 }).ToList()
             });
         }
+
+        public async Task<bool> UpdateStatusByComboId(int comboId)
+        {
+            return await _comboDAO.UpdateStatusByComboId(comboId);
+        }
     }
 }

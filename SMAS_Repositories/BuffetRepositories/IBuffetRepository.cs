@@ -10,5 +10,7 @@ namespace SMAS_Repositories.BuffetRepositories
     public interface IBuffetRepository
     {
         Task<IEnumerable<BuffetListResponseDTO>> GetAllBuffetsAsync();
+
+        Task<bool> UpdateStatusByBuffetId(int buffetId);
     }
 }

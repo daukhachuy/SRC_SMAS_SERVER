@@ -25,5 +25,16 @@ namespace SMAS_DataAccess.DAO
                 .ToListAsync();
         }
 
+        public async Task<bool> UpdateStatusByBuffetId(int buffetId)
+        {
+            var buffet = await _context.Buffets.FindAsync(buffetId);
+
+            if (buffet == null)
+                return false;
+            buffet.IsAvailable = !buffet.IsAvailable;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

@@ -198,5 +198,20 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> UpdateOrderDeliveryFailedAtAsync(int orderId , string note)
+        {
+            var order = await _context.Orders.Include(d =>d.DeliveryDetails).FirstOrDefaultAsync(o => o.OrderId == orderId);
+            var delivery = await _context.DeliveryDetails.FirstOrDefaultAsync(d => d.OrderId == orderId);
+            var closedAT = DateTime.UtcNow;
+            if (order == null) return false;
+            if (delivery == null) return false;
+            order.ClosedAt = closedAT;
+            order.OrderStatus = "Cancelled";
+            delivery.Note = note;
+            delivery.DeliveryStatus = "Failed";
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

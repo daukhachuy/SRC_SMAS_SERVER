@@ -191,5 +191,14 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin,Waiter,Kitchen,Manager")]
+        [HttpPost("delivery/fail")]
+        public async Task<IActionResult> UpdateStatusDeliveryAsync([FromBody] FailDeliveryRequestDTO request)
+        {
+            if (ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _orderService.UpdateOrderDeliveryFailedAtAsync(request);
+            return Ok(result);
+        }
+
     }
 }

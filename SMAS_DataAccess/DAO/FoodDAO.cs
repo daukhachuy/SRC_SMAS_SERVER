@@ -27,11 +27,11 @@ namespace SMAS_DataAccess.DAO
             return await _context.Foods
                 .AsNoTracking()
                 .Where(f =>
-                    (f.IsAvailable == true || f.IsAvailable == null)    
+                    (f.IsAvailable == true || f.IsAvailable == null)
                 )
                 .OrderByDescending(f => f.OrderCount ?? 0)
-                .ThenByDescending(f => f.IsFeatured ?? false)   
-                .ThenBy(f => f.Name)                            
+                .ThenByDescending(f => f.IsFeatured ?? false)
+                .ThenBy(f => f.Name)
                 .Take(topN)
                 .ToListAsync();
         }
@@ -45,7 +45,7 @@ namespace SMAS_DataAccess.DAO
                 .FirstOrDefaultAsync(b => b.BuffetId == buffetId);
         }
 
-        public async Task<List<Food>> FilterFoodsAsync(List<int>? categoryIds,decimal? minPrice,decimal? maxPrice)
+        public async Task<List<Food>> FilterFoodsAsync(List<int>? categoryIds, decimal? minPrice, decimal? maxPrice)
         {
             var query = _context.Foods
                                 .Include(f => f.Categories)
@@ -78,8 +78,19 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Foods
                 .Where(f => f.FoodId == foodId)
-                .Select(f => f.PromotionalPrice ?? f.Price) 
+                .Select(f => f.PromotionalPrice ?? f.Price)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> UpdateStatusByFoodId(int foodId)
+        {
+            var food = await _context.Foods.FindAsync(foodId);
+
+            if (food == null)
+                return false;
+            food.IsAvailable = !food.IsAvailable;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

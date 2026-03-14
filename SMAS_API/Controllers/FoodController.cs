@@ -19,7 +19,7 @@ namespace SMAS_API.Controllers
         }
         [HttpGet("category")]
         public async Task<ActionResult<FoodListResponse>> getall()
-        { 
+        {
             var result = await _ifoodservice.GetAllFoodsCategoryAsync();
             if (result == null || !result.Any())
             {
@@ -87,6 +87,21 @@ namespace SMAS_API.Controllers
             var result = await _ifoodservice.FilterFoodsAsync(request);
 
             return Ok(result);
+        }
+
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPatch("status-food/{id}")]
+        public async Task<IActionResult> UpdateFoodStatus(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { message = "FoodId phải lớn hơn 0" });
+            }
+            var result = await _ifoodservice.UpdateStatusByFoodId(id);
+            if (!result)
+                return NotFound(new { MsgCode = "MSG_021", Message = "Không tìm thấy món ăn !" });
+            return Ok(new { MsgCode = "MSG_022", Message = "Cập nhật trạng thái món ăn thành công !" });
         }
     }
 }
