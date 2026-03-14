@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_Services.OrderServices;
+using SMAS_Services.TableService;
 using System.Security.Claims;
 
 namespace SMAS_API.Controllers
@@ -12,10 +13,12 @@ namespace SMAS_API.Controllers
     public class OrderController : Controller
     {
         private readonly IOrderService _orderService;
+        private readonly ITableSessionService _tableSessionService;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, ITableSessionService tableSessionService)
         {
             _orderService = orderService;
+            _tableSessionService = tableSessionService;
         }
 
         [Authorize(Roles = "Admin,Manager,Customer")]
@@ -43,8 +46,21 @@ namespace SMAS_API.Controllers
 
         [Authorize(Roles = "Customer")]
         [HttpPost("create/delivery")]
+
+        //Cai nay bua sau bo vo truoc phan create order
         public async Task<ActionResult<OrderDeliveryResponse>> CreateOrder([FromBody] CreateOrderDeliveryRequest request)
         {
+
+            var accessToken = Request.Headers["X-Table-Token"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(accessToken))
+                return Unauthorized(new { errorCode = "INVALID_QR_TOKEN" });
+
+            (bool valid, string? errorCode, string? tableCode) = _tableSessionService.ValidateAccessToken(accessToken);
+            if (!valid)
+                return BadRequest(new { errorCode });
+        //phan o giua nhe
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
