@@ -13,7 +13,7 @@ namespace SMAS_Services.ReservationServices
         Task<IEnumerable<ReservationListResponse>> GetAllReservationsAsync();
 
         Task<ReservationListResponse> CreatePendingReservation(ReservationCreateRequestDTO dto, int userid);
-
+        Task<IEnumerable<ReservationListResponse>> GetMyReservationsAsync(int userId);
 
     }
 }
