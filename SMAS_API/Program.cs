@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SMAS_API.Helpers;
 using SMAS_BusinessObject.Configurations;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
@@ -25,6 +26,7 @@ using SMAS_Repositories.ReservationRepositories;
 using SMAS_Repositories.SalaryRepository;
 using SMAS_Repositories.ServiceRepositories;
 using SMAS_Repositories.StaffRepository;
+using SMAS_Repositories.TableRepository;
 using SMAS_Repositories.WorkStaffRepository;
 using SMAS_Services.AuthServices;
 using SMAS_Services.BlogServices;
@@ -45,6 +47,7 @@ using SMAS_Services.ReservationServices;
 using SMAS_Services.SalaryService;
 using SMAS_Services.ServiceServices;
 using SMAS_Services.StaffService;
+using SMAS_Services.TableService;
 using System.Security.Claims;
 using System.Text;
 
@@ -217,6 +220,13 @@ namespace SMAS_API
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+
+            builder.Services.AddMemoryCache();
+            builder.Services.AddScoped<TableSessionDAO>();
+            builder.Services.AddScoped<ITableSessionRepository, TableSessionRepository>();
+            builder.Services.AddScoped<ITableSessionService, TableSessionService>();
+            builder.Services.AddSingleton<ITableTokenHelper, TableTokenHelper>(); 
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 
