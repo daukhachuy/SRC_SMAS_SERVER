@@ -54,6 +54,7 @@ namespace SMAS_Services.FoodServices
         public async Task<decimal> GetFoodPriceAsync(int foodId)
         {
             return await _foodRepository.GetFoodPriceAsync(foodId);
+        }
         public async Task<bool> UpdateStatusByFoodId(int foodId)
         {
             return await _foodRepository.UpdateStatusByFoodId(foodId);
