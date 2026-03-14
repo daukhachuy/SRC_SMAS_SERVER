@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SMAS_BusinessObject.DTOs.BookEventDTO;
 using SMAS_Services.BookEventService;
+using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
@@ -73,5 +75,51 @@ namespace SMAS_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Hoàn thành đặt sự kiện (sau khi điền đủ 3 bước và bấm "Hoàn thành thực đơn").
+        /// CustomerId lấy tự động từ JWT (không cần gửi trong body).
+        /// </summary>
+        [HttpPost("create")]
+        public async Task<IActionResult> CompleteBookEvent([FromBody] CreateBookEventApiRequestDTO request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int userId))
+                    return Unauthorized();
+
+                if (request == null)
+                    return BadRequest(new { message = "Dữ liệu đặt sự kiện không hợp lệ." });
+
+                if (request.EventId <= 0)
+                    return BadRequest(new { message = "Vui lòng chọn loại sự kiện." });
+                if (request.NumberOfGuests <= 0)
+                    return BadRequest(new { message = "Số lượng bàn phải lớn hơn 0." });
+
+                var fullRequest = new CreateBookEventRequestDTO
+                {
+                    CustomerId = userId,
+                    NumberOfGuests = request.NumberOfGuests,
+                    ReservationDate = request.ReservationDate,
+                    ReservationTime = request.ReservationTime,
+                    Note = request.Note,
+                    Area = request.Area,
+                    EventId = request.EventId,
+                    Services = request.Services ?? new List<BookEventServiceItemDTO>(),
+                    Foods = request.Foods ?? new List<EventFoodItemDTO>()
+                };
+
+                var result = await _bookEventService.CreateBookEventWithDetailsAsync(fullRequest);
+                return Ok(new { data = result, message = result.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
         }
+    }
 }

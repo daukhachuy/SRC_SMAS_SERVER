@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Service;
+using SMAS_BusinessObject.DTOs.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ namespace SMAS_Services.ServiceServices
     public interface IServiceService
     {
         Task<IEnumerable<ServiceListResponse>> GetAllServicesAsync();
+        Task<ServiceListResponse?> GetServiceByIdAsync(int serviceId);
     }
 
 }

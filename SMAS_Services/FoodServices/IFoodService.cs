@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Food;
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,8 @@ namespace SMAS_Services.FoodServices
 
         Task<BuffetDetailResponseDTO?> GetBuffetWithFoodsAsync(int buffetId);
         Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request);
+        Task<FoodListResponse?> GetFoodByIdAsync(int foodId);
+        Task<decimal> GetFoodPriceAsync(int foodId);
 
         Task<bool> UpdateStatusByFoodId(int foodId);
     }

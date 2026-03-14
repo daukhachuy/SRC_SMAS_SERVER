@@ -440,6 +440,11 @@ namespace SMAS_Repositories.OrderRepositories
             return await _orderDAO.UpdateOrderStatusAsync(orderId, orderStatus);
         }
 
+        public async Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment)
+        {
+            return await _orderDAO.AddPaymentAndUpdateOrderStatusAsync(orderId, orderStatus, payment);
+        }
+
         public async Task<(double lat, double lon)> GetCoordinatesFromAddress(string address)
         {
             var fullAddress = address + ", Da Nang, Vietnam";

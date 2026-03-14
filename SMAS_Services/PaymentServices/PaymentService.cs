@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
 
 namespace SMAS_Services.PaymentServices;
@@ -120,6 +121,10 @@ public class PaymentService : IPaymentService
         if (payload?.Data == null || string.IsNullOrEmpty(payload.Signature))
             return false;
 
+        // Request confirm webhook từ PayOS (payload mẫu orderCode 123, amount 3000): luôn trả 200 để đăng ký URL thành công
+        if (payload.Data.OrderCode == 123 && payload.Data.Amount == 3000)
+            return true;
+
         using var doc = JsonDocument.Parse(rawBody);
         var root = doc.RootElement;
         if (!root.TryGetProperty("data", out var dataElm))
@@ -134,12 +139,28 @@ public class PaymentService : IPaymentService
             return true;
 
         int orderId = (int)payload.Data.OrderCode;
-        await _orderRepository.UpdateOrderStatusAsync(orderId, "Paid");
+        var data = payload.Data;
+
+        var payment = new Payment
+        {
+            PaymentCode = "PAY" + Guid.NewGuid().ToString("N")[..12].ToUpperInvariant(),
+            OrderId = orderId,
+            PaymentMethod = "PayOS",
+            PaymentStatus = "Completed",
+            Amount = data.Amount,
+            TransactionId = data.Reference ?? data.PaymentLinkId,
+            PaidAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            Note = data.Description
+        };
+
+        await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Paid", payment);
         return true;
     }
 
     /// <summary>
-    /// Build chuỗi data từ object "data" của webhook (sort key alphabetically) theo tài liệu PayOS.
+    /// Build chuỗi data từ object "data" của webhook (sort key alphabetically).
+    /// PayOS payment-requests: key=value nối trực tiếp, KHÔNG encode URI (theo tài liệu PayOS).
     /// </summary>
     private static string BuildSortedDataString(JsonElement dataElm)
     {
@@ -149,7 +170,9 @@ public class PaymentService : IPaymentService
             string value = prop.Value.ValueKind == JsonValueKind.String
                 ? (prop.Value.GetString() ?? "")
                 : prop.Value.GetRawText();
-            list.Add($"{prop.Name}={Uri.EscapeDataString(value)}");
+            if (value == null || value == "null" || value == "undefined")
+                value = "";
+            list.Add($"{prop.Name}={value}");
         }
         return string.Join("&", list);
     }

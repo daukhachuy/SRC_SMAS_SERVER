@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Food;
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_Repositories.FoodRepositories;
 using System;
 using System.Collections.Generic;
@@ -46,6 +46,14 @@ namespace SMAS_Services.FoodServices
             return await _foodRepository.FilterFoodsAsync(request);
         }
 
+        public async Task<FoodListResponse?> GetFoodByIdAsync(int foodId)
+        {
+            return await _foodRepository.GetFoodByIdAsync(foodId);
+        }
+
+        public async Task<decimal> GetFoodPriceAsync(int foodId)
+        {
+            return await _foodRepository.GetFoodPriceAsync(foodId);
         public async Task<bool> UpdateStatusByFoodId(int foodId)
         {
             return await _foodRepository.UpdateStatusByFoodId(foodId);

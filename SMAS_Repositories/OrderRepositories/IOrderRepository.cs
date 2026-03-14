@@ -17,6 +17,7 @@ namespace SMAS_Repositories.OrderRepositories
         Task<Order?> GetOrderByIdAsync(int orderId);
 
         Task<bool> UpdateOrderStatusAsync(int orderId, string orderStatus);
+        Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment);
         Task<List<OrderListResponseDTO>> GetAllActiveOrderAsync();
         Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelAsync();
         Task<List<OrderListResponseDTO>> GetAllActiveOrderByOrderTypeAsync(string orderType);

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -82,6 +82,11 @@ namespace SMAS_DataAccess.DAO
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<Food?> GetFoodByIdAsync(int foodId)
+        {
+            return await _context.Foods
+                .Include(f => f.Categories)
+                .FirstOrDefaultAsync(f => f.FoodId == foodId && (f.IsAvailable == true || f.IsAvailable == null));
         public async Task<bool> UpdateStatusByFoodId(int foodId)
         {
             var food = await _context.Foods.FindAsync(foodId);

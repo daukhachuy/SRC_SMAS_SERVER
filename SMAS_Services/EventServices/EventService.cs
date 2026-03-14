@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Event;
+using SMAS_BusinessObject.DTOs.Event;
 using SMAS_Repositories.EventRepositories;
 using System;
 using System.Collections.Generic;
@@ -20,6 +20,11 @@ namespace SMAS_Services.EventServices
         public async Task<IEnumerable<EventListResponse>> GetAllEventsAsync()
         {
             return await _eventRepository.GetAllEventsAsync();
+        }
+
+        public async Task<EventListResponse?> GetEventByIdAsync(int eventId)
+        {
+            return await _eventRepository.GetEventByIdAsync(eventId);
         }
     }
 
