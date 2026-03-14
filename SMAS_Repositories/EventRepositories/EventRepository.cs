@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Event;
+using SMAS_BusinessObject.DTOs.Event;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -35,6 +35,27 @@ namespace SMAS_Repositories.EventRepositories
                 CreatedBy = e.CreatedBy,
                 IsActive = e.IsActive
             });
+        }
+
+        public async Task<EventListResponse?> GetEventByIdAsync(int eventId)
+        {
+            var e = await _eventDAO.GetEventByIdAsync(eventId);
+            if (e == null) return null;
+            return new EventListResponse
+            {
+                EventId = e.EventId,
+                Title = e.Title,
+                Description = e.Description,
+                EventType = e.EventType,
+                Image = e.Image,
+                MinGuests = e.MinGuests,
+                MaxGuests = e.MaxGuests,
+                BasePrice = e.BasePrice,
+                CreatedAt = e.CreatedAt,
+                UpdatedAt = e.UpdatedAt,
+                CreatedBy = e.CreatedBy,
+                IsActive = e.IsActive
+            };
         }
     }
 

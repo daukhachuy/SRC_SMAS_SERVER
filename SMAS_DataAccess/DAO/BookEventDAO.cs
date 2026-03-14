@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.Models;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +27,8 @@ namespace SMAS_DataAccess.DAO
                 .Include(be => be.Contract)
                 .Include(be => be.BookEventServices)
                     .ThenInclude(s => s.Service)
+                .Include(be => be.EventFoods)
+                    .ThenInclude(ef => ef.Food)
                 .Where(be => be.Status != "Cancelled" && be.Status != "Completed")
                 .OrderByDescending(be => be.ReservationDate)
                 .ToListAsync();
@@ -41,6 +43,8 @@ namespace SMAS_DataAccess.DAO
                 .Include(be => be.Contract)
                 .Include(be => be.BookEventServices)
                     .ThenInclude(s => s.Service)
+                .Include(be => be.EventFoods)
+                    .ThenInclude(ef => ef.Food)
                 .FirstOrDefaultAsync(be => be.BookEventId == bookEventId);
         }
         public async Task<List<BookEvent>> GetAllBookEventCompleteAndCancelAsync()
@@ -53,9 +57,47 @@ namespace SMAS_DataAccess.DAO
                 .Include(be => be.Contract)
                 .Include(be => be.BookEventServices)
                     .ThenInclude(s => s.Service)
+                .Include(be => be.EventFoods)
+                    .ThenInclude(ef => ef.Food)
                 .Where(be => be.Status == "Cancelled" || be.Status == "Completed")
                 .OrderByDescending(be => be.ReservationDate)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Tạo đặt sự kiện kèm dịch vụ và món ăn trong một transaction.
+        /// Chỉ lưu DB khi tất cả thành công; nếu lỗi thì rollback.
+        /// </summary>
+        public async Task<BookEvent> CreateBookEventWithDetailsAsync(
+            BookEvent bookEvent,
+            List<BookEventService> bookEventServices,
+            List<EventFood> eventFoods)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.BookEvents.Add(bookEvent);
+                await _context.SaveChangesAsync();
+
+                foreach (var s in bookEventServices)
+                {
+                    s.BookEventId = bookEvent.BookEventId;
+                    _context.BookEventServices.Add(s);
+                }
+                foreach (var f in eventFoods)
+                {
+                    f.BookEventId = bookEvent.BookEventId;
+                    _context.EventFoods.Add(f);
+                }
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return bookEvent;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

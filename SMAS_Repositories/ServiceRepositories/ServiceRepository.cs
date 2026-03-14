@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Service;
+using SMAS_BusinessObject.DTOs.Service;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -31,6 +31,23 @@ namespace SMAS_Repositories.ServiceRepositories
                 IsAvailable = s.IsAvailable,
                 CreatedAt = s.CreatedAt
             });
+        }
+
+        public async Task<ServiceListResponse?> GetServiceByIdAsync(int serviceId)
+        {
+            var s = await _serviceDAO.GetServiceByIdAsync(serviceId);
+            if (s == null) return null;
+            return new ServiceListResponse
+            {
+                ServiceId = s.ServiceId,
+                Title = s.Title,
+                ServicePrice = s.ServicePrice,
+                Description = s.Description,
+                Unit = s.Unit,
+                Image = s.Image,
+                IsAvailable = s.IsAvailable,
+                CreatedAt = s.CreatedAt
+            };
         }
     }
 

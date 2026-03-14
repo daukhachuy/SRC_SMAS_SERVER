@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,6 +17,12 @@ namespace SMAS_DataAccess.DAO
         public async Task<List<SMAS_BusinessObject.Models.Service>> GetAllServicesAsync()
         {
             return await _context.Services.ToListAsync();
+        }
+
+        public async Task<SMAS_BusinessObject.Models.Service?> GetServiceByIdAsync(int serviceId)
+        {
+            return await _context.Services
+                .FirstOrDefaultAsync(s => s.ServiceId == serviceId && (s.IsAvailable == true || s.IsAvailable == null));
         }
     }
 }

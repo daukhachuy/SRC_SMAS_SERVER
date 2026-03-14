@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.BookEventDTO;
+using SMAS_BusinessObject.DTOs.BookEventDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
@@ -34,6 +34,14 @@ namespace SMAS_Repositories.BookEventRepository
         {
             var bookEvents = await _bookEventDAO.GetAllBookEventCompleteAndCancelAsync();
             return MapToDTO(bookEvents);
+        }
+
+        public async Task<BookEvent> CreateBookEventWithDetailsAsync(
+            BookEvent bookEvent,
+            List<SMAS_BusinessObject.Models.BookEventService> bookEventServices,
+            List<EventFood> eventFoods)
+        {
+            return await _bookEventDAO.CreateBookEventWithDetailsAsync(bookEvent, bookEventServices, eventFoods);
         }
 
         // ── Private helper mapping ─────────────────────────────────────────────
@@ -95,6 +103,15 @@ namespace SMAS_Repositories.BookEventRepository
                     Quantity = s.Quantity,
                     UnitPrice = s.UnitPrice,
                     Note = s.Note
+                }).ToList(),
+
+                Foods = (be.EventFoods ?? new List<EventFood>()).Select(ef => new BookEventFoodDto
+                {
+                    FoodId = ef.FoodId,
+                    FoodName = ef.Food?.Name,
+                    Quantity = ef.Quantity,
+                    UnitPrice = ef.UnitPrice,
+                    Note = ef.Note
                 }).ToList()
 
             }).ToList();

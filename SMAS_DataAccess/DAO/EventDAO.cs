@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,6 +18,12 @@ namespace SMAS_DataAccess.DAO
         public async Task<List<Event>> GetAllEventsAsync()
         {
             return await _context.Events.ToListAsync();
+        }
+
+        public async Task<Event?> GetEventByIdAsync(int eventId)
+        {
+            return await _context.Events
+                .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null));
         }
     }
 

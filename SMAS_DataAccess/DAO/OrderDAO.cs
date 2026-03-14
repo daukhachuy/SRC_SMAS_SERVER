@@ -198,5 +198,30 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return true;
         }
+
+        /// <summary>
+        /// Thêm bản ghi Payment và cập nhật Order status trong một transaction (khi PayOS webhook báo thanh toán thành công).
+        /// </summary>
+        public async Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order == null) return false;
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                payment.OrderId = orderId;
+                _context.Payments.Add(payment);
+                order.OrderStatus = orderStatus;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

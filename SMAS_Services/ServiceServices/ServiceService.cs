@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.Service;
+using SMAS_BusinessObject.DTOs.Service;
 using SMAS_Repositories.ServiceRepositories;
 using System;
 using System.Collections.Generic;
@@ -20,6 +20,11 @@ namespace SMAS_Services.ServiceServices
         public async Task<IEnumerable<ServiceListResponse>> GetAllServicesAsync()
         {
             return await _serviceRepository.GetAllServicesAsync();
+        }
+
+        public async Task<ServiceListResponse?> GetServiceByIdAsync(int serviceId)
+        {
+            return await _serviceRepository.GetServiceByIdAsync(serviceId);
         }
     }
 

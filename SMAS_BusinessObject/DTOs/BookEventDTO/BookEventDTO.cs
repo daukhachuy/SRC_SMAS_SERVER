@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,6 +35,19 @@ namespace SMAS_BusinessObject.DTOs.BookEventDTO
 
         // Services
         public List<BookEventServiceDto> Services { get; set; } = new();
+
+        // Foods (món ăn theo sự kiện - EventFood)
+        public List<BookEventFoodDto> Foods { get; set; } = new();
+    }
+
+    public class BookEventFoodDto
+    {
+        public int FoodId { get; set; }
+        public string? FoodName { get; set; }
+        public int Quantity { get; set; }
+        public decimal? UnitPrice { get; set; }
+        public decimal? TotalPrice => (UnitPrice.HasValue && Quantity > 0) ? UnitPrice.Value * Quantity : null;
+        public string? Note { get; set; }
     }
 
     public class UserBookEventDto

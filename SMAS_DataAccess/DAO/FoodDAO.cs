@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -78,8 +78,15 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Foods
                 .Where(f => f.FoodId == foodId)
-                .Select(f => f.PromotionalPrice ?? f.Price) 
+                .Select(f => f.PromotionalPrice ?? f.Price)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<Food?> GetFoodByIdAsync(int foodId)
+        {
+            return await _context.Foods
+                .Include(f => f.Categories)
+                .FirstOrDefaultAsync(f => f.FoodId == foodId && (f.IsAvailable == true || f.IsAvailable == null));
         }
     }
 }
