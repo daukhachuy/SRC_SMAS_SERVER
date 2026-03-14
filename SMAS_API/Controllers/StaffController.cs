@@ -7,7 +7,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Manager,Admin")]
     public class WorkStaffController : ControllerBase
     {
         private readonly IWorkStaffService _workStaffService;
@@ -21,7 +21,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet("working-today")]
-        public async Task<IActionResult> GetStaffWorkingToday()
+        public async Task<IActionResult> GetStaffWorkingToday() 
         {
             try
             {

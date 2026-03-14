@@ -62,5 +62,8 @@ namespace SMAS_Services.ReservationServices
             return new string(Enumerable.Repeat(chars, 8)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
+        public async Task<IEnumerable<ReservationListResponse>> GetMyReservationsAsync(int userId)
+    => await _reservationRepository.GetReservationsByUserIdAsync(userId);
     }
 }

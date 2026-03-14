@@ -24,6 +24,7 @@ using SMAS_Repositories.Inventoryrepositories;
 using SMAS_Repositories.ManagerRepositories;
 using SMAS_Repositories.OrderRepositories;
 using SMAS_Repositories.ReservationRepositories;
+using SMAS_Repositories.SalaryRepository;
 using SMAS_Repositories.ServiceRepositories;
 using SMAS_Repositories.StaffRepository;
 using SMAS_Repositories.WorkStaffRepository;
@@ -45,6 +46,7 @@ using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
 using SMAS_Services.ReservationServices;
+using SMAS_Services.SalaryService;
 using SMAS_Services.ServiceServices;
 using SMAS_Services.StaffService;
 using System.Security.Claims;
@@ -191,9 +193,18 @@ namespace SMAS_API
             builder.Services.AddScoped<IBuffetRepository, BuffetRepository>();
             builder.Services.AddScoped<IBufferServices, BufferService>();
 
+            builder.Services.AddScoped<SalaryRecordDAO>();
+            builder.Services.AddScoped<ISalaryRecordRepository, SalaryRecordRepository>();
+            builder.Services.AddScoped<ISalaryRecordService, SalaryRecordService>();
+
             builder.Services.AddScoped<WorkStaffDAO>();
             builder.Services.AddScoped<IWorkStaffRepository, WorkStaffRepository>();
             builder.Services.AddScoped<IWorkStaffService, WorkStaffService>();
+
+            builder.Services.AddScoped<StaffProfileDAO>();
+            builder.Services.AddScoped<IStaffProfileRepository, StaffProfileRepository>();
+            builder.Services.AddScoped<IStaffProfileService, StaffProfileService>();
+
 
             builder.Services.AddScoped<ReservationDAO>();
             builder.Services.AddScoped<IReservationRepository, ReservationRepository>();

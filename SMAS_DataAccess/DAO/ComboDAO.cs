@@ -38,5 +38,16 @@ namespace SMAS_DataAccess.DAO
                 .Select(c => c.Price)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<bool> UpdateStatusByComboId(int comboId)
+        {
+            var combo = await _context.Combos.FindAsync(comboId);
+
+            if (combo == null)
+                return false;
+            combo.IsAvailable = !combo.IsAvailable;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

@@ -1,3 +1,4 @@
+﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
@@ -187,5 +188,10 @@ namespace SMAS_Repositories.FoodRepositories
         {
             return await _foodDAO.GetFoodPriceAsync(foodId);
         }
+        public async Task<bool> UpdateStatusByFoodId(int foodId)
+        {
+            return await _foodDAO.UpdateStatusByFoodId(foodId);
+        }
+
     }
 }

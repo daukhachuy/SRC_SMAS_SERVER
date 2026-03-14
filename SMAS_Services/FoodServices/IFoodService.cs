@@ -20,5 +20,7 @@ namespace SMAS_Services.FoodServices
         Task<List<FoodFilterResponseDTO>> FilterFoodsAsync(FoodFilterRequestDTO request);
         Task<FoodListResponse?> GetFoodByIdAsync(int foodId);
         Task<decimal> GetFoodPriceAsync(int foodId);
+
+        Task<bool> UpdateStatusByFoodId(int foodId);
     }
 }

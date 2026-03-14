@@ -25,5 +25,7 @@ namespace SMAS_Repositories.OrderRepositories
         Task<OrderListResponseDTO?> GetOrderDetailByOrderCodeAsync(string orderCode);
         Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByOrderTypeAsync(string orderType);
         Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request);
+
+        Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request);
     }
 }

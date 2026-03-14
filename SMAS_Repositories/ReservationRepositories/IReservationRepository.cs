@@ -19,5 +19,6 @@ namespace SMAS_Repositories.ReservationRepositories
         Task<bool> CheckDuplicateReservation(int userId, DateOnly date, TimeOnly time);
 
         bool CheckCodeExists(string code);
+        Task<IEnumerable<ReservationListResponse>> GetReservationsByUserIdAsync(int userId);
     }
 }

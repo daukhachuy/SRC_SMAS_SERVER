@@ -32,5 +32,10 @@ namespace SMAS_Services.ComboServices
                         .Where(c => !request.MinPrice.HasValue || c.Price >= request.MinPrice.Value)
                         .Where(c => !request.MaxPrice.HasValue || c.Price <= request.MaxPrice.Value);
         }
+
+        public async Task<bool> UpdateStatusByComboId(int comboId)
+        {
+            return await _comboRepository.UpdateStatusByComboId(comboId);
+        }
     }
 }

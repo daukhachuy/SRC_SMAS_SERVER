@@ -10,5 +10,7 @@ namespace SMAS_Repositories.ComboRepositories
     public interface IComboRepository
     {
         Task<IEnumerable<ComboListResponse>> GetAvailableComboListAsync();
+
+        Task<bool> UpdateStatusByComboId(int comboId);
     }
 }

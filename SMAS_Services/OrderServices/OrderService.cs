@@ -59,5 +59,11 @@ namespace SMAS_Services.OrderServices
 
             return await _orderRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
         }
+
+        public async Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request)
+        {
+            return await _orderRepository.UpdateOrderDeliveryFailedAtAsync(request);
+        }
+        
     }
 }

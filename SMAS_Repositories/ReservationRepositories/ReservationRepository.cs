@@ -76,6 +76,34 @@ namespace SMAS_Repositories.ReservationRepositories
                 ConfirmedByName = r.ConfirmedByNavigation != null ? r.ConfirmedByNavigation.User.Fullname : null
             };
         }
+        public async Task<IEnumerable<ReservationListResponse>> GetReservationsByUserIdAsync(int userId)
+        {
+            var reservations = await _reservation.GetReservationsByUserIdAsync(userId);
+            return reservations.Select(r => MapToDto(r)).ToList();
+        }
+        private static ReservationListResponse MapToDto(Reservation r) =>
+            new()
+            {
+                UserId = r.UserId,
+                Fullname = r.User.Fullname,
+                Phone = r.User.Phone,
+                Email = r.User.Email,
+                ReservationId = r.ReservationId,
+                ReservationCode = r.ReservationCode,
+                ReservationDate = r.ReservationDate,
+                ReservationTime = r.ReservationTime,
+                NumberOfGuests = r.NumberOfGuests,
+                SpecialRequests = r.SpecialRequests,
+                Status = r.Status,
+                ConfirmedAt = r.ConfirmedAt,
+                CancelledAt = r.CancelledAt,
+                CancellationReason = r.CancellationReason,
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                ConfirmedBy = r.ConfirmedBy,
+                ConfirmedByName = r.ConfirmedByNavigation != null ? r.ConfirmedByNavigation.User.Fullname : null
+            };
+
 
         public async Task<bool> CheckDuplicateReservation(int userId, DateOnly date, TimeOnly time) => await _reservation.CheckDuplicateReservation(userId, date, time);
         public bool CheckCodeExists(string code) => _reservation.CheckCodeExists(code);
