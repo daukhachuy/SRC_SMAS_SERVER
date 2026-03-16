@@ -1,25 +1,49 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_Services.ManagerServices;
 using SMAS_Services.StaffService;
 
 namespace SMAS_API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Manager,Admin")]
     public class WorkStaffController : ControllerBase
     {
         private readonly IWorkStaffService _workStaffService;
+        private readonly IManagerService _managerService;
         private readonly ILogger<WorkStaffController> _logger;
 
         public WorkStaffController(IWorkStaffService workStaffService,
+                                   IManagerService managerService,
                                    ILogger<WorkStaffController> logger)
         {
             _workStaffService = workStaffService;
+            _managerService = managerService;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Lấy danh sách nhân viên làm việc hôm nay (Manager dashboard)
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("staff-work-today")]
+        public async Task<IActionResult> GetStaffWorkToday()
+        {
+            try
+            {
+                var result = await _managerService.GetStaffWorkTodayAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách nhân viên làm việc hôm nay.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("working-today")]
         public async Task<IActionResult> GetStaffWorkingToday() 
         {
@@ -39,6 +63,7 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost("filter-by-position")]
         public async Task<IActionResult> GetFilterStaffByPosition([FromBody] List<string> positions)
         {
@@ -59,6 +84,7 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("{staffId}/work-history")]
         public async Task<IActionResult> GetAllWorkHistoryByStaffId(int staffId, [FromQuery] int month, [FromQuery] int year)
         {
@@ -87,6 +113,7 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost("next-seven-days")]
         public async Task<IActionResult> GetAllWorkNextSevenDayByPosition([FromBody] List<string> positions)
         {
@@ -102,6 +129,7 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("workshift")]
         public async Task<IActionResult> GetAllWorkShift()
         {
@@ -118,6 +146,7 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateWorkStaff([FromBody] CreateWorkStaffRequestDto dto)
         {
@@ -137,6 +166,7 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPut("{workStaffId}")]
         public async Task<IActionResult> UpdateWorkStaff(int workStaffId, [FromBody] UpdateWorkStaffRequestDto dto)
         {
@@ -156,7 +186,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // DELETE api/workstaff/5
+        [Authorize(Roles = "Manager,Admin")]
         [HttpDelete("{workStaffId}")]
         public async Task<IActionResult> DeleteWorkStaff(int workStaffId)
         {
