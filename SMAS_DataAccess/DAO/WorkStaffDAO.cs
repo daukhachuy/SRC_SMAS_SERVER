@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SMAS_BusinessObject.DTOs.WorkShiftDTO;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -139,6 +140,69 @@ namespace SMAS_DataAccess.DAO
             _context.WorkStaffs.Add(workStaff);
             await _context.SaveChangesAsync();
             return workStaff;
+        }
+
+        public async Task<int> GetSumWorkShiftThisMonthByJwtIdAsync(int userId)
+        {
+            var now = DateTime.Now;
+
+            var count = await _context.WorkStaffs
+                .Where(w => w.UserId == userId
+                         && w.WorkDay.Month == now.Month
+                         && w.WorkDay.Year == now.Year)
+                .CountAsync();
+
+            return count;
+        }
+
+        public async Task<double> GetSumTimeWorkedThisMonthByJwtIdAsync(int userId)
+        {
+            var now = DateTime.Now;
+
+            var shifts = await _context.WorkStaffs
+                .Where(w => w.UserId == userId
+                         && w.WorkDay.Month == now.Month
+                         && w.WorkDay.Year == now.Year)
+                .Include(w => w.Shift)
+                .ToListAsync();
+
+            double totalHours = 0;
+
+            foreach (var shift in shifts)
+            {
+                if (shift.Shift.StartTime != null && shift.Shift.EndTime != null && shift.IsWorking == true)
+                {
+                    var start = shift.Shift.StartTime.Value.ToTimeSpan();
+                    var end = shift.Shift.EndTime.Value.ToTimeSpan();
+
+                    totalHours += (end - start).TotalHours;
+                }
+            }
+
+            return totalHours;
+        }
+        public async Task<IEnumerable<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync(int staffId, DateOnly date)
+        {
+            var endDate = date.AddDays(7);
+
+            var schedules = await _context.WorkStaffs
+                .Where(w => w.UserId == staffId
+                    && w.WorkDay >= date
+                    && w.WorkDay <= endDate)
+                .Include(w => w.Shift)
+                .Select(w => new ScheduleWorkResponseDTO
+                {
+                    WorkDate = w.WorkDay,
+                    ShiftName = w.Shift.ShiftName ,
+                    StartTime = w.Shift.StartTime,
+                    EndTime = w.Shift.EndTime,
+                    AdditionalWork = w.Shift.AdditionalWork,
+                    Note = w.Note
+                })
+                .OrderBy(w => w.WorkDate)
+                .ToListAsync();
+
+            return schedules;
         }
     }
 }
