@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_BusinessObject.DTOs.WorkShiftDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using SMAS_Repositories.WorkStaffRepository;
@@ -263,6 +264,20 @@ namespace SMAS_Repositories.StaffRepository
             }
 
             return "Đúng giờ";
+        }
+
+        public async  Task<int> GetSumWorkShiftThisMonthByJwtIdAsync(int userId)
+        {
+            return  await   _workStaffDAO.GetSumWorkShiftThisMonthByJwtIdAsync(userId);
+        }
+        public async  Task<double> GetSumTimeWorkedThisMonthByJwtIdAsync(int userId)
+        {
+            return await _workStaffDAO.GetSumTimeWorkedThisMonthByJwtIdAsync(userId);
+        }
+
+        public async Task<IEnumerable<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync(int staffId, DateOnly date)
+        {
+           return await _workStaffDAO.GetScheduleWorkOnWeekbyStaffIdAsync(staffId, date);
         }
     }
 

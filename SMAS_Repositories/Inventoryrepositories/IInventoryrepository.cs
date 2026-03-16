@@ -12,5 +12,9 @@ namespace SMAS_Repositories.Inventoryrepositories
     {
         Task<IEnumerable<InventoryResponseDTO>> GetAllInventoryAsync();
         Task<IEnumerable<InventorylogResponseDTO>> GetAllInventoryLogsAsync();
+        Task<List<Inventory>> GetAllAsync();
+        Task<bool> ExportInventoryAsync(ExImportInventoryRequestDTO dto, int staffId);
+        Task<bool> ImportInventoryAsync(ExImportInventoryRequestDTO dto, int staffId);
+        Task<bool> CreateInventoryAsync(CreateInventoryRequestDTO inventory);
     }
 }

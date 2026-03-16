@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_BusinessObject.DTOs.WorkShiftDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,10 @@ namespace SMAS_Services.StaffService
         Task<(bool Success, string? ErrorMessage, CreateWorkStaffRequestDto? Data)> CreateWorkStaffAsync(CreateWorkStaffRequestDto dto);
         Task<(bool Success, string? ErrorMessage, UpdateWorkStaffRequestDto? Data)> UpdateWorkStaffAsync(int workStaffId, UpdateWorkStaffRequestDto dto);
         Task<(bool Success, string? ErrorMessage)> DeleteWorkStaffAsync(int workStaffId);
+
+        Task<int> GetSumWorkShiftThisMonthByJwtIdAsync(int userId);
+        Task<double> GetSumTimeWorkedThisMonthByJwtIdAsync(int userId);
+
+        Task<IEnumerable<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync(int staffId, DateOnly date);
     }
 }
