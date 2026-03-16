@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_BusinessObject.DTOs.WorkShiftDTO;
 using SMAS_Repositories.WorkStaffRepository;
 using System;
 using System.Collections.Generic;
@@ -78,6 +79,20 @@ namespace SMAS_Services.StaffService
 
         public async Task<(bool Success, string? ErrorMessage)> DeleteWorkStaffAsync(int workStaffId)
             => await _workStaffRepository.DeleteWorkStaffAsync(workStaffId);
+
+        public async Task<int> GetSumWorkShiftThisMonthByJwtIdAsync(int userId)
+        {
+            return await _workStaffRepository.GetSumWorkShiftThisMonthByJwtIdAsync(userId);
+        }
+        public async Task<double> GetSumTimeWorkedThisMonthByJwtIdAsync(int userId)
+        {
+            return await _workStaffRepository.GetSumTimeWorkedThisMonthByJwtIdAsync(userId);
+        }
+
+        public async  Task<IEnumerable<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync(int staffId, DateOnly date)
+        {
+            return await _workStaffRepository.GetScheduleWorkOnWeekbyStaffIdAsync(staffId, date);
+        }
     }
 
 }

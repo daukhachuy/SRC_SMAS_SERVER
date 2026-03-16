@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_BusinessObject.DTOs.WorkShiftDTO;
 using SMAS_Services.StaffService;
 
 namespace SMAS_API.Controllers
@@ -21,7 +22,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet("working-today")]
-        public async Task<IActionResult> GetStaffWorkingToday() 
+        public async Task<IActionResult> GetStaffWorkingToday()
         {
             try
             {
@@ -172,6 +173,68 @@ namespace SMAS_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi xóa ca làm việc {WorkStaffId}.", workStaffId);
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+
+        [Authorize(Roles = "Waiter,Kitchen")]
+        [HttpGet("sum-workshift-thismonth")]
+        public async Task<IActionResult> GetSumWorkShiftThisMonthByStaffId()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Không xác định được người dùng.");
+                var result = await _workStaffService.GetSumWorkShiftThisMonthByJwtIdAsync(userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy tổng số ca làm trong tháng của nhân viên.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Kitchen")]
+        [HttpGet("sum-timework-thismonth")]
+        public async Task<IActionResult> GetWorkShiftThisMonthByStaffId()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Không xác định được người dùng.");
+                var result = await _workStaffService.GetSumTimeWorkedThisMonthByJwtIdAsync(userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy tổng giờ làm trong tháng của nhân viên.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Kitchen")]
+        [HttpGet("schedule-week-kitchen-waiter")]
+        public async Task<ActionResult<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync([FromQuery] DateOnly date)
+        {
+            if (date < DateOnly.FromDateTime(DateTime.Now.AddMonths(-3)) || date > DateOnly.FromDateTime(DateTime.Now.AddMonths(3)))
+            {
+                return BadRequest("Date ngoài phạm vi cho phép");
+            }
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Không xác định được người dùng.");
+                var result = await _workStaffService.GetScheduleWorkOnWeekbyStaffIdAsync(userId , date);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy lịch làm việc tuần cho nhân viên bếp và phục vụ.");
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
