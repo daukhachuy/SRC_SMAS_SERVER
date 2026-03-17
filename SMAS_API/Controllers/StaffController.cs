@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.StaffDTO;
-using SMAS_Services.ManagerServices;
 using SMAS_BusinessObject.DTOs.WorkShiftDTO;
+using SMAS_Repositories.StaffRepository;
+using SMAS_Services.ManagerServices;
 using SMAS_Services.StaffService;
 
 namespace SMAS_API.Controllers
@@ -10,16 +11,19 @@ namespace SMAS_API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class WorkStaffController : ControllerBase
+    public class StaffController : ControllerBase
     {
         private readonly IWorkStaffService _workStaffService;
         private readonly IManagerService _managerService;
-        private readonly ILogger<WorkStaffController> _logger;
+        private readonly IStaffProfileService _staffProfileService;
+        private readonly ILogger<StaffController> _logger;
 
-        public WorkStaffController(IWorkStaffService workStaffService,
+        public StaffController(IWorkStaffService workStaffService,
+            IStaffProfileService staffProfileService,
                                    IManagerService managerService,
-                                   ILogger<WorkStaffController> logger)
+                                   ILogger<StaffController> logger)
         {
+            _staffProfileService = staffProfileService;
             _workStaffService = workStaffService;
             _managerService = managerService;
             _logger = logger;
@@ -268,5 +272,53 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
+
+        // GET api/staffprofile
+        [HttpGet("staff-profile")]
+        public async Task<IActionResult> GetProfileStaff()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Không xác định được người dùng.");
+
+                var result = await _staffProfileService.GetProfileStaffAsync(userId);
+
+                if (result == null) return Ok(null);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy hồ sơ nhân viên.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        // PUT api/staffprofile
+        [HttpPut("staff-profile")]
+        public async Task<IActionResult> UpdateProfileStaff([FromBody] UpdateProfileStaffRequestDto dto)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Không xác định được người dùng.");
+
+                var (success, error) = await _staffProfileService.UpdateProfileStaffAsync(userId, dto);
+
+                if (!success) return BadRequest(error);
+
+                return Ok("Cập nhật hồ sơ thành công.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi cập nhật hồ sơ nhân viên.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
     }
+
 }
+
