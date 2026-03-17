@@ -105,7 +105,8 @@ namespace SMAS_API
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy.WithOrigins(
-                        "https://brave-hill-0480d9600.1.azurestaticapps.net",
+                        //"https://brave-hill-0480d9600.1.azurestaticapps.net",
+                        "https://zealous-sky-0d8578e00.2.azurestaticapps.net",
                         "http://localhost:3000"
                     )
                     .AllowAnyMethod()
