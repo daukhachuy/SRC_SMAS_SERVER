@@ -1,27 +1,45 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.TableDTO;
+using SMAS_Services.ManagerServices;
 using SMAS_Services.TableService;
 using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
     [ApiController]
-    public class TableSessionController : ControllerBase
+    [Route("api/table")]
+    public class TableController : ControllerBase
     {
-        private readonly ITableSessionService _service;
-        private readonly ILogger<TableSessionController> _logger;
+        private readonly IManagerService _managerService;
+        private readonly ITableSessionService _tableSessionService;
+        private readonly ILogger<TableController> _logger;
 
-        public TableSessionController(ITableSessionService service,
-                                      ILogger<TableSessionController> logger)
+        public TableController(
+            IManagerService managerService,
+            ITableSessionService tableSessionService,
+            ILogger<TableController> logger)
         {
-            _service = service;
+            _managerService = managerService;
+            _tableSessionService = tableSessionService;
             _logger = logger;
         }
 
-        // Waiter mở bàn
-        // POST /api/tables/{tableCode}/open
-        [HttpPost("api/tables/{tableCode}/open")]
+        /// <summary>
+        /// Lấy danh sách bàn trống
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("empty")]
+        public async Task<IActionResult> GetTableEmpty()
+        {
+            var result = await _managerService.GetEmptyTablesAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Waiter mở bàn - POST /api/tables/{tableCode}/open
+        /// </summary>
+        [HttpPost("/api/tables/{tableCode}/open")]
         [Authorize(Roles = "Manager,Admin,Waiter")]
         public async Task<IActionResult> OpenTable(string tableCode, [FromQuery] int? userId = null)
         {
@@ -30,7 +48,7 @@ namespace SMAS_API.Controllers
                 var resolvedUserId = userId ?? GetUserIdFromToken();
                 if (resolvedUserId == null) return Unauthorized("Không xác định được người dùng.");
 
-                var (success, errorCode, data) = await _service.OpenTableAsync(tableCode, resolvedUserId.Value);
+                var (success, errorCode, data) = await _tableSessionService.OpenTableAsync(tableCode, resolvedUserId.Value);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -41,9 +59,10 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // Waiter đóng bàn
-        // POST /api/tables/{tableCode}/close
-        [HttpPost("api/tables/{tableCode}/close")]
+        /// <summary>
+        /// Waiter đóng bàn - POST /api/tables/{tableCode}/close
+        /// </summary>
+        [HttpPost("/api/tables/{tableCode}/close")]
         [Authorize(Roles = "Manager,Admin,Waiter")]
         public async Task<IActionResult> CloseTable(string tableCode, [FromQuery] int? userId = null)
         {
@@ -52,7 +71,7 @@ namespace SMAS_API.Controllers
                 var resolvedUserId = userId ?? GetUserIdFromToken();
                 if (resolvedUserId == null) return Unauthorized("Không xác định được người dùng.");
 
-                var (success, errorCode, data) = await _service.CloseTableAsync(tableCode, resolvedUserId.Value);
+                var (success, errorCode, data) = await _tableSessionService.CloseTableAsync(tableCode, resolvedUserId.Value);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -63,15 +82,16 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // Khách quét QR → lấy access + refresh token
-        // POST /api/tables/{tableCode}/init
-        [HttpPost("api/tables/{tableCode}/init")]
+        /// <summary>
+        /// Khách quét QR → lấy access + refresh token - POST /api/tables/{tableCode}/init
+        /// </summary>
+        [HttpPost("/api/tables/{tableCode}/init")]
         [AllowAnonymous]
         public async Task<IActionResult> InitSession(string tableCode)
         {
             try
             {
-                var (success, errorCode, data) = await _service.InitSessionAsync(tableCode);
+                var (success, errorCode, data) = await _tableSessionService.InitSessionAsync(tableCode);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -82,9 +102,10 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // Refresh access token
-        // POST /api/tables/refresh
-        [HttpPost("api/tables/refresh")]
+        /// <summary>
+        /// Refresh access token - POST /api/tables/refresh
+        /// </summary>
+        [HttpPost("/api/tables/refresh")]
         [AllowAnonymous]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto dto)
         {
@@ -93,7 +114,7 @@ namespace SMAS_API.Controllers
                 if (string.IsNullOrWhiteSpace(dto.RefreshToken))
                     return BadRequest(new { errorCode = "INVALID_QR_TOKEN" });
 
-                var (success, errorCode, data) = await _service.RefreshAsync(dto.RefreshToken);
+                var (success, errorCode, data) = await _tableSessionService.RefreshAsync(dto.RefreshToken);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -104,15 +125,16 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // FE kiểm tra realtime
-        // GET /api/tables/{tableCode}/active-session
-        [HttpGet("api/tables/{tableCode}/active-session")]
+        /// <summary>
+        /// FE kiểm tra realtime - GET /api/tables/{tableCode}/active-session
+        /// </summary>
+        [HttpGet("/api/tables/{tableCode}/active-session")]
         [Authorize(Roles = "Manager,Admin,Waiter")]
         public async Task<IActionResult> GetActiveSession(string tableCode)
         {
             try
             {
-                var result = await _service.GetActiveSessionAsync(tableCode);
+                var result = await _tableSessionService.GetActiveSessionAsync(tableCode);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -122,7 +144,6 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // Map errorCode → HTTP status chuẩn
         private IActionResult MapError(string errorCode) => errorCode switch
         {
             "TABLE_NOT_FOUND" => NotFound(new { errorCode, message = "Không tìm thấy bàn." }),
