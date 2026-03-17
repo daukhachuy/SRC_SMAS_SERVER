@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.Event;
 using SMAS_Services.EventServices;
+using SMAS_Services.ManagerServices;
 
 namespace SMAS_API.Controllers
 {
@@ -9,10 +11,23 @@ namespace SMAS_API.Controllers
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
+        private readonly IManagerService _managerService;
 
-        public EventController(IEventService eventService)
+        public EventController(IEventService eventService, IManagerService managerService)
         {
             _eventService = eventService;
+            _managerService = managerService;
+        }
+
+        /// <summary>
+        /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay)
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("upcoming-events")]
+        public async Task<IActionResult> GetAllUpcomingEvent()
+        {
+            var result = await _managerService.GetUpcomingEventsAsync();
+            return Ok(result);
         }
 
         [HttpGet]

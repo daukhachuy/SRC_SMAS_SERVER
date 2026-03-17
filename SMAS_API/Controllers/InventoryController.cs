@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.IngredientDTO;
 using SMAS_BusinessObject.DTOs.InventoryDTO;
 using SMAS_Services.InventoryServices;
@@ -15,7 +16,7 @@ namespace SMAS_API.Controllers
         {
             _inventoryService = inventoryService;
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpGet("getall")]
         public async Task<ActionResult<InventoryResponseDTO>> GetAllInventoryAsync()
         {
@@ -26,7 +27,7 @@ namespace SMAS_API.Controllers
             }
             return Ok(result);
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpGet("logs")]
         public async Task<ActionResult<InventorylogResponseDTO>> GetAllInventoryLogsAsync()
         {
@@ -36,6 +37,55 @@ namespace SMAS_API.Controllers
                 return NotFound(new { MsgCode = "MSG_036", Message = "Không có lịch sử tồn kho nào !" });
             }
             return Ok(result);
+        }
+        [Authorize(Roles = "Manager")]
+        [HttpGet("newbatchcode")]
+        public async Task<ActionResult<string>> GetNewBatchCodeAsync()
+        {
+            var newBatchCode = await _inventoryService.GetNewBatchCodeAsync();
+            return Ok(newBatchCode);
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("create")]
+        public async Task<ActionResult> CreateInventoryAsync([FromBody] CreateInventoryRequestDTO request)
+        {
+            var result = await _inventoryService.CreateInventoryAsync(request);
+            if (!result)
+            {
+                return BadRequest(new { MsgCode = "MSG_037", Message = "Tạo lô nguyên liệu thất bại." });
+            }
+            return Ok(new { MsgCode = "MSG_038", Message = "Tạo lô nguyên liệu thành công." });
+        }
+
+        [Authorize(Roles = " Manager")]
+        [HttpPost("create-export")]
+        public async Task<ActionResult> CreateExportInventoryAsync([FromBody] ExImportInventoryRequestDTO request)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Không xác định được người dùng.");
+            var result = await _inventoryService.ExportInventoryAsync(request, userId);
+            if (!result)
+            {
+                return BadRequest(new { MsgCode = "MSG_039", Message = "Xuất kho nguyên liệu thất bại." });
+            }
+            return Ok(new { MsgCode = "MSG_040", Message = "Xuất kho nguyên liệu thành công." });
+        }
+
+        [Authorize(Roles = " Manager")]
+        [HttpPost("create-import")]
+        public async Task<ActionResult> CreateImportInventoryAsync([FromBody] ExImportInventoryRequestDTO request)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Không xác định được người dùng.");
+            var result = await _inventoryService.ImportInventoryAsync(request, userId);
+            if (!result)
+            {
+                return BadRequest(new { MsgCode = "MSG_041", Message = "Nhập kho nguyên liệu thất bại." });
+            }
+            return Ok(new { MsgCode = "MSG_042", Message = "Nhập kho nguyên liệu thành công." });
         }
     }
 }

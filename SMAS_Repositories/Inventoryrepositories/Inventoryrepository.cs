@@ -1,4 +1,7 @@
-﻿using SMAS_BusinessObject.DTOs.InventoryDTO;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using SMAS_BusinessObject.DTOs.InventoryDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -58,6 +61,114 @@ namespace SMAS_Repositories.Inventoryrepositories
 
 
             }).ToList();
+        }
+
+        public async Task<List<Inventory>> GetAllAsync()
+        {
+            return _inventoryDAO.GetAllAsync().Result;
+        }
+
+        public async Task<bool> ExportInventoryAsync(ExImportInventoryRequestDTO dto, int staffId)
+        {
+            var inventorys = await _inventoryDAO.GetAllAsync();
+            var inventory = inventorys.FirstOrDefault(i => i.InventoryId == dto.InventoryId);
+            if (inventory == null)
+                return false;
+
+            if (inventory.QuantityOnHand < dto.Quantity)
+                throw new Exception("Not enough stock");
+
+            double oldQty = inventory.QuantityOnHand;
+
+            inventory.QuantityOnHand -= dto.Quantity;
+            inventory.UpdatedAt = DateTime.Now;
+
+            var imexport = new ImExport
+            {
+                Type = "EXPORT",
+                InventoryId = inventory.InventoryId,
+                IngredientId = inventory.IngredientId,
+                Quantity = dto.Quantity,
+                Reason = dto.Reason,
+                CreatedByStaffId = staffId,
+                CreatedAt = DateTime.Now
+            };
+
+
+            var log = new InventoryLog
+            {
+                InventoryId = inventory.InventoryId,
+                IngredientId = inventory.IngredientId,
+                Action = "EXPORT",
+                OldQuantity = oldQty,
+                NewQuantity = inventory.QuantityOnHand,
+                UserId = staffId,
+                Timestamp = DateTime.Now
+            };
+
+            var result = await _inventoryDAO.CreateImportInventoryAsync(inventory, imexport, log);
+
+            return result;
+        }
+
+        public async Task<bool> ImportInventoryAsync(ExImportInventoryRequestDTO dto, int staffId)
+        {
+            var inventorys = await _inventoryDAO.GetAllAsync();
+            var inventory = inventorys.FirstOrDefault(i => i.InventoryId == dto.InventoryId);
+
+            if (inventory == null)
+                return false;
+
+            double oldQty = inventory.QuantityOnHand;
+
+            inventory.QuantityOnHand += dto.Quantity;
+            inventory.UpdatedAt = DateTime.Now;
+
+            var imexport = new ImExport
+            {
+                Type = "RETURN",
+                InventoryId = inventory.InventoryId,
+                IngredientId = inventory.IngredientId,
+                Quantity = dto.Quantity,
+                Reason = dto.Reason,
+                CreatedByStaffId = staffId,
+                CreatedAt = DateTime.Now
+            };
+
+
+            var log = new InventoryLog
+            {
+                InventoryId = inventory.InventoryId,
+                IngredientId = inventory.IngredientId,
+                Action = "RETURN",
+                OldQuantity = oldQty,
+                NewQuantity = inventory.QuantityOnHand,
+                UserId = staffId,
+                Timestamp = DateTime.Now
+            };
+
+
+            var result = await _inventoryDAO.CreateImportInventoryAsync(inventory, imexport, log);
+
+            return result;
+        }
+
+        public async Task<bool> CreateInventoryAsync(CreateInventoryRequestDTO inventory )
+        {
+            var newInventory = new Inventory
+            {
+                IngredientId = inventory.IngredientId,
+                BatchCode = inventory.BatchCode,
+                QuantityOnHand = inventory.Quantity,
+                PricePerUnit = inventory.PricePerUnit,
+                ExpiryDate = inventory.ExpiryDate,
+                WarehouseLocation = inventory.WarehouseLocation,
+                Status = "Active",
+                Note = inventory.Note,
+                CreatedAt = DateTime.Now
+            };
+            var result = await _inventoryDAO.CreateInventoryAsync(newInventory);
+            return result;
         }
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.BookEventDTO;
 using SMAS_Services.BookEventService;
+using SMAS_Services.ManagerServices;
 using System.Security.Claims;
 
 namespace SMAS_API.Controllers
@@ -12,10 +13,23 @@ namespace SMAS_API.Controllers
     public class BookEventController : ControllerBase
     {
         private readonly IBookEventService _bookEventService;
+        private readonly IManagerService _managerService;
 
-        public BookEventController(IBookEventService bookEventService)
+        public BookEventController(IBookEventService bookEventService, IManagerService managerService)
         {
             _bookEventService = bookEventService;
+            _managerService = managerService;
+        }
+
+        /// <summary>
+        /// Tất cả đặt sự kiện (BookEvent) sắp xếp theo thời gian tạo tăng dần
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("asc-created-at")]
+        public async Task<IActionResult> GetAllBookEventASCCreatedAt()
+        {
+            var result = await _managerService.GetAllBookEventsAscCreatedAtAsync();
+            return Ok(result);
         }
 
         [Authorize(Roles = "Admin,Manager")]

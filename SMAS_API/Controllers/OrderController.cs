@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.OrderDTO;
+using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.TableService;
 using System.Security.Claims;
@@ -14,11 +15,46 @@ namespace SMAS_API.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly ITableSessionService _tableSessionService;
+        private readonly IManagerService _managerService;
 
-        public OrderController(IOrderService orderService, ITableSessionService tableSessionService)
+        public OrderController(IOrderService orderService, ITableSessionService tableSessionService, IManagerService managerService)
         {
             _orderService = orderService;
             _tableSessionService = tableSessionService;
+            _managerService = managerService;
+        }
+
+        /// <summary>
+        /// Lấy danh sách đơn hàng được tạo trong ngày hôm nay
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("orders-today")]
+        public async Task<IActionResult> GetOrderToday()
+        {
+            var result = await _managerService.GetOrdersTodayAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy tổng doanh thu 7 ngày gần nhất (theo tuần)
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("revenue-previous-seven-days")]
+        public async Task<IActionResult> GetRevenuePreviousSevenDay()
+        {
+            var result = await _managerService.GetRevenuePreviousSevenDaysAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy 4 đơn hàng mới tạo gần nhất
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("four-newest-orders")]
+        public async Task<IActionResult> GetFourNewCreateOrder()
+        {
+            var result = await _managerService.GetFourNewestOrdersAsync();
+            return Ok(result);
         }
 
         [Authorize(Roles = "Admin,Manager,Customer")]

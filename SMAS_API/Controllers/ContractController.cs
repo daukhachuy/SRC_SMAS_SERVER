@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SMAS_Services.ContractService;
+using SMAS_Services.ManagerServices;
 
 namespace SMAS_API.Controllers
 {
@@ -8,11 +10,25 @@ namespace SMAS_API.Controllers
     public class ContractController : ControllerBase
     {
         private readonly IContractService _contractService;
+        private readonly IManagerService _managerService;
 
-        public ContractController(IContractService contractService)
+        public ContractController(IContractService contractService, IManagerService managerService)
         {
             _contractService = contractService;
+            _managerService = managerService;
         }
+
+        /// <summary>
+        /// Số lượng contract cần được ký (Status = Pending)
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("number-need-signed")]
+        public async Task<IActionResult> GetNumberContractNeedSigned()
+        {
+            var result = await _managerService.GetNumberContractNeedSignedAsync();
+            return Ok(result);
+        }
+
         [HttpGet("{bookingCode}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
