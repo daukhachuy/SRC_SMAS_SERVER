@@ -96,8 +96,7 @@ namespace SMAS_Services.StaffService
 
         public async Task<IEnumerable<WorkStaffResponseDTO>> GetWorkScheduleNotCheckinByStaff(int userId)
         {
-            var result =  await _workStaffRepository.GetWorkScheduleNotCheckinByStaff(userId);
-            if( result == null || !result.Any()) return new List<WorkStaffResponseDTO>();
+            return  await _workStaffRepository.GetWorkScheduleNotCheckinByStaff(userId);
 
         }
     }
