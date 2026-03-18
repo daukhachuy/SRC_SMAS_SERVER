@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SMAS_DataAccess.DAO
 {
-    public class WorkStaffDAO 
+    public class WorkStaffDAO
     {
         private readonly RestaurantDbContext _context;
 
@@ -193,7 +193,7 @@ namespace SMAS_DataAccess.DAO
                 .Select(w => new ScheduleWorkResponseDTO
                 {
                     WorkDate = w.WorkDay,
-                    ShiftName = w.Shift.ShiftName ,
+                    ShiftName = w.Shift.ShiftName,
                     StartTime = w.Shift.StartTime,
                     EndTime = w.Shift.EndTime,
                     AdditionalWork = w.Shift.AdditionalWork,
@@ -204,5 +204,16 @@ namespace SMAS_DataAccess.DAO
 
             return schedules;
         }
+
+        public async Task<List<WorkStaff>> GetWorkScheduleNotCheckinByStaff(int userId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+    
+                return await _context.WorkStaffs
+                    .Where(w => w.UserId == userId && w.WorkDay > today && w.IsWorking == false)
+                    .Include(w => w.Shift)
+                    .ToListAsync();
+        }
+
     }
 }

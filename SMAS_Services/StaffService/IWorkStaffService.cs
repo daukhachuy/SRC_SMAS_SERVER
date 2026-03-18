@@ -24,5 +24,7 @@ namespace SMAS_Services.StaffService
         Task<double> GetSumTimeWorkedThisMonthByJwtIdAsync(int userId);
 
         Task<IEnumerable<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync(int staffId, DateOnly date);
+
+        Task<IEnumerable<WorkStaffResponseDTO>> GetWorkScheduleNotCheckinByStaff(int userId);
     }
 }

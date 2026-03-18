@@ -18,9 +18,14 @@ namespace SMAS_Services.CategoryServices
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<IEnumerable<CategoryResponse>> GetAllCategoryAsync()
+        public async Task<IEnumerable<CategoryResponse>> GetAllCategoryContainFoodAsync()
         {
-            return await _categoryRepository.GetAllCategoryAsync();
+            return await _categoryRepository.GetAllCategoryContainFoodAsync();
+        }
+
+        public async Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync()
+        {
+            return await _categoryRepository.GetAllCategoriesAsync();
         }
     }
 }

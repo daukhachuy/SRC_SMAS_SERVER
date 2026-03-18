@@ -15,9 +15,9 @@ public partial class Notification
 
     public string? Content { get; set; }
 
-    public string Type { get; set; } = null!;
+    public string Type { get; set; } = null!; // Order/Reservation/System/Promotion/Request
 
-    public string? Severity { get; set; }
+    public string? Severity { get; set; }  // Information/Warning/Severe/Error
 
     public bool? IsRead { get; set; }
 

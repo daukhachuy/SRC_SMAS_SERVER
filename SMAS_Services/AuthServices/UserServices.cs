@@ -39,11 +39,30 @@ namespace SMAS_Services.AuthServices
             _emailService = emailService;
         }
 
+
+        //public async Task HashAllPasswordsAsync()
+        //{
+        //    var users = await _context.Users.ToListAsync();
+
+        //    foreach (var user in users)
+        //    {
+        //        // Nếu đã hash rồi thì bỏ qua (tránh hash lại)
+        //        if (!user.PasswordHash.StartsWith("$2a") &&
+        //            !user.PasswordHash.StartsWith("$2b") &&
+        //            !user.PasswordHash.StartsWith("$2y"))
+        //        {
+        //            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+        //        }
+        //    }
+
+        //    await _context.SaveChangesAsync();
+        //}
+
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
 
             var user = await _userRepositories.GetByUsernameAsync(request.Email);
-
+            
             if (user == null)
             {
                 return new LoginResponse

@@ -68,7 +68,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager,Admin")]
+        [Authorize(Roles = "Manager,Admin,Waiter,Kitchen")]
         [HttpPost("filter-by-position")]
         public async Task<IActionResult> GetFilterStaffByPosition([FromBody] List<string> positions)
         {
@@ -263,7 +263,7 @@ namespace SMAS_API.Controllers
                 var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                     return Unauthorized("Không xác định được người dùng.");
-                var result = await _workStaffService.GetScheduleWorkOnWeekbyStaffIdAsync(userId , date);
+                var result = await _workStaffService.GetScheduleWorkOnWeekbyStaffIdAsync(userId, date);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -315,6 +315,25 @@ namespace SMAS_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi cập nhật hồ sơ nhân viên.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Kitchen")]
+        [HttpGet("get-workshift-notwork")]
+        public async Task<ActionResult<WorkStaffResponseDTO>> GetWorkShiftThisWeekByStaffId()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Không xác định được người dùng.");
+                var result = await _workStaffService.GetWorkScheduleNotCheckinByStaff(userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy ca làm trong tuần của nhân viên.");
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
