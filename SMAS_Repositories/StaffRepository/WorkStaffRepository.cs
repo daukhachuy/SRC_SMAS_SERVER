@@ -279,6 +279,19 @@ namespace SMAS_Repositories.StaffRepository
         {
            return await _workStaffDAO.GetScheduleWorkOnWeekbyStaffIdAsync(staffId, date);
         }
+
+        public async Task<IEnumerable<WorkStaffResponseDTO>> GetWorkScheduleNotCheckinByStaff(int userId)
+        {
+            var workStaffs = await _workStaffDAO.GetWorkScheduleNotCheckinByStaff(userId);
+            return workStaffs.Select(ws => new WorkStaffResponseDTO
+            {
+                ShiftName = ws.Shift?.ShiftName,
+                WorkDay = ws.WorkDay,
+                StartTime = ws.Shift?.StartTime,
+                EndTime = ws.Shift?.EndTime,
+                WorkStaffId= ws.WorkStaffId
+            });
+        }
     }
 
 }

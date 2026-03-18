@@ -10,6 +10,8 @@ namespace SMAS_Repositories.CategoryRepositories
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<CategoryResponse>> GetAllCategoryAsync();
+        Task<IEnumerable<CategoryResponse>> GetAllCategoryContainFoodAsync();
+
+        Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync();
     }
 }
