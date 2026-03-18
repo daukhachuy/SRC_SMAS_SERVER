@@ -1,5 +1,6 @@
 ﻿using SMAS_BusinessObject.DTOs.StaffDTO;
 using SMAS_BusinessObject.DTOs.WorkShiftDTO;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace SMAS_Repositories.WorkStaffRepository
         Task<int> GetSumWorkShiftThisMonthByJwtIdAsync(int userId);
         Task<double> GetSumTimeWorkedThisMonthByJwtIdAsync(int userId);
         Task<IEnumerable<ScheduleWorkResponseDTO>> GetScheduleWorkOnWeekbyStaffIdAsync(int staffId, DateOnly date);
+
+        Task<IEnumerable<WorkStaffResponseDTO>> GetWorkScheduleNotCheckinByStaff(int userId);
     }
 }
 

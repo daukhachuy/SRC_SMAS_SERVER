@@ -17,10 +17,17 @@ namespace SMAS_DataAccess.DAO
             _context = context;
         }
 
-        public async Task<List<Category>> GetAllCategoryAsync()
+        public async Task<List<Category>> GetAllCategoryContainFoodAsync()
         {
-            return await _context.Categories.ToListAsync();
+            return await _context.Categories
+                .Where(c => c.Foods.Any())
+                .ToListAsync();
         }
 
+        public async Task<List<Category>> GetAllCategoriesAsync()
+        {
+            return await _context.Categories.ToListAsync();
+
+        }
     }
 }

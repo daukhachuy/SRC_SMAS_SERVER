@@ -9,6 +9,8 @@ namespace SMAS_Services.CategoryServices
 {
     public interface ICategoryService
     {
-        Task<IEnumerable<CategoryResponse>> GetAllCategoryAsync();
+        Task<IEnumerable<CategoryResponse>> GetAllCategoryContainFoodAsync();
+
+        Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync();
     }
 }

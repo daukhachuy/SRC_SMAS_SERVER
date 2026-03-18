@@ -16,7 +16,7 @@ namespace SMAS_BusinessObject.DTOs.Auth
         [Required(ErrorMessage = "Password không được để trống")]
         [StringLength(50, MinimumLength = 6,
         ErrorMessage = "Password phải từ 6 đến 50 ký tự")]
-        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]+$",
+        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&_]+$",
         ErrorMessage = "Password phải chứa ít nhất 1 chữ và 1 số")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = null!;
