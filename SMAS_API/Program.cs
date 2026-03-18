@@ -23,6 +23,7 @@ using SMAS_Repositories.FoodRepositories;
 using SMAS_Repositories.IngredientReposotories;
 using SMAS_Repositories.Inventoryrepositories;
 using SMAS_Repositories.ManagerRepositories;
+using SMAS_Repositories.Notificationrepositories;
 using SMAS_Repositories.OrderRepositories;
 using SMAS_Repositories.ReservationRepositories;
 using SMAS_Repositories.SalaryRepository;
@@ -45,6 +46,7 @@ using SMAS_Services.FoodServices;
 using SMAS_Services.IngredientServices;
 using SMAS_Services.InventoryServices;
 using SMAS_Services.ManagerServices;
+using SMAS_Services.NotificationServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
 using SMAS_Services.ReservationServices;
@@ -230,6 +232,10 @@ namespace SMAS_API
             builder.Services.AddScoped<InventoryDAO>();
             builder.Services.AddScoped<IInventoryrepository, Inventoryrepository>();
             builder.Services.AddScoped<IInventoryService, InventoryService>();
+
+            builder.Services.AddScoped<NotificationDAO>();
+            builder.Services.AddScoped<INotificationrepository, Notificationrepository>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
