@@ -252,5 +252,50 @@ namespace SMAS_API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/by-reservation")]
+        public async Task<IActionResult> CreateOrderByReservation([FromBody] CreateOrderByReservationRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int waiterUserId))
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var result = await _orderService.CreateOrderByReservationAsync(request, waiterUserId);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/by-contact")]
+        public async Task<IActionResult> CreateOrderByContact([FromBody] CreateOrderByContactRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int waiterUserId))
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var result = await _orderService.CreateOrderByContactAsync(request, waiterUserId);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        [Authorize(Roles = "Customer")]
+        [HttpPost("/api/orders/guest")]
+        public async Task<IActionResult> CreateGuestOrder([FromBody] CreateGuestOrderRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int customerUserId))
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var result = await _orderService.CreateGuestOrderAsync(request, customerUserId);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+
     }
 }

@@ -497,5 +497,55 @@ namespace SMAS_Repositories.OrderRepositories
         {
             return await _orderDAO.UpdateOrderDeliveryFailedAtAsync(request.orderId, request.reason);
         }
+
+        public async Task<Reservation?> GetReservationByCodeAsync(string reservationCode)
+        {
+            return await _orderDAO.GetReservationByCodeAsync(reservationCode);
+        }
+
+        public async Task<bool> HasActiveOrderByReservationIdAsync(int reservationId)
+        {
+            return await _orderDAO.HasActiveOrderByReservationIdAsync(reservationId);
+        }
+
+        public async Task<User?> GetUserByPhoneAsync(string phone)
+        {
+            return await _orderDAO.GetUserByPhoneAsync(phone);
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _orderDAO.GetUserByEmailAsync(email);
+        }
+
+        public async Task<bool> TableExistsAsync(int tableId)
+        {
+            return await _orderDAO.TableExistsAsync(tableId);
+        }
+
+        public async Task<bool> IsTableOccupiedAsync(int tableId)
+        {
+            return await _orderDAO.IsTableOccupiedAsync(tableId);
+        }
+
+        public async Task<Food?> GetFoodByIdForOrderAsync(int foodId)
+        {
+            return await _orderDAO.GetFoodByIdForOrderAsync(foodId);
+        }
+
+        public async Task<Buffet?> GetBuffetByIdForOrderAsync(int buffetId)
+        {
+            return await _orderDAO.GetBuffetByIdForOrderAsync(buffetId);
+        }
+
+        public async Task<Combo?> GetComboByIdForOrderAsync(int comboId)
+        {
+            return await _orderDAO.GetComboByIdForOrderAsync(comboId);
+        }
+
+        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, int tableId, Reservation? reservationToUpdate)
+        {
+            await _orderDAO.CreateInHouseOrderAsync(order, items, tableId, reservationToUpdate);
+        }
     }
 }

@@ -131,6 +131,101 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Buffets.FirstOrDefaultAsync(b => b.BuffetId == buffetId && b.IsAvailable == true);
         }
+
+        public async Task<Reservation?> GetReservationByCodeAsync(string reservationCode)
+        {
+            return await _context.Reservations.FirstOrDefaultAsync(r => r.ReservationCode == reservationCode);
+        }
+
+        public async Task<bool> HasActiveOrderByReservationIdAsync(int reservationId)
+        {
+            return await _context.Orders.AnyAsync(o =>
+                o.ReservationId == reservationId &&
+                o.OrderStatus != "Cancelled" &&
+                o.OrderStatus != "Closed");
+        }
+
+        public async Task<User?> GetUserByPhoneAsync(string phone)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> TableExistsAsync(int tableId)
+        {
+            return await _context.Tables.AnyAsync(t => t.TableId == tableId);
+        }
+
+        public async Task<bool> IsTableOccupiedAsync(int tableId)
+        {
+            return await _context.TableOrders.AnyAsync(to =>
+                to.TableId == tableId &&
+                to.LeftAt == null &&
+                to.Order.OrderStatus != "Cancelled" &&
+                to.Order.OrderStatus != "Closed");
+        }
+
+        public async Task<Food?> GetFoodByIdForOrderAsync(int foodId)
+        {
+            return await _context.Foods.FirstOrDefaultAsync(f => f.FoodId == foodId);
+        }
+
+        public async Task<Buffet?> GetBuffetByIdForOrderAsync(int buffetId)
+        {
+            return await _context.Buffets.FirstOrDefaultAsync(b => b.BuffetId == buffetId);
+        }
+
+        public async Task<Combo?> GetComboByIdForOrderAsync(int comboId)
+        {
+            return await _context.Combos.FirstOrDefaultAsync(c => c.ComboId == comboId);
+        }
+
+        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, int tableId, Reservation? reservationToUpdate)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                foreach (var item in items)
+                {
+                    item.OrderId = order.OrderId;
+                }
+
+                if (items.Any())
+                {
+                    _context.OrderItems.AddRange(items);
+                }
+
+                _context.TableOrders.Add(new TableOrder
+                {
+                    TableId = tableId,
+                    OrderId = order.OrderId,
+                    IsMainTable = true,
+                    JoinedAt = DateTime.UtcNow,
+                    LeftAt = null
+                });
+
+                if (reservationToUpdate != null)
+                {
+                    reservationToUpdate.Status = "Seated";
+                    reservationToUpdate.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
         public async Task<OrderItem> AddOrderItemAsync(OrderItem item)
         {
             _context.OrderItems.Add(item);

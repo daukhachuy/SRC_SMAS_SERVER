@@ -27,5 +27,15 @@ namespace SMAS_Repositories.OrderRepositories
         Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request);
 
         Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request);
+        Task<Reservation?> GetReservationByCodeAsync(string reservationCode);
+        Task<bool> HasActiveOrderByReservationIdAsync(int reservationId);
+        Task<User?> GetUserByPhoneAsync(string phone);
+        Task<User?> GetUserByEmailAsync(string email);
+        Task<bool> TableExistsAsync(int tableId);
+        Task<bool> IsTableOccupiedAsync(int tableId);
+        Task<Food?> GetFoodByIdForOrderAsync(int foodId);
+        Task<Buffet?> GetBuffetByIdForOrderAsync(int buffetId);
+        Task<Combo?> GetComboByIdForOrderAsync(int comboId);
+        Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, int tableId, Reservation? reservationToUpdate);
     }
 }
