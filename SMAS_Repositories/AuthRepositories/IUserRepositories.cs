@@ -16,5 +16,6 @@
             Task CreateAsync(User user);
             Task<User?> GetByIdAsync(int userId);
             Task UpdateProfileAsync(User user);
-    }
+            Task<bool> UpdateStatusUserAsync(int userId);
+        }
     }

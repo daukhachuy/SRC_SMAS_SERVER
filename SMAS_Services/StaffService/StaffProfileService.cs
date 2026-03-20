@@ -1,7 +1,10 @@
-﻿using SMAS_Repositories.StaffRepository;
+﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_BusinessObject.Models;
+using SMAS_Repositories.StaffRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +36,61 @@ namespace SMAS_Services.StaffService
 
             return await _staffProfileRepository.UpdateProfileAsync(userId, dto);
         }
+
+        public async Task<IEnumerable<CustomerResponseDTO>> GetAllAcountCustomerAsync()
+        {
+            return await _staffProfileRepository.GetAllAcountCustomerAsync();
+        }
+
+        public async Task<IEnumerable<StaffResponseDTO>> GetAllAcountStaffAsync()
+        {
+            return await _staffProfileRepository.GetAllAcountStaffAsync();
+        }
+
+        public async Task<IEnumerable<StaffResponseDTO>> FilterAccountStaffAsync(FilterAccountStaffRequestDTO filter)
+        {
+            var allStaff = await _staffProfileRepository.GetAllAcountStaffAsync();
+
+            var query = allStaff.AsQueryable();
+            if (filter.status)
+                query = query.Where(s => s.IsDeleted != true);
+            else
+                query = query.Where(s => s.IsDeleted == true);
+            if (filter.role != null && filter.role.Any())
+            {
+                query = query.Where(s => s.Position != null && filter.role.Contains(s.Position));
+            }
+            return query.ToList();
+        }
+
+        public async Task<IEnumerable<CustomerResponseDTO>> FilterAccountCustomerAsync(bool request)
+        {
+            var customers = await _staffProfileRepository.GetAllAcountCustomerAsync();
+            var query = customers.AsQueryable();
+
+            if (request) 
+            {
+                query = query.Where(c => c.IsDeleted != true);
+            }
+            else 
+            {
+                query = query.Where(c => c.IsDeleted == true);
+            }
+
+            return query.ToList();
+        }
+
+        public async Task<bool> CreateStaffAsync(CreateNewStaffByUseridResquestDTO request)
+        {
+            return await _staffProfileRepository.CreateStaffAsync(request);
+        }
+
+        public async Task<bool> CreateStaffWithUserAsync(CreateNewStaffRequestDTO request)
+        {
+            request.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash);
+            return await _staffProfileRepository.CreateStaffWithUserAsync(request);
+        }
+
     }
 
 }
