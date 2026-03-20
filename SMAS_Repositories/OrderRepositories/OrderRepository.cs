@@ -551,5 +551,21 @@ namespace SMAS_Repositories.OrderRepositories
         {
             await _orderDAO.CreateInHouseOrderAsync(order, items, tableOrders, reservationToUpdate);
         }
+
+        public async Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId)
+        {
+            var orders = await _orderDAO.GetAllOrderPreparingByWaiterIdAsync(userId);
+            return MapToDTO(orders);
+        }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderDeliveryByWaiterIdAsync(int userId)
+        {
+            var orders = await _orderDAO.GetAllOrderDeliveryByWaiterIdAsync(userId);
+            return MapToDTO(orders);
+        }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId)
+        {
+            var orders = await _orderDAO.GetAllOrderHistoryByWaiterIdInSevenDayAsync(userId);
+            return MapToDTO(orders);
+        }
     }
 }

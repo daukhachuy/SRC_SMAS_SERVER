@@ -11,16 +11,16 @@ using System.Threading.Tasks;
 
 namespace SMAS_Repositories.TableRepository
 {
-    public class TableSessionRepository : ITableSessionRepository
+    public class TableRepository : ITableRepository
     {
-        private readonly TableSessionDAO _dao;
+        private readonly TableDAO _dao;
         private readonly IMemoryCache _cache;
         private readonly ITableTokenHelper _tokenHelper; 
 
         private const int SESSION_TTL_HOURS = 12;
         private static string CacheKey(string tableCode) => $"table_session_{tableCode.ToUpper()}";
 
-        public TableSessionRepository(TableSessionDAO dao, IMemoryCache cache, ITableTokenHelper tokenHelper) 
+        public TableRepository(TableDAO dao, IMemoryCache cache, ITableTokenHelper tokenHelper) 
         {
             _dao = dao;
             _cache = cache;
@@ -193,6 +193,21 @@ namespace SMAS_Repositories.TableRepository
             }
 
             return (true, null, tableCode);
+        }
+        public async Task<List<TableResponseDTO>> GetAllTableAsync()
+        {
+            var tables = await _dao.GetAllTableAsync();
+
+            return tables.Select(t => new TableResponseDTO
+            {
+                TableId = t.TableId,
+                TableName = t.TableName,
+                TableType = t.TableType,
+                NumberOfPeople = t.NumberOfPeople,
+                Status = t.Status,
+                IsActive = t.IsActive,
+                QrCode = t.QrCode
+            }).ToList();
         }
     }
 }

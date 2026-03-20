@@ -14,10 +14,10 @@ namespace SMAS_API.Controllers
     public class OrderController : Controller
     {
         private readonly IOrderService _orderService;
-        private readonly ITableSessionService _tableSessionService;
+        private readonly ITableService _tableSessionService;
         private readonly IManagerService _managerService;
 
-        public OrderController(IOrderService orderService, ITableSessionService tableSessionService, IManagerService managerService)
+        public OrderController(IOrderService orderService, ITableService tableSessionService, IManagerService managerService)
         {
             _orderService = orderService;
             _tableSessionService = tableSessionService;

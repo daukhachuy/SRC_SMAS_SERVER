@@ -53,4 +53,15 @@ namespace SMAS_BusinessObject.DTOs.TableDTO
         public DateTime OpenedAt { get; set; }
         public DateTime ExpiresAt { get; set; }
     }
+
+    public class TableResponseDTO
+    {
+        public int TableId { get; set; }
+        public string TableName { get; set; } = null!;
+        public string? TableType { get; set; }
+        public int NumberOfPeople { get; set; }
+        public string? Status { get; set; }   // ACTIVE, CLOSED
+        public bool? IsActive { get; set; }
+        public string? QrCode { get; set; }
+    }
 }

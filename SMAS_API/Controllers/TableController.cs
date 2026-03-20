@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.TableDTO;
+using SMAS_BusinessObject.Enums;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.TableService;
 using System.Security.Claims;
@@ -12,16 +13,16 @@ namespace SMAS_API.Controllers
     public class TableController : ControllerBase
     {
         private readonly IManagerService _managerService;
-        private readonly ITableSessionService _tableSessionService;
+        private readonly ITableService _tableService;
         private readonly ILogger<TableController> _logger;
 
         public TableController(
             IManagerService managerService,
-            ITableSessionService tableSessionService,
+            ITableService tableService,
             ILogger<TableController> logger)
         {
             _managerService = managerService;
-            _tableSessionService = tableSessionService;
+            _tableService = tableService;
             _logger = logger;
         }
 
@@ -48,7 +49,7 @@ namespace SMAS_API.Controllers
                 var resolvedUserId = userId ?? GetUserIdFromToken();
                 if (resolvedUserId == null) return Unauthorized("Không xác định được người dùng.");
 
-                var (success, errorCode, data) = await _tableSessionService.OpenTableAsync(tableCode, resolvedUserId.Value);
+                var (success, errorCode, data) = await _tableService.OpenTableAsync(tableCode, resolvedUserId.Value);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -71,7 +72,7 @@ namespace SMAS_API.Controllers
                 var resolvedUserId = userId ?? GetUserIdFromToken();
                 if (resolvedUserId == null) return Unauthorized("Không xác định được người dùng.");
 
-                var (success, errorCode, data) = await _tableSessionService.CloseTableAsync(tableCode, resolvedUserId.Value);
+                var (success, errorCode, data) = await _tableService.CloseTableAsync(tableCode, resolvedUserId.Value);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -91,7 +92,7 @@ namespace SMAS_API.Controllers
         {
             try
             {
-                var (success, errorCode, data) = await _tableSessionService.InitSessionAsync(tableCode);
+                var (success, errorCode, data) = await _tableService.InitSessionAsync(tableCode);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -114,7 +115,7 @@ namespace SMAS_API.Controllers
                 if (string.IsNullOrWhiteSpace(dto.RefreshToken))
                     return BadRequest(new { errorCode = "INVALID_QR_TOKEN" });
 
-                var (success, errorCode, data) = await _tableSessionService.RefreshAsync(dto.RefreshToken);
+                var (success, errorCode, data) = await _tableService.RefreshAsync(dto.RefreshToken);
                 if (!success) return MapError(errorCode!);
                 return Ok(data);
             }
@@ -134,7 +135,7 @@ namespace SMAS_API.Controllers
         {
             try
             {
-                var result = await _tableSessionService.GetActiveSessionAsync(tableCode);
+                var result = await _tableService.GetActiveSessionAsync(tableCode);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -159,6 +160,25 @@ namespace SMAS_API.Controllers
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(claim, out var id) ? id : null;
+        }
+
+        //[Authorize(Roles = "Admin,Manager,Waiter")]
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllTableAsync()
+        {
+            try
+            {
+                var result = await _tableService.GetAllTableAsync();
+
+                if (!result.Any())
+                    return Ok(new { MsgCode = nameof(MSGCode.MSG_021), Message = "Không có bàn nào.", Data = result });
+
+                return Ok(new { MsgCode = "Success", Message = "Lấy danh sách bàn thành công.", Data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+            }
         }
     }
 }
