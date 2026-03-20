@@ -1,4 +1,5 @@
-﻿using SMAS_BusinessObject.Models;
+﻿using SMAS_BusinessObject.DTOs.NotificationDTO;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,7 @@ namespace SMAS_Repositories.Notificationrepositories
     public interface INotificationrepository
     {
         Task<bool> CreateNotificationAsync(Notification notification);
+        Task<IEnumerable<Notification>> GetAllAsync();
+
     }
 }

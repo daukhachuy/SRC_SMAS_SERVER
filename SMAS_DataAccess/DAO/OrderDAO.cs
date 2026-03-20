@@ -53,7 +53,22 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
-
+        public async Task<List<Order>> GetAllOrderCompleteAndCancelByCustomerIdAsync(int customerId)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => o.UserId == customerId
+                         && (o.OrderStatus == "Completed" || o.OrderStatus == "Cancelled"))
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
         public async Task<List<Order>> GetAllActiveOrderByOrderTypeAsync(string orderType)
         {
             return await _context.Orders
@@ -330,6 +345,45 @@ namespace SMAS_DataAccess.DAO
             delivery.DeliveryStatus = "Failed";
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int waiterId)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => (o.OrderType == "DineIn" || o.OrderType == "TakeAway")
+                         && o.OrderStatus != "Completed"
+                         && o.OrderStatus != "Cancelled"
+                         && o.ServedByNavigation != null
+                         && o.ServedByNavigation.UserId == waiterId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Order>> GetAllOrderDeliveryByWaiterIdAsync(int waiterId)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => o.OrderType == "Delivery"
+                         && o.OrderStatus != "Completed"
+                         && o.OrderStatus != "Cancelled"
+                         && o.ServedByNavigation != null
+                         && o.ServedByNavigation.UserId == waiterId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
         }
     }
 }

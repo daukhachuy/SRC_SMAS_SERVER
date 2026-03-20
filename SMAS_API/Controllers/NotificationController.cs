@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.NotificationDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.NotificationServices;
 using System.Security.Claims;
@@ -53,6 +54,26 @@ namespace SMAS_API.Controllers
                 return BadRequest(new { MsgCode = "MSG_028", Message = "Không thể yêu cầu đổi lịch vui lòng thử lại !" });
             }
             return Ok(result);
+        }
+
+
+        // Controller
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllNotification()
+        {
+            try
+            {
+                var result = await _notificationService.GetAllNotificationAsync();
+
+                if (!result.Any())
+                    return Ok(new { MsgCode = "MSG_001", Message = "Không có thông báo nào.", Data = result });
+
+                return Ok(new { MsgCode = "MSG_000", Message = "Lấy danh sách thông báo thành công.", Data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+            }
         }
     }
 }
