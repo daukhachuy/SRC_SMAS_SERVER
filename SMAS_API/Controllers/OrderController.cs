@@ -24,6 +24,17 @@ namespace SMAS_API.Controllers
             _managerService = managerService;
         }
 
+        private IActionResult HandleOrderExceptions(Exception ex)
+        {
+            return ex switch
+            {
+                ArgumentException arg => BadRequest(new { message = arg.Message }),
+                KeyNotFoundException knf => NotFound(new { message = knf.Message }),
+                UnauthorizedAccessException _ => Unauthorized(new { message = "Unauthorized" }),
+                _ => StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message })
+            };
+        }
+
         /// <summary>
         /// Lấy danh sách đơn hàng được tạo trong ngày hôm nay
         /// </summary>
@@ -250,6 +261,90 @@ namespace SMAS_API.Controllers
             if (ModelState.IsValid) return BadRequest(ModelState);
             var result = await _orderService.UpdateOrderDeliveryFailedAtAsync(request);
             return Ok(result);
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/lookup")]
+        public async Task<IActionResult> Lookup([FromBody] OrderLookupRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var result = await _orderService.LookupOrderAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/by-reservation")]
+        public async Task<IActionResult> CreateOrderByReservation([FromBody] CreateOrderByReservationRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int waiterUserId))
+                    throw new UnauthorizedAccessException("Unauthorized");
+
+                var result = await _orderService.CreateOrderByReservationAsync(request, waiterUserId);
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/by-contact")]
+        public async Task<IActionResult> CreateOrderByContact([FromBody] CreateOrderByContactRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int waiterUserId))
+                    throw new UnauthorizedAccessException("Unauthorized");
+
+                var result = await _orderService.CreateOrderByContactAsync(request, waiterUserId);
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/guest")]
+        public async Task<IActionResult> CreateGuestOrder([FromBody] CreateGuestOrderRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int waiterUserId))
+                    throw new UnauthorizedAccessException("Unauthorized");
+
+                var result = await _orderService.CreateGuestOrderAsync(request, waiterUserId);
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
         }
 
     }

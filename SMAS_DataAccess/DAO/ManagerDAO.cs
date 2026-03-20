@@ -40,12 +40,12 @@ namespace SMAS_DataAccess.DAO
         }
 
         /// <summary>
-        /// Lấy danh sách bàn trống (Status = Available)
+        /// Lấy danh sách bàn trống (Status = ACTIVE)
         /// </summary>
         public async Task<List<Table>> GetEmptyTablesAsync()
         {
             return await _context.Tables
-                .Where(t => t.Status == "Available" && (t.IsActive == true || t.IsActive == null))
+                .Where(t => t.Status == "ACTIVE" && (t.IsActive == true || t.IsActive == null))
                 .OrderBy(t => t.TableName)
                 .ToListAsync();
         }
