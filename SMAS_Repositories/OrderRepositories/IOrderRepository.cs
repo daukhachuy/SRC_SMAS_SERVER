@@ -24,8 +24,22 @@ namespace SMAS_Repositories.OrderRepositories
 
         Task<OrderListResponseDTO?> GetOrderDetailByOrderCodeAsync(string orderCode);
         Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByOrderTypeAsync(string orderType);
+        Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByCustomerIdAsync(int customerId);
         Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request);
 
         Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request);
+        Task<Reservation?> GetReservationByCodeAsync(string reservationCode);
+        Task<bool> HasActiveOrderByReservationIdAsync(int reservationId);
+        Task<User?> GetUserByPhoneAsync(string phone);
+        Task<User?> GetUserByEmailAsync(string email);
+        Task<bool> TableExistsAsync(int tableId);
+        Task<bool> IsTableOccupiedAsync(int tableId);
+        Task<Food?> GetFoodByIdForOrderAsync(int foodId);
+        Task<Buffet?> GetBuffetByIdForOrderAsync(int buffetId);
+        Task<Combo?> GetComboByIdForOrderAsync(int comboId);
+        Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, List<TableOrder> tableOrders, Reservation? reservationToUpdate);
+        Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId);
+        Task<List<OrderListResponseDTO>> GetAllOrderDeliveryByWaiterIdAsync(int userId);
+        Task<List<OrderListResponseDTO>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId);
     }
 }

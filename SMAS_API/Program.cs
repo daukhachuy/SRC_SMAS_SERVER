@@ -243,9 +243,9 @@ namespace SMAS_API
 
 
             builder.Services.AddMemoryCache();
-            builder.Services.AddScoped<TableSessionDAO>();
-            builder.Services.AddScoped<ITableSessionRepository, TableSessionRepository>();
-            builder.Services.AddScoped<ITableSessionService, TableSessionService>();
+            builder.Services.AddScoped<TableDAO>();
+            builder.Services.AddScoped<ITableRepository, TableRepository>();
+            builder.Services.AddScoped<ITableService, TableService>();
             builder.Services.AddSingleton<ITableTokenHelper, TableTokenHelper>(); 
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));

@@ -13,7 +13,7 @@ public partial class Table
 
     public int NumberOfPeople { get; set; }
 
-    public string? Status { get; set; }
+    public string? Status { get; set; } // AVAILABLE, OPEN
 
     public string? QrCode { get; set; }
 

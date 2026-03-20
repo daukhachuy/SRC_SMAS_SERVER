@@ -11,5 +11,6 @@ namespace SMAS_Services.NotificationServices
     public interface INotificationService
     {
         Task<bool> CreateNotificationAsync(ChangeWorkstaffRequestDTO notification, int userid);
+        Task<IEnumerable<NotificationDto>> GetAllNotificationAsync();
     }
 }

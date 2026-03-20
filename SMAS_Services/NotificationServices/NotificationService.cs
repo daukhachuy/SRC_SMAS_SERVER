@@ -31,5 +31,27 @@ namespace SMAS_Services.NotificationServices
             };
             return await _notificationREPO.CreateNotificationAsync(request);
         }
+
+        public async Task<IEnumerable<NotificationDto>> GetAllNotificationAsync()
+        {
+            var items = await _notificationREPO.GetAllAsync();
+
+            if (!items.Any())
+                return Enumerable.Empty<NotificationDto>();
+
+            return items.Select(n => new NotificationDto
+            {
+                NotificationId = n.NotificationId,
+                UserId = n.UserId,
+                SenderId = n.SenderId,
+                Title = n.Title,
+                Content = n.Content,
+                Type = n.Type,
+                Severity = n.Severity,
+                IsRead = n.IsRead,
+                CreatedAt = n.CreatedAt,
+                ReadAt = n.ReadAt
+            });
+        }
     }
 }

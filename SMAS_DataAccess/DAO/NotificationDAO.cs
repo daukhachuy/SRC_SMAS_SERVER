@@ -1,4 +1,6 @@
-﻿using SMAS_BusinessObject.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SMAS_BusinessObject.DTOs.NotificationDTO;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,5 +32,11 @@ namespace SMAS_DataAccess.DAO
                 return false;
             }
         }
+
+        public async Task<IEnumerable<Notification>> GetAllAsync()
+      => await _context.Notifications
+          .AsNoTracking()
+          .OrderByDescending(n => n.CreatedAt)
+          .ToListAsync();
     }
 }

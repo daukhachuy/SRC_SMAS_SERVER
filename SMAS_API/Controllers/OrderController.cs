@@ -14,14 +14,25 @@ namespace SMAS_API.Controllers
     public class OrderController : Controller
     {
         private readonly IOrderService _orderService;
-        private readonly ITableSessionService _tableSessionService;
+        private readonly ITableService _tableSessionService;
         private readonly IManagerService _managerService;
 
-        public OrderController(IOrderService orderService, ITableSessionService tableSessionService, IManagerService managerService)
+        public OrderController(IOrderService orderService, ITableService tableSessionService, IManagerService managerService)
         {
             _orderService = orderService;
             _tableSessionService = tableSessionService;
             _managerService = managerService;
+        }
+
+        private IActionResult HandleOrderExceptions(Exception ex)
+        {
+            return ex switch
+            {
+                ArgumentException arg => BadRequest(new { message = arg.Message }),
+                KeyNotFoundException knf => NotFound(new { message = knf.Message }),
+                UnauthorizedAccessException _ => Unauthorized(new { message = "Unauthorized" }),
+                _ => StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message })
+            };
         }
 
         /// <summary>
@@ -131,7 +142,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("history")]
         public async Task<IActionResult> GetAllOrderCompleteAndCancel()
         {
@@ -147,6 +158,29 @@ namespace SMAS_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Customer")]
+        [HttpGet("history/my")]
+        public async Task<IActionResult> GetAllOrderCompleteAndCancelByCustomerId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+
+            try
+            {
+                var orders = await _orderService.GetAllOrderCompleteAndCancelByCustomerIdAsync(userId);
+
+                if (orders == null || !orders.Any())
+                    return Ok(new { MsgCode = "MSG_021", Message = "Bạn chưa có đơn hàng nào hoàn thành hoặc đã huỷ.", Data = orders });
+
+                return Ok(new { MsgCode = "MSG_000", Message = "Lấy lịch sử đơn hàng thành công.", Data = orders });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
             }
         }
 
@@ -250,6 +284,157 @@ namespace SMAS_API.Controllers
             if (ModelState.IsValid) return BadRequest(ModelState);
             var result = await _orderService.UpdateOrderDeliveryFailedAtAsync(request);
             return Ok(result);
+        }
+
+        [Authorize(Roles = "Waiter")]
+        [HttpGet("preparing/my")]
+        public async Task<IActionResult> GetAllOrderPreparingByJwtWaiterIdAsync()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId)) 
+                return Unauthorized();
+
+            try
+            {
+                var orders = await _orderService.GetAllOrderPreparingByWaiterIdAsync(userId);  
+
+                if (orders == null || !orders.Any())
+                    return Ok(new { MsgCode = "MSG_021", Message = "Không có đơn hàng nào đang xử lý.", Data = orders });
+
+                return Ok(new { MsgCode = "MSG_000", Message = "Lấy danh sách đơn hàng thành công.", Data = orders });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+            }
+        }
+        [Authorize(Roles = "Waiter")]
+        [HttpGet("delivery/my")]
+        public async Task<IActionResult> GetAllOrderDeliveryByJwtWaiterIdAsync()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+
+            try
+            {
+                var orders = await _orderService.GetAllOrderDeliveryByWaiterIdAsync(userId);
+
+                if (orders == null || !orders.Any())
+                    return Ok(new { MsgCode = "MSG_021", Message = "Không có đơn giao hàng nào đang xử lý.", Data = orders });
+
+                return Ok(new { MsgCode = "MSG_000", Message = "Lấy danh sách đơn giao hàng thành công.", Data = orders });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Waiter")]
+        [HttpGet("history/my/seven-days")]
+        public async Task<IActionResult> GetAllOrderHistoryByJwtWaiterIdInSevenDayAsync()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+
+            try
+            {
+                var orders = await _orderService.GetAllOrderHistoryByWaiterIdInSevenDayAsync(userId);
+
+                if (orders == null || !orders.Any())
+                    return Ok(new { MsgCode = "MSG_021", Message = "Không có lịch sử đơn hàng nào trong 7 ngày qua.", Data = orders });
+
+                return Ok(new { MsgCode = "MSG_000", Message = "Lấy lịch sử đơn hàng thành công.", Data = orders });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+            }
+        }
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/lookup")]
+        public async Task<IActionResult> Lookup([FromBody] OrderLookupRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var result = await _orderService.LookupOrderAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/by-reservation")]
+        public async Task<IActionResult> CreateOrderByReservation([FromBody] CreateOrderByReservationRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int waiterUserId))
+                    throw new UnauthorizedAccessException("Unauthorized");
+
+                var result = await _orderService.CreateOrderByReservationAsync(request, waiterUserId);
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/by-contact")]
+        public async Task<IActionResult> CreateOrderByContact([FromBody] CreateOrderByContactRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int waiterUserId))
+                    throw new UnauthorizedAccessException("Unauthorized");
+
+                var result = await _orderService.CreateOrderByContactAsync(request, waiterUserId);
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+
+        [Authorize(Roles = "Waiter,Manager")]
+        [HttpPost("/api/orders/guest")]
+        public async Task<IActionResult> CreateGuestOrder([FromBody] CreateGuestOrderRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int waiterUserId))
+                    throw new UnauthorizedAccessException("Unauthorized");
+
+                var result = await _orderService.CreateGuestOrderAsync(request, waiterUserId);
+                return StatusCode(StatusCodes.Status201Created, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
         }
 
     }

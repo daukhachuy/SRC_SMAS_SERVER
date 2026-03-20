@@ -1,4 +1,5 @@
-﻿using SMAS_BusinessObject.Models;
+﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,12 @@ namespace SMAS_Repositories.StaffRepository
     {
         private readonly StaffProfileDAO _staffProfileDAO;
 
-        public StaffProfileRepository(StaffProfileDAO staffProfileDAO)
+        private readonly UserDAO _userDAO;
+
+        public StaffProfileRepository(StaffProfileDAO staffProfileDAO, UserDAO userDAO)
         {
             _staffProfileDAO = staffProfileDAO;
+            _userDAO = userDAO;
         }
 
         public async Task<StaffProfileDto?> GetProfileAsync(int userId)
@@ -71,5 +75,81 @@ namespace SMAS_Repositories.StaffRepository
                 Role = u.Role,
                 TaxId = u.Staff?.TaxId
             };
+
+
+        public async Task<IEnumerable<CustomerResponseDTO>> GetAllAcountCustomerAsync()
+        {
+            var users = await _userDAO.GetAllAcountCustomerAsync();
+            return users.Select(u => new CustomerResponseDTO
+            {
+                UserId = u.UserId,
+                Fullname = u.Fullname,
+                Phone = u.Phone,
+                Email = u.Email,
+                Avatar = u.Avatar,
+                IsDeleted = u.IsDeleted,
+                CreatedAt = u.CreatedAt
+            }).ToList(); 
+        }
+
+        public async Task<IEnumerable<StaffResponseDTO>> GetAllAcountStaffAsync()
+        {
+            var users = await _userDAO.GetAllAcountStaffAsync();
+            return users.Select(u => new StaffResponseDTO
+            {
+                UserId = u.UserId,
+                Fullname = u.Fullname,
+                Phone = u.Phone,
+                Email = u.Email,
+                Avatar = u.Avatar,
+                IsDeleted = u.IsDeleted,
+                HireDate = u.Staff?.HireDate ?? default,
+                Position = u.Staff?.Position
+            }).ToList();
+        }
+
+
+
+        public async Task<bool> CreateStaffAsync(CreateNewStaffByUseridResquestDTO request)
+        {
+            var staff = new Staff
+            {
+                UserId = request.UserId,
+                Salary = request.Salary,
+                Position = request.Position,
+                BankAccountNumber = request.BankAccountNumber,
+                BankName = request.BankName,
+                TaxId = request.TaxId
+            };
+            return await _staffProfileDAO.CreateStaffAsync(staff);
+        }
+
+        public async Task<bool> CreateStaffWithUserAsync(CreateNewStaffRequestDTO request)
+        {
+            var datetime = DateTime.Now;
+            var user = new User
+            {
+                Fullname = request.Fullname,
+                Role = "Staff",
+                Gender = request.Gender,
+                Phone = request.Phone,
+                Email = request.Email,
+                Address = request.Address,
+                PasswordHash = request.PasswordHash,
+                PasswordSalt = request.PasswordHash,
+                CreatedAt = datetime
+            };
+            var staff = new Staff
+            {
+                Salary = request.Salary,
+                Position = request.Position,
+                BankAccountNumber = request.BankAccountNumber,
+                BankName = request.BankName,
+                TaxId = request.TaxId
+            };
+
+            var result = await _staffProfileDAO.CreateStaffWithUserAsync(user, staff);
+            return result;
+        }
     }
 }

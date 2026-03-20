@@ -47,5 +47,10 @@ namespace SMAS_Repositories.AuthRepositories
         {
             await _userDAO.UpdateProfileAsync(user);
         }
+
+        public async Task<bool> UpdateStatusUserAsync(int userId)
+        {
+            return await _userDAO.UpdateStatusUserAsync(userId);
+        }
     }
 }

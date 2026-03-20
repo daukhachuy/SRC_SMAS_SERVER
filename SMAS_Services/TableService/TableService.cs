@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace SMAS_Services.TableService
 {
-    public class TableSessionService : ITableSessionService
+    public class TableService : ITableService
     {
-        private readonly ITableSessionRepository _repo;
+        private readonly ITableRepository _repo;
 
-        public TableSessionService(ITableSessionRepository repo)
+        public TableService(ITableRepository repo)
         {
             _repo = repo;
         }
@@ -34,5 +34,10 @@ namespace SMAS_Services.TableService
 
         public (bool Valid, string? ErrorCode, string? TableCode) ValidateAccessToken(string accessToken)
             => _repo.ValidateAccessToken(accessToken);
-    }
+
+        public async Task<List<TableResponseDTO>> GetAllTableAsync()
+        {
+            return await _repo.GetAllTableAsync();
+        }
+    }   
 }

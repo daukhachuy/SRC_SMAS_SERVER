@@ -53,7 +53,22 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
-
+        public async Task<List<Order>> GetAllOrderCompleteAndCancelByCustomerIdAsync(int customerId)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => o.UserId == customerId
+                         && (o.OrderStatus == "Completed" || o.OrderStatus == "Cancelled"))
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
         public async Task<List<Order>> GetAllActiveOrderByOrderTypeAsync(string orderType)
         {
             return await _context.Orders
@@ -130,6 +145,100 @@ namespace SMAS_DataAccess.DAO
         public async Task<Buffet?> GetBuffetByIdAsync(int buffetId)
         {
             return await _context.Buffets.FirstOrDefaultAsync(b => b.BuffetId == buffetId && b.IsAvailable == true);
+        }
+
+        public async Task<Reservation?> GetReservationByCodeAsync(string reservationCode)
+        {
+            return await _context.Reservations
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.ReservationCode == reservationCode);
+        }
+
+        public async Task<bool> HasActiveOrderByReservationIdAsync(int reservationId)
+        {
+            return await _context.Orders.AnyAsync(o =>
+                o.ReservationId == reservationId &&
+                o.OrderStatus != "Cancelled" &&
+                o.OrderStatus != "Closed");
+        }
+
+        public async Task<User?> GetUserByPhoneAsync(string phone)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> TableExistsAsync(int tableId)
+        {
+            return await _context.Tables.AnyAsync(t => t.TableId == tableId);
+        }
+
+        public async Task<bool> IsTableOccupiedAsync(int tableId)
+        {
+            return await _context.TableOrders.AnyAsync(to =>
+                to.TableId == tableId &&
+                to.LeftAt == null &&
+                to.Order.OrderStatus != "Cancelled" &&
+                to.Order.OrderStatus != "Closed");
+        }
+
+        public async Task<Food?> GetFoodByIdForOrderAsync(int foodId)
+        {
+            return await _context.Foods.FirstOrDefaultAsync(f => f.FoodId == foodId);
+        }
+
+        public async Task<Buffet?> GetBuffetByIdForOrderAsync(int buffetId)
+        {
+            return await _context.Buffets.FirstOrDefaultAsync(b => b.BuffetId == buffetId);
+        }
+
+        public async Task<Combo?> GetComboByIdForOrderAsync(int comboId)
+        {
+            return await _context.Combos.FirstOrDefaultAsync(c => c.ComboId == comboId);
+        }
+
+        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, List<TableOrder> tableOrders, Reservation? reservationToUpdate)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                foreach (var item in items)
+                {
+                    item.OrderId = order.OrderId;
+                }
+
+                if (items.Any())
+                {
+                    _context.OrderItems.AddRange(items);
+                }
+
+                foreach (var tableOrder in tableOrders)
+                {
+                    tableOrder.OrderId = order.OrderId;
+                }
+                _context.TableOrders.AddRange(tableOrders);
+
+                if (reservationToUpdate != null)
+                {
+                    reservationToUpdate.Status = "Seated";
+                    reservationToUpdate.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         public async Task<OrderItem> AddOrderItemAsync(OrderItem item)
         {
@@ -236,6 +345,66 @@ namespace SMAS_DataAccess.DAO
             delivery.DeliveryStatus = "Failed";
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int userId)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => (o.OrderType == "DineIn" || o.OrderType == "TakeAway")
+                         && o.OrderStatus != "Completed"
+                         && o.OrderStatus != "Cancelled"
+                         && o.ServedByNavigation != null
+                         && o.ServedByNavigation.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+        public async Task<List<Order>> GetAllOrderDeliveryByWaiterIdAsync(int userId)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => o.OrderType == "Delivery"
+                         && o.OrderStatus != "Completed"
+                         && o.OrderStatus != "Cancelled"
+                         && o.ServedByNavigation != null
+                         && o.ServedByNavigation.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Order>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId)
+        {
+            var sevenDaysAgo = DateTime.Now.AddDays(-7);
+
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => (o.OrderStatus == "Completed" || o.OrderStatus == "Cancelled")
+                         && o.CreatedAt >= sevenDaysAgo
+                         && o.ServedByNavigation != null
+                         && o.ServedByNavigation.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
         }
     }
 }
