@@ -47,6 +47,7 @@ using SMAS_Services.IngredientServices;
 using SMAS_Services.InventoryServices;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.NotificationServices;
+using SMAS_Services.OrderItemServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
 using SMAS_Services.ReservationServices;
@@ -219,6 +220,10 @@ namespace SMAS_API
             builder.Services.AddScoped<OrderDAO>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderService, OrderService>();
+
+            builder.Services.AddScoped<OrderItemDAO>();
+            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+            builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 
             builder.Services.AddScoped<ManagerDAO>();
             builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
