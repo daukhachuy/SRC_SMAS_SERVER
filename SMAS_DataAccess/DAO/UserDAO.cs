@@ -31,5 +31,25 @@ namespace SMAS_DataAccess.DAO
         }
 
 
+        public async Task<List<User>> GetAllAcountCustomerAsync()
+        {
+            return await _context.Users.Where(r => r.Role == "Customer").ToListAsync();
+        }
+
+        public async Task<List<User>> GetAllAcountStaffAsync()
+        {
+            return await _context.Users
+                                 .Where(r => r.Role == "Staff")
+                                 .Include(u => u.Staff)
+                                 .ToListAsync();
+        }
+        public async Task<bool>  UpdateStatusUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+            user.IsDeleted = !(user.IsDeleted ?? false);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
