@@ -253,7 +253,7 @@ namespace SMAS_DataAccess.DAO
             return true;
         }
 
-        public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int waiterId)
+        public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int userId)
         {
             return await _context.Orders
                 .AsNoTracking()
@@ -268,11 +268,11 @@ namespace SMAS_DataAccess.DAO
                          && o.OrderStatus != "Completed"
                          && o.OrderStatus != "Cancelled"
                          && o.ServedByNavigation != null
-                         && o.ServedByNavigation.UserId == waiterId)
+                         && o.ServedByNavigation.UserId == userId)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
-        public async Task<List<Order>> GetAllOrderDeliveryByWaiterIdAsync(int waiterId)
+        public async Task<List<Order>> GetAllOrderDeliveryByWaiterIdAsync(int userId)
         {
             return await _context.Orders
                 .AsNoTracking()
@@ -287,7 +287,28 @@ namespace SMAS_DataAccess.DAO
                          && o.OrderStatus != "Completed"
                          && o.OrderStatus != "Cancelled"
                          && o.ServedByNavigation != null
-                         && o.ServedByNavigation.UserId == waiterId)
+                         && o.ServedByNavigation.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Order>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId)
+        {
+            var sevenDaysAgo = DateTime.Now.AddDays(-7);
+
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
+                .Include(o => o.Delivery)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Where(o => (o.OrderStatus == "Completed" || o.OrderStatus == "Cancelled")
+                         && o.CreatedAt >= sevenDaysAgo
+                         && o.ServedByNavigation != null
+                         && o.ServedByNavigation.UserId == userId)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }

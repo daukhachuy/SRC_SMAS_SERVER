@@ -21,6 +21,8 @@ namespace SMAS_Services.OrderServices
         Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request);
 
         Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request);
-
+        Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId);
+        Task<List<OrderListResponseDTO>> GetAllOrderDeliveryByWaiterIdAsync(int userId);
+        Task<List<OrderListResponseDTO>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId);
     }
 }

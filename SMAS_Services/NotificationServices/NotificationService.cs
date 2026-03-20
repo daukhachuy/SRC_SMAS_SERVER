@@ -34,7 +34,7 @@ namespace SMAS_Services.NotificationServices
 
         public async Task<IEnumerable<NotificationDto>> GetAllNotificationAsync()
         {
-            var items = await _repo.GetAllAsync();
+            var items = await _notificationREPO.GetAllAsync();
 
             if (!items.Any())
                 return Enumerable.Empty<NotificationDto>();

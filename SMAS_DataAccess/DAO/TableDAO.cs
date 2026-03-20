@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace SMAS_DataAccess.DAO
 {
-    public class TableSessionDAO
+    public class TableDAO
     {
         private readonly RestaurantDbContext _context;
 
-        public TableSessionDAO(RestaurantDbContext context)
+        public TableDAO(RestaurantDbContext context)
         {
             _context = context;
         }
@@ -32,6 +32,14 @@ namespace SMAS_DataAccess.DAO
             table.Status = status;
             table.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+        }
+        public async Task<List<Table>> GetAllTableAsync()
+        {
+            return await _context.Tables
+                .AsNoTracking()
+                .Where(t => t.IsActive == true)
+                .OrderBy(t => t.TableName)
+                .ToListAsync();
         }
     }
 }
