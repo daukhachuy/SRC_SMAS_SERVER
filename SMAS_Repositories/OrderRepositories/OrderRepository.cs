@@ -543,9 +543,9 @@ namespace SMAS_Repositories.OrderRepositories
             return await _orderDAO.GetComboByIdForOrderAsync(comboId);
         }
 
-        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, int tableId, Reservation? reservationToUpdate)
+        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, List<TableOrder> tableOrders, Reservation? reservationToUpdate)
         {
-            await _orderDAO.CreateInHouseOrderAsync(order, items, tableId, reservationToUpdate);
+            await _orderDAO.CreateInHouseOrderAsync(order, items, tableOrders, reservationToUpdate);
         }
     }
 }

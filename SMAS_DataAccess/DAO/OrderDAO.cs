@@ -134,7 +134,9 @@ namespace SMAS_DataAccess.DAO
 
         public async Task<Reservation?> GetReservationByCodeAsync(string reservationCode)
         {
-            return await _context.Reservations.FirstOrDefaultAsync(r => r.ReservationCode == reservationCode);
+            return await _context.Reservations
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.ReservationCode == reservationCode);
         }
 
         public async Task<bool> HasActiveOrderByReservationIdAsync(int reservationId)
@@ -184,7 +186,7 @@ namespace SMAS_DataAccess.DAO
             return await _context.Combos.FirstOrDefaultAsync(c => c.ComboId == comboId);
         }
 
-        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, int tableId, Reservation? reservationToUpdate)
+        public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, List<TableOrder> tableOrders, Reservation? reservationToUpdate)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -202,14 +204,11 @@ namespace SMAS_DataAccess.DAO
                     _context.OrderItems.AddRange(items);
                 }
 
-                _context.TableOrders.Add(new TableOrder
+                foreach (var tableOrder in tableOrders)
                 {
-                    TableId = tableId,
-                    OrderId = order.OrderId,
-                    IsMainTable = true,
-                    JoinedAt = DateTime.UtcNow,
-                    LeftAt = null
-                });
+                    tableOrder.OrderId = order.OrderId;
+                }
+                _context.TableOrders.AddRange(tableOrders);
 
                 if (reservationToUpdate != null)
                 {

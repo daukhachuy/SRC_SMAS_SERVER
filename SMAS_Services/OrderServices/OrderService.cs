@@ -65,6 +65,83 @@ namespace SMAS_Services.OrderServices
             return await _orderRepository.UpdateOrderDeliveryFailedAtAsync(request);
         }
 
+        // API 0: lookup thông tin khách trước khi tạo order
+        public async Task<OrderLookupResponseDto> LookupOrderAsync(OrderLookupRequestDto request)
+        {
+            var type = request.Type?.Trim();
+
+            if (string.IsNullOrWhiteSpace(type))
+                throw new ArgumentException("Invalid type");
+
+            if (string.Equals(type, "Reservation", StringComparison.OrdinalIgnoreCase))
+            {
+                var keyword = request.Keyword?.Trim();
+                if (string.IsNullOrWhiteSpace(keyword))
+                    throw new ArgumentException("Reservation code is required");
+
+                var reservation = await _orderRepository.GetReservationByCodeAsync(keyword);
+                if (reservation == null)
+                    throw new KeyNotFoundException("Reservation not found");
+
+                if (!string.Equals(reservation.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Reservation is not confirmed");
+
+                var hasActiveOrder = await _orderRepository.HasActiveOrderByReservationIdAsync(reservation.ReservationId);
+                if (hasActiveOrder)
+                    throw new ArgumentException("Reservation already has an active order");
+
+                return new OrderLookupResponseDto
+                {
+                    Type = "Reservation",
+                    UserId = reservation.UserId,
+                    FullName = reservation.User?.Fullname,
+                    Phone = reservation.User?.Phone,
+                    ReservationCode = reservation.ReservationCode,
+                    ReservationId = reservation.ReservationId,
+                    NumberOfGuests = reservation.NumberOfGuests,
+                    ReservationDate = reservation.ReservationDate,
+                    ReservationTime = reservation.ReservationTime,
+                    OrderType = "DineIn"
+                };
+            }
+
+            if (string.Equals(type, "Member", StringComparison.OrdinalIgnoreCase))
+            {
+                var keyword = request.Keyword?.Trim();
+                if (string.IsNullOrWhiteSpace(keyword))
+                    throw new ArgumentException("Phone or email is required");
+
+                var user = await _orderRepository.GetUserByPhoneAsync(keyword);
+                if (user == null)
+                    user = await _orderRepository.GetUserByEmailAsync(keyword);
+
+                if (user == null)
+                    throw new KeyNotFoundException("Customer not found");
+
+                if (!string.Equals(user.Role, "Customer", StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Account is not a customer account");
+
+                return new OrderLookupResponseDto
+                {
+                    Type = "Member",
+                    UserId = user.UserId,
+                    FullName = user.Fullname,
+                    Phone = user.Phone,
+                    OrderType = null
+                };
+            }
+
+            if (string.Equals(type, "Guest", StringComparison.OrdinalIgnoreCase))
+            {
+                return new OrderLookupResponseDto
+                {
+                    Type = "Guest"
+                };
+            }
+
+            throw new ArgumentException("Invalid type");
+        }
+
         public async Task<CreateInHouseOrderResponse> CreateOrderByReservationAsync(CreateOrderByReservationRequest request, int waiterUserId)
         {
             var reservationCode = request.ReservationCode?.Trim();
@@ -82,14 +159,28 @@ namespace SMAS_Services.OrderServices
             if (hasActiveOrder)
                 throw new ArgumentException("Reservation already has an active order");
 
-            await ValidateTableAvailability(request.TableId);
-            var builtItems = await BuildOrderItems(request.OrderItems ?? new List<OrderItemRequest>());
-            var subTotal = builtItems.Sum(x => x.Subtotal ?? 0m);
             var now = DateTime.UtcNow;
+            var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
+            var builtItems = await BuildOrderItems(request.OrderItems);
+            var subTotal = builtItems.Sum(x => x.Subtotal);
+
+            var orderItems = builtItems.Select(b => new OrderItem
+            {
+                FoodId = b.Request.FoodId,
+                BuffetId = b.Request.BuffetId,
+                ComboId = b.Request.ComboId,
+                Quantity = b.Request.Quantity,
+                UnitPrice = b.UnitPrice,
+                Subtotal = b.Subtotal,
+                Status = "Pending",
+                Note = b.Request.Note,
+                OpeningTime = now,
+                ServedTime = null
+            }).ToList();
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(),
+                OrderCode = GenerateOrderCode(now),
                 UserId = reservation.UserId,
                 ReservationId = reservation.ReservationId,
                 BookEventId = null,
@@ -109,9 +200,9 @@ namespace SMAS_Services.OrderServices
                 ClosedAt = null
             };
 
-            await _orderRepository.CreateInHouseOrderAsync(order, builtItems, request.TableId, reservation);
+            await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, reservation);
 
-            return MapCreateInHouseOrderResponse(order, request.TableId, builtItems);
+            return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
         }
 
         public async Task<CreateInHouseOrderResponse> CreateOrderByContactAsync(CreateOrderByContactRequest request, int waiterUserId)
@@ -123,29 +214,50 @@ namespace SMAS_Services.OrderServices
                 !string.Equals(request.OrderType, "Buffet", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Invalid order type");
 
-            User? user;
+            User? user = null;
+
+            // ưu tiên tìm theo phone trước
             if (!string.IsNullOrWhiteSpace(request.Phone))
             {
                 var phone = request.Phone.Trim();
                 user = await _orderRepository.GetUserByPhoneAsync(phone);
             }
-            else
+
+            if (user == null && !string.IsNullOrWhiteSpace(request.Email))
             {
-                var email = request.Email!.Trim();
+                var email = request.Email.Trim();
                 user = await _orderRepository.GetUserByEmailAsync(email);
             }
 
             if (user == null)
                 throw new KeyNotFoundException("Customer not found with provided phone/email");
 
-            await ValidateTableAvailability(request.TableId);
-            var builtItems = await BuildOrderItems(request.OrderItems ?? new List<OrderItemRequest>());
-            var subTotal = builtItems.Sum(x => x.Subtotal ?? 0m);
+            if (!string.Equals(user.Role, "Customer", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Account is not a customer account");
+
             var now = DateTime.UtcNow;
+            var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
+            var builtItems = await BuildOrderItems(request.OrderItems);
+
+            var subTotal = builtItems.Sum(x => x.Subtotal);
+
+            var orderItems = builtItems.Select(b => new OrderItem
+            {
+                FoodId = b.Request.FoodId,
+                BuffetId = b.Request.BuffetId,
+                ComboId = b.Request.ComboId,
+                Quantity = b.Request.Quantity,
+                UnitPrice = b.UnitPrice,
+                Subtotal = b.Subtotal,
+                Status = "Pending",
+                Note = b.Request.Note,
+                OpeningTime = now,
+                ServedTime = null
+            }).ToList();
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(),
+                OrderCode = GenerateOrderCode(now),
                 UserId = user.UserId,
                 ReservationId = null,
                 BookEventId = null,
@@ -165,31 +277,50 @@ namespace SMAS_Services.OrderServices
                 ClosedAt = null
             };
 
-            await _orderRepository.CreateInHouseOrderAsync(order, builtItems, request.TableId, null);
+            await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, null);
 
-            return MapCreateInHouseOrderResponse(order, request.TableId, builtItems);
+            return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
         }
 
-        public async Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int customerUserId)
+        public async Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int waiterUserId)
         {
-            await ValidateTableAvailability(request.TableId);
-            var builtItems = await BuildOrderItems(request.OrderItems ?? new List<OrderItemRequest>());
-            var subTotal = builtItems.Sum(x => x.Subtotal ?? 0m);
+            if (!string.Equals(request.OrderType, "DineIn", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(request.OrderType, "Buffet", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Invalid order type");
+
             var now = DateTime.UtcNow;
+            var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
+            var builtItems = await BuildOrderItems(request.OrderItems);
+
+            var subTotal = builtItems.Sum(x => x.Subtotal);
+
+            var orderItems = builtItems.Select(b => new OrderItem
+            {
+                FoodId = b.Request.FoodId,
+                BuffetId = b.Request.BuffetId,
+                ComboId = b.Request.ComboId,
+                Quantity = b.Request.Quantity,
+                UnitPrice = b.UnitPrice,
+                Subtotal = b.Subtotal,
+                Status = "Pending",
+                Note = b.Request.Note,
+                OpeningTime = now,
+                ServedTime = null
+            }).ToList();
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(),
-                UserId = customerUserId,
+                OrderCode = GenerateOrderCode(now),
+                UserId = waiterUserId,
                 ReservationId = null,
                 BookEventId = null,
                 DiscountId = null,
                 DeliveryId = null,
-                OrderType = "DineIn",
+                OrderType = request.OrderType,
                 OrderStatus = "Pending",
                 NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
-                ServedBy = null,
+                ServedBy = waiterUserId,
                 SubTotal = subTotal,
                 DiscountAmount = null,
                 TaxAmount = null,
@@ -199,30 +330,59 @@ namespace SMAS_Services.OrderServices
                 ClosedAt = null
             };
 
-            await _orderRepository.CreateInHouseOrderAsync(order, builtItems, request.TableId, null);
+            await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, null);
 
-            return MapCreateInHouseOrderResponse(order, request.TableId, builtItems);
+            return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
         }
 
-        private async Task ValidateTableAvailability(int tableId)
+        // Shared helper: validate/occupancy and build TableOrder list (main table = tableIds[0])
+        private async Task<List<TableOrder>> ValidateAndBuildTableOrders(List<int>? tableIds)
         {
-            var tableExists = await _orderRepository.TableExistsAsync(tableId);
-            if (!tableExists)
-                throw new KeyNotFoundException("Table not found");
+            if (tableIds == null || tableIds.Count == 0)
+                throw new ArgumentException("At least one table is required");
 
-            var isOccupied = await _orderRepository.IsTableOccupiedAsync(tableId);
+            var now = DateTime.UtcNow;
+            var tableOrders = new List<TableOrder>();
 
-            if (isOccupied)
-                throw new ArgumentException("Table is currently occupied");
+            foreach (var tableId in tableIds)
+            {
+                var tableExists = await _orderRepository.TableExistsAsync(tableId);
+                if (!tableExists)
+                    throw new KeyNotFoundException($"Table {tableId} not found");
+
+                var isOccupied = await _orderRepository.IsTableOccupiedAsync(tableId);
+                if (isOccupied)
+                    throw new ArgumentException($"Table {tableId} is currently occupied");
+
+                tableOrders.Add(new TableOrder
+                {
+                    TableId = tableId,
+                    OrderId = 0, // will be assigned after order is saved
+                    IsMainTable = tableOrders.Count == 0,
+                    JoinedAt = now,
+                    LeftAt = null
+                });
+            }
+
+            return tableOrders;
         }
 
-        private async Task<List<OrderItem>> BuildOrderItems(List<OrderItemRequest> items)
+        private sealed class BuiltOrderItem
         {
-            var orderItems = new List<OrderItem>();
+            public required OrderItemRequest Request { get; init; }
+            public decimal UnitPrice { get; init; }
+            public decimal Subtotal { get; init; }
+        }
+
+        // Shared helper: compute unitPrice/subtotal for each item
+        private async Task<List<BuiltOrderItem>> BuildOrderItems(List<OrderItemRequest>? items)
+        {
+            var built = new List<BuiltOrderItem>();
             if (items == null || !items.Any())
-                return orderItems;
+                return built;
 
             var today = DateOnly.FromDateTime(DateTime.Today);
+
             foreach (var item in items)
             {
                 var selectedCount = 0;
@@ -237,6 +397,7 @@ namespace SMAS_Services.OrderServices
                     throw new ArgumentException("Quantity must be greater than 0");
 
                 decimal unitPrice;
+
                 if (item.FoodId.HasValue)
                 {
                     var food = await _orderRepository.GetFoodByIdForOrderAsync(item.FoodId.Value);
@@ -259,50 +420,51 @@ namespace SMAS_Services.OrderServices
                 }
                 else
                 {
-                    var combo = await _orderRepository.GetComboByIdForOrderAsync(item.ComboId.Value);
+                    var combo = await _orderRepository.GetComboByIdForOrderAsync(item.ComboId!.Value);
                     if (combo == null)
                         throw new KeyNotFoundException("Combo not found");
-                    if (combo.IsAvailable != true || (combo.ExpiryDate.HasValue && combo.ExpiryDate.Value < today))
+
+                    var isExpired = combo.ExpiryDate.HasValue && combo.ExpiryDate.Value < today;
+                    if (combo.IsAvailable != true || isExpired)
                         throw new ArgumentException($"Combo {combo.Name} is not available");
 
-                    unitPrice = combo.DiscountPercent.HasValue
+                    unitPrice = combo.DiscountPercent != null
                         ? combo.Price * (1 - combo.DiscountPercent.Value / 100)
                         : combo.Price;
                 }
 
-                orderItems.Add(new OrderItem
+                built.Add(new BuiltOrderItem
                 {
-                    FoodId = item.FoodId,
-                    BuffetId = item.BuffetId,
-                    ComboId = item.ComboId,
-                    Quantity = item.Quantity,
+                    Request = item,
                     UnitPrice = unitPrice,
-                    Subtotal = unitPrice * item.Quantity,
-                    Status = "Pending",
-                    Note = item.Note,
-                    OpeningTime = DateTime.UtcNow,
-                    ServedTime = null
+                    Subtotal = unitPrice * item.Quantity
                 });
             }
 
-            return orderItems;
+            return built;
         }
 
-        private static string GenerateOrderCode()
+        private static string GenerateOrderCode(DateTime now)
         {
             var random = Random.Shared.Next(1000, 10000);
-            return $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}-{random}";
+            return $"ORD-{now:yyyyMMddHHmmss}-{random}";
         }
 
-        private static CreateInHouseOrderResponse MapCreateInHouseOrderResponse(Order order, int tableId, List<OrderItem> orderItems)
+        private static CreateInHouseOrderResponse MapCreateInHouseOrderResponse(
+            Order order,
+            List<int> tableIds,
+            List<TableOrder> tableOrders,
+            List<OrderItem> orderItems)
         {
+            var mainTableId = tableIds.First();
             return new CreateInHouseOrderResponse
             {
                 OrderId = order.OrderId,
                 OrderCode = order.OrderCode,
                 OrderStatus = order.OrderStatus,
                 OrderType = order.OrderType,
-                TableId = tableId,
+                TableIds = tableIds,
+                MainTableId = mainTableId,
                 NumberOfGuests = order.NumberOfGuests ?? 0,
                 SubTotal = order.SubTotal ?? 0,
                 TotalAmount = order.TotalAmount,

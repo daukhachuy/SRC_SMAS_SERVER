@@ -22,7 +22,9 @@ namespace SMAS_Services.OrderServices
         Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request);
         Task<CreateInHouseOrderResponse> CreateOrderByReservationAsync(CreateOrderByReservationRequest request, int waiterUserId);
         Task<CreateInHouseOrderResponse> CreateOrderByContactAsync(CreateOrderByContactRequest request, int waiterUserId);
-        Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int customerUserId);
+        Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int waiterUserId);
+
+        Task<OrderLookupResponseDto> LookupOrderAsync(OrderLookupRequestDto request);
 
     }
 }

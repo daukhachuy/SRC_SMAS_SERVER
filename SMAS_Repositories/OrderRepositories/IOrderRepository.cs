@@ -36,6 +36,6 @@ namespace SMAS_Repositories.OrderRepositories
         Task<Food?> GetFoodByIdForOrderAsync(int foodId);
         Task<Buffet?> GetBuffetByIdForOrderAsync(int buffetId);
         Task<Combo?> GetComboByIdForOrderAsync(int comboId);
-        Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, int tableId, Reservation? reservationToUpdate);
+        Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, List<TableOrder> tableOrders, Reservation? reservationToUpdate);
     }
 }
