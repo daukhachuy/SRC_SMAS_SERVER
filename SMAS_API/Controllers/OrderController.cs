@@ -351,6 +351,8 @@ namespace SMAS_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+            }
+        }
         [Authorize(Roles = "Waiter,Manager")]
         [HttpPost("/api/orders/lookup")]
         public async Task<IActionResult> Lookup([FromBody] OrderLookupRequestDto request)
