@@ -1,4 +1,5 @@
-﻿using SMAS_BusinessObject.Models;
+﻿using SMAS_BusinessObject.DTOs.NotificationDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -20,5 +21,8 @@ namespace SMAS_Repositories.Notificationrepositories
         {
             return await _notificationDAO.CreateNotificationAsync(notification);
         }
+
+        public async Task<IEnumerable<Notification>> GetAllAsync()
+    => await _notificationDAO.GetAllAsync();
     }
 }

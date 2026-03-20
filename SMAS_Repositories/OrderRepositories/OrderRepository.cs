@@ -60,7 +60,11 @@ namespace SMAS_Repositories.OrderRepositories
             var orders = await _orderDAO.GetAllOrderCompleteAndCancelByOrderTypeAsync(orderType);
             return MapToDTO(orders);
         }
-
+        public async Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByCustomerIdAsync(int customerId)
+        {
+            var orders = await _orderDAO.GetAllOrderCompleteAndCancelByCustomerIdAsync(customerId);
+            return MapToDTO(orders);
+        }
         public async Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request)
         {
             // 1. Validate: phải có đúng 1 loại item

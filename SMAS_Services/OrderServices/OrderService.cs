@@ -35,7 +35,13 @@ namespace SMAS_Services.OrderServices
         {
             return await _orderRepository.GetAllOrderCompleteAndCancelAsync();
         }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByCustomerIdAsync(int customerId)
+        {
+            if (customerId <= 0)
+                throw new ArgumentException("CustomerId không hợp lệ.", nameof(customerId));
 
+            return await _orderRepository.GetAllOrderCompleteAndCancelByCustomerIdAsync(customerId);
+        }
         public async Task<List<OrderListResponseDTO>> GetAllActiveOrderByOrderTypeAsync(string orderType)
         {
             return await _orderRepository.GetAllActiveOrderByOrderTypeAsync(orderType);
@@ -64,6 +70,27 @@ namespace SMAS_Services.OrderServices
         {
             return await _orderRepository.UpdateOrderDeliveryFailedAtAsync(request);
         }
-        
+        public async Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId)
+        {
+            if (userId <= 0)
+                throw new ArgumentException("WaiterId không hợp lệ.", nameof(userId));
+
+            return await _orderRepository.GetAllOrderPreparingByWaiterIdAsync(userId);
+        }
+
+        public async Task<List<OrderListResponseDTO>> GetAllOrderDeliveryByWaiterIdAsync(int userId)
+        {
+            if (userId <= 0)
+                throw new ArgumentException("WaiterId không hợp lệ.", nameof(userId));
+
+            return await _orderRepository.GetAllOrderDeliveryByWaiterIdAsync(userId);
+        }
+        public async Task<List<OrderListResponseDTO>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId)
+        {
+            if (userId <= 0)
+                throw new ArgumentException("UserId không hợp lệ.", nameof(userId));
+
+            return await _orderRepository.GetAllOrderHistoryByWaiterIdInSevenDayAsync(userId);
+        }
     }
 }
