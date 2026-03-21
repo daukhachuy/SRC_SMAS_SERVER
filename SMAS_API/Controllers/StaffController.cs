@@ -8,7 +8,7 @@ using SMAS_Services.StaffService;
 
 namespace SMAS_API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class StaffController : ControllerBase
@@ -347,7 +347,7 @@ namespace SMAS_API.Controllers
             return Ok(staffs);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("staff-filter")]
         public async Task<ActionResult<StaffResponseDTO>> GetFilterStaff([FromBody] FilterAccountStaffRequestDTO filter)
         {
