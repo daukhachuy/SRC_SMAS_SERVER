@@ -98,15 +98,15 @@ namespace SMAS_API.Controllers
         public async Task<ActionResult<OrderDeliveryResponse>> CreateOrder([FromBody] CreateOrderDeliveryRequest request)
         {
 
-            var accessToken = Request.Headers["X-Table-Token"].FirstOrDefault();
+        //    var accessToken = Request.Headers["X-Table-Token"].FirstOrDefault();
 
-            if (string.IsNullOrEmpty(accessToken))
-                return Unauthorized(new { errorCode = "INVALID_QR_TOKEN" });
+        //    if (string.IsNullOrEmpty(accessToken))
+        //        return Unauthorized(new { errorCode = "INVALID_QR_TOKEN" });
 
-            (bool valid, string? errorCode, string? tableCode) = _tableSessionService.ValidateAccessToken(accessToken);
-            if (!valid)
-                return BadRequest(new { errorCode });
-        //phan o giua nhe
+        //    (bool valid, string? errorCode, string? tableCode) = _tableSessionService.ValidateAccessToken(accessToken);
+        //    if (!valid)
+        //        return BadRequest(new { errorCode });
+        ////phan o giua nhe
 
             if (!ModelState.IsValid)
             {
