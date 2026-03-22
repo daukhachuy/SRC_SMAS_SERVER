@@ -91,7 +91,7 @@ namespace SMAS_Services.OrderServices
                 throw new ArgumentException("UserId không hợp lệ.", nameof(userId));
 
             return await _orderRepository.GetAllOrderHistoryByWaiterIdInSevenDayAsync(userId);
-
+        }
         // API 0: lookup thông tin khách trước khi tạo order
         public async Task<OrderLookupResponseDto> LookupOrderAsync(OrderLookupRequestDto request)
         {
