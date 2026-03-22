@@ -337,5 +337,10 @@ namespace SMAS_Services.AuthServices
                 Avatar = user.Avatar
                 };
         }
+
+        public async Task<bool> UpdateStatusUserAsync(int userId)
+        {
+            return await _userRepositories.UpdateStatusUserAsync(userId);
+        }
     }
 }

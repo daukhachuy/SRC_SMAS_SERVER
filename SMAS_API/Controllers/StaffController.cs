@@ -36,6 +36,7 @@ namespace SMAS_API.Controllers
         [HttpGet("staff-work-today")]
         public async Task<IActionResult> GetStaffWorkToday()
         {
+
             try
             {
                 var result = await _managerService.GetStaffWorkTodayAsync();
@@ -296,7 +297,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // PUT api/staffprofile
+        //PUT api/staffprofile
         [HttpPut("staff-profile")]
         public async Task<IActionResult> UpdateProfileStaff([FromBody] UpdateProfileStaffRequestDto dto)
         {
@@ -335,6 +336,75 @@ namespace SMAS_API.Controllers
             {
                 _logger.LogError(ex, "Lỗi khi lấy ca làm trong tuần của nhân viên.");
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            }
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpGet("staffs-list")]
+        public async Task<ActionResult<IEnumerable<StaffResponseDTO>>> GetAllAcountStaffAsync()
+        {
+            var staffs = await _staffProfileService.GetAllAcountStaffAsync();
+            if (!staffs.Any()) return NotFound(new { MsgCode = "MSG_041", Message = "Không có tài khoản nhân viên  nào !" });
+            return Ok(staffs);
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("staff-filter")]
+        public async Task<ActionResult<StaffResponseDTO>> GetFilterStaff([FromBody] FilterAccountStaffRequestDTO filter)
+        {
+            var staffs = await _staffProfileService.FilterAccountStaffAsync(filter);
+            if (!staffs.Any()) return NotFound(new { MsgCode = "MSG_041", Message = "Không có tài khoản nhân viên  nào !" });
+            return Ok(staffs);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("create-staff-userid")]
+        public async Task<IActionResult> CreateStaffByUserId([FromBody] CreateNewStaffByUseridResquestDTO dto)
+        {
+
+            if (!ModelState.IsValid) return BadRequest();
+            
+            try
+            {
+                var result = await _staffProfileService.CreateStaffAsync(dto);
+
+                if (!result)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Tạo staff thất bại. Có thể User không tồn tại hoặc đã là Staff."
+                    });
+                }
+                return Ok(new{ message = "Tạo staff thành công"});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new{message = "Lỗi hệ thống", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("create-staff-new")]
+        public async Task<IActionResult> CreateNewStaff([FromBody] CreateNewStaffRequestDTO dto)
+        {
+
+            if (!ModelState.IsValid) return BadRequest();
+
+            try
+            {
+                var result = await _staffProfileService.CreateStaffWithUserAsync(dto);
+
+                if (!result)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Tạo staff thất bại. Có thể User không tồn tại hoặc đã là Staff."
+                    });
+                }
+                return Ok(new { message = "Tạo staff thành công" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống", detail = ex.Message });
             }
         }
     }
