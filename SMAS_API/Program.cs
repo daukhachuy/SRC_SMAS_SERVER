@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SMAS_API.Helpers;
 using SMAS_BusinessObject.Configurations;
+using SMAS_Repositories.ContractWorkflow;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
 using SMAS_BusinessObject.Models;
@@ -50,6 +51,7 @@ using SMAS_Services.NotificationServices;
 using SMAS_Services.OrderItemServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
+using SMAS_Services.ContractWorkflow;
 using SMAS_Services.ReservationServices;
 using SMAS_Services.SalaryService;
 using SMAS_Services.ServiceServices;
@@ -169,8 +171,11 @@ namespace SMAS_API
             builder.Services.AddScoped<IServiceService, ServiceService>();
 
             builder.Services.AddScoped<ContractDAO>();
+            builder.Services.AddScoped<PaymentDAO>();
             builder.Services.AddScoped<IContractRepository, ContractRepository>();
             builder.Services.AddScoped<IContractService, ContractService>();
+            builder.Services.AddScoped<IContractWorkflowRepository, ContractWorkflowRepository>();
+            builder.Services.AddScoped<IContractWorkflowService, ContractWorkflowService>();
 
             builder.Services.AddScoped<BookEventDAO>();
             builder.Services.AddScoped<IBookEventRepository, BookEventRepository>();
@@ -242,6 +247,7 @@ namespace SMAS_API
             builder.Services.AddScoped<INotificationrepository, Notificationrepository>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
 
+            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -273,6 +279,12 @@ namespace SMAS_API
             app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();
+
+            app.Use(async (context, next) =>
+            {
+                context.Request.EnableBuffering();
+                await next();
+            });
 
             app.UseAuthentication();
             app.UseAuthorization();

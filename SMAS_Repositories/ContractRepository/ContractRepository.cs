@@ -1,4 +1,4 @@
-﻿using SMAS_BusinessObject.DTOs.ContractDTO;
+using SMAS_BusinessObject.DTOs.ContractDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
@@ -62,5 +62,6 @@ namespace SMAS_Repositories.ContractRepository
                     PaidAt = p.PaidAt
                 }).ToList()
             };
-        } }
+        }
     }
+}

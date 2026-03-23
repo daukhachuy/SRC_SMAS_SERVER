@@ -52,5 +52,28 @@ SMAS Restaurant
 
             await client.SendMailAsync(mailMessage, cancellationToken);
         }
+
+        public async Task SendAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(_settings.SmtpUser) || string.IsNullOrWhiteSpace(_settings.SmtpPassword))
+                throw new InvalidOperationException("Chưa cấu hình SMTP (SmtpUser/SmtpPassword) trong appsettings.");
+
+            using var client = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
+            {
+                EnableSsl = _settings.EnableSsl,
+                Credentials = new NetworkCredential(_settings.SmtpUser, _settings.SmtpPassword)
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_settings.FromEmail, _settings.FromName),
+                Subject = subject,
+                Body = htmlBody,
+                IsBodyHtml = true
+            };
+            mailMessage.To.Add(to);
+
+            await client.SendMailAsync(mailMessage, cancellationToken);
+        }
     }
 }
