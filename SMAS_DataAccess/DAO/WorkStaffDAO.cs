@@ -67,8 +67,8 @@ namespace SMAS_DataAccess.DAO
 
         public async Task<IEnumerable<WorkStaff>> GetAllWorkNextSevenDayByPositionAsync(List<string> positions)
         {
-            var from = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
-            var to = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+            var from = DateOnly.FromDateTime(DateTime.Today);
+            var to = DateOnly.FromDateTime(DateTime.Today.AddDays(6));
 
             var query = _context.WorkStaffs
                 .Include(ws => ws.Shift)
