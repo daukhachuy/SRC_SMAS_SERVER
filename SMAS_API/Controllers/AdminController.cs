@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/admin/dashboard")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminDashboardController : ControllerBase
     {
         private readonly IAdminService _adminService;
@@ -39,7 +39,7 @@ namespace SMAS_API.Controllers
 
 
         /// Biểu đồ doanh thu và chi phí theo tháng.
-        /// Mặc định 6 tháng gần nhất của năm hiện tại.
+        /// Mặc định 6 tháng gần nhất của năm hiện tại.0
         [HttpGet("revenue-chart")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetRevenueChart([FromQuery] int? months, [FromQuery] int? year)

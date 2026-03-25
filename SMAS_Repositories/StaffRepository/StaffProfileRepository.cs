@@ -151,5 +151,49 @@ namespace SMAS_Repositories.StaffRepository
             var result = await _staffProfileDAO.CreateStaffWithUserAsync(user, staff);
             return result;
         }
+
+        public async Task<StaffDetailresponseDTO?> GetStaffDetailToUpdateAsync(int userId)
+        {
+            var user = await _staffProfileDAO.GetForUpdateAsync(userId);
+            if (user == null || user.Role != "Staff")
+                return null;
+
+            return new StaffDetailresponseDTO
+            {
+                UserId = user.UserId,
+                Fullname = user.Fullname,
+                Phone = user.Phone,
+                Email = user.Email,
+                Address = user.Address,
+                Salary = user.Staff?.Salary,
+                HireDate = user.Staff?.HireDate ?? default,
+                Position = user.Staff?.Position,
+                BankAccountNumber = user.Staff?.BankAccountNumber,
+                BankName = user.Staff?.BankName,
+                TaxId = user.Staff?.TaxId
+            };
+         }
+
+        public async Task<bool> AdminUpdateStaffDetail(StaffDetailRequestDTO request)
+        {
+            var user = await _staffProfileDAO.GetForUpdateAsync(request.UserId);
+            if(user == null || user.Role != "Staff")
+                return false;
+            user.Fullname = request.Fullname;
+            user.Phone = request.Phone;
+            user.Email = request.Email;
+            user.Address = request.Address;
+            if(user.Staff != null)
+            {
+                user.Staff.Salary = request.Salary;
+                user.Staff.Position = request.Position;
+                user.Staff.BankAccountNumber = request.BankAccountNumber;
+                user.Staff.BankName = request.BankName;
+                user.Staff.TaxId = request.TaxId;
+            }
+            await _staffProfileDAO.SaveAsync();
+            return true;
+
+        }
     }
 }

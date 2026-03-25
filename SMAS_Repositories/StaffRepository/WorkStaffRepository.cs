@@ -60,9 +60,9 @@ namespace SMAS_Repositories.StaffRepository
             var workStaffs = await _workStaffDAO.GetAllWorkNextSevenDayByPositionAsync(positions);
 
             // Tạo danh sách 7 ngày tới
-            var dateRange = Enumerable.Range(1, 7)
-                .Select(i => DateOnly.FromDateTime(DateTime.Today.AddDays(i)))
-                .ToList();
+            var dateRange = Enumerable.Range(0, 7)
+     .Select(i => DateOnly.FromDateTime(DateTime.Today.AddDays(i)))
+     .ToList();
 
             var shiftRows = workStaffs
                 .GroupBy(ws => ws.ShiftId)
