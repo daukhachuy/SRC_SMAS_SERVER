@@ -91,6 +91,16 @@ namespace SMAS_Services.StaffService
             return await _staffProfileRepository.CreateStaffWithUserAsync(request);
         }
 
+        public async Task<StaffDetailresponseDTO> GetStaffDetailToUpdateAsync(int userId)
+        {
+            return await _staffProfileRepository.GetStaffDetailToUpdateAsync(userId);
+        }
+
+        public async Task<bool> AdminUpdateStaffDetail(StaffDetailRequestDTO request)
+        {
+            return await _staffProfileRepository.AdminUpdateStaffDetail(request);
+        }
+
     }
 
 }

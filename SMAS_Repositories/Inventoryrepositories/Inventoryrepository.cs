@@ -82,6 +82,11 @@ namespace SMAS_Repositories.Inventoryrepositories
 
             inventory.QuantityOnHand -= dto.Quantity;
             inventory.UpdatedAt = DateTime.Now;
+            if(inventory.QuantityOnHand == 0)
+            {
+                inventory.Status = "UsedUp";
+                inventory.Note = $"Used up on {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}";
+            }
 
             var imexport = new ImExport
             {
@@ -92,7 +97,7 @@ namespace SMAS_Repositories.Inventoryrepositories
                 Reason = dto.Reason,
                 CreatedByStaffId = staffId,
                 CreatedAt = DateTime.Now
-            };
+             };
 
 
             var log = new InventoryLog
@@ -120,13 +125,17 @@ namespace SMAS_Repositories.Inventoryrepositories
                 return false;
 
             double oldQty = inventory.QuantityOnHand;
-
+            if (inventory.Status == "UsedUp" )
+            {
+                inventory.Status = "Active";
+                inventory.Note = $"Reactivated on {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}";
+            }
             inventory.QuantityOnHand += dto.Quantity;
             inventory.UpdatedAt = DateTime.Now;
 
             var imexport = new ImExport
             {
-                Type = "RETURN",
+                Type = "Import",
                 InventoryId = inventory.InventoryId,
                 IngredientId = inventory.IngredientId,
                 Quantity = dto.Quantity,
@@ -140,7 +149,7 @@ namespace SMAS_Repositories.Inventoryrepositories
             {
                 InventoryId = inventory.InventoryId,
                 IngredientId = inventory.IngredientId,
-                Action = "RETURN",
+                Action = "Import",
                 OldQuantity = oldQty,
                 NewQuantity = inventory.QuantityOnHand,
                 UserId = staffId,
