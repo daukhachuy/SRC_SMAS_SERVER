@@ -25,6 +25,10 @@ namespace SMAS_Services.StaffService
         Task<bool> CreateStaffAsync(CreateNewStaffByUseridResquestDTO request);
 
         Task<bool> CreateStaffWithUserAsync(CreateNewStaffRequestDTO request);
+
+        Task<StaffDetailresponseDTO> GetStaffDetailToUpdateAsync(int userId);
+
+        Task<bool> AdminUpdateStaffDetail(StaffDetailRequestDTO request);
     }
 
 }
