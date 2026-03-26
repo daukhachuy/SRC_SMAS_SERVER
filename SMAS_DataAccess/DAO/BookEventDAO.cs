@@ -99,5 +99,47 @@ namespace SMAS_DataAccess.DAO
                 throw;
             }
         }
+
+        public async Task<BookEvent?> GetBookEventForReviewAsync(int bookEventId)
+        {
+            return await _context.BookEvents.FirstOrDefaultAsync(be => be.BookEventId == bookEventId);
+        }
+
+        public async Task<BookEvent?> GetBookEventForCreateContractAsync(int bookEventId)
+        {
+            return await _context.BookEvents
+                .Include(be => be.Event)
+                .Include(be => be.EventFoods).ThenInclude(ef => ef.Food)
+                .Include(be => be.BookEventServices).ThenInclude(bs => bs.Service)
+                .FirstOrDefaultAsync(be => be.BookEventId == bookEventId);
+        }
+
+        public async Task<BookEvent?> GetBookEventForDetailAsync(int bookEventId)
+        {
+            return await _context.BookEvents
+                .AsSplitQuery()
+                .Include(be => be.Customer)
+                .Include(be => be.ConfirmedByNavigation).ThenInclude(s => s!.User)
+                .Include(be => be.Event)
+                .Include(be => be.EventFoods).ThenInclude(ef => ef.Food)
+                .Include(be => be.BookEventServices).ThenInclude(bs => bs.Service)
+                .Include(be => be.Contract)
+                    .ThenInclude(c => c!.Payments)
+                .FirstOrDefaultAsync(be => be.BookEventId == bookEventId);
+        }
+
+        public async Task<BookEvent?> GetBookEventWithContractAndCustomerAsync(int bookEventId)
+        {
+            return await _context.BookEvents
+                .Include(be => be.Customer)
+                .Include(be => be.Contract)
+                .FirstOrDefaultAsync(be => be.BookEventId == bookEventId);
+        }
+
+        public async Task UpdateBookEventAsync(BookEvent bookEvent)
+        {
+            _context.BookEvents.Update(bookEvent);
+            await _context.SaveChangesAsync();
+        }
     }
 }
