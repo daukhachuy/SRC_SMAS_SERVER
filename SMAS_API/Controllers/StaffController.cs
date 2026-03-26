@@ -8,7 +8,7 @@ using SMAS_Services.StaffService;
 
 namespace SMAS_API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class StaffController : ControllerBase
@@ -33,7 +33,7 @@ namespace SMAS_API.Controllers
         /// Lấy danh sách nhân viên làm việc hôm nay (Manager dashboard)
         /// </summary>
         [Authorize(Roles = "Manager")]
-        [HttpGet("staff-work-today")]
+        [HttpGet("/manager/staffs-today")]
         public async Task<IActionResult> GetStaffWorkToday()
         {
 
@@ -69,24 +69,25 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager,Admin,Waiter,Kitchen")]
-        [HttpPost("filter-by-position")]
-        public async Task<IActionResult> GetFilterStaffByPosition([FromBody] List<string> positions)
+        [Authorize(Roles = "Manager,Admin")]
+        [HttpGet("filter-by-position")]
+        public async Task<IActionResult> GetFilterStaffByPosition([FromQuery] string? positions)
         {
             try
             {
-                // positions rỗng hoặc null → load toàn bộ staff
-                var result = await _workStaffService.GetFilterStaffByPositionAsync(positions ?? new List<string>());
+                var positionList = string.IsNullOrEmpty(positions)
+                    ? new List<string>()
+                    : positions.Split(',').Select(p => p.Trim()).ToList();
 
-                if (!result.Any())
-                    return Ok(null);
+                var result = await _workStaffService
+                    .GetFilterStaffByPositionAsync(positionList);
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi lọc nhân viên theo vị trí.");
-                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống.");
             }
         }
 
@@ -120,23 +121,29 @@ namespace SMAS_API.Controllers
             }
         }
         [Authorize(Roles = "Manager,Admin")]
-        [HttpPost("next-seven-days")]
-        public async Task<IActionResult> GetAllWorkNextSevenDayByPosition([FromBody] List<string> positions)
+        [HttpGet("workshift/next-seven-days")]
+        public async Task<IActionResult> GetAllWorkNextSevenDayByPosition([FromQuery] string? positions)
         {
             try
             {
-                var result = await _workStaffService.GetAllWorkNextSevenDayByPositionAsync(positions ?? new List<string>());
+                var positionList = string.IsNullOrEmpty(positions)
+                    ? new List<string>()
+                    : positions.Split(',').ToList();
+
+                var result = await _workStaffService
+                    .GetAllWorkNextSevenDayByPositionAsync(positionList);
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi lấy lịch làm 7 ngày tới.");
-                return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống.");
             }
         }
 
         [Authorize(Roles = "Manager,Admin")]
-        [HttpGet("workshift")]
+        [HttpGet("workshift/all")]
         public async Task<IActionResult> GetAllWorkShift()
         {
             try
@@ -153,7 +160,7 @@ namespace SMAS_API.Controllers
         }
 
         [Authorize(Roles = "Manager,Admin")]
-        [HttpPost]
+        [HttpPost("workshift")]
         public async Task<IActionResult> CreateWorkStaff([FromBody] CreateWorkStaffRequestDto dto)
         {
             try
@@ -275,6 +282,7 @@ namespace SMAS_API.Controllers
         }
 
         // GET api/staffprofile
+        [Authorize(Roles = "Waiter,Kitchen,Manager")]
         [HttpGet("staff-profile")]
         public async Task<IActionResult> GetProfileStaff()
         {
@@ -298,6 +306,7 @@ namespace SMAS_API.Controllers
         }
 
         //PUT api/staffprofile
+        [Authorize(Roles = "Waiter,Kitchen,Manager")]
         [HttpPut("staff-profile")]
         public async Task<IActionResult> UpdateProfileStaff([FromBody] UpdateProfileStaffRequestDto dto)
         {
@@ -362,7 +371,7 @@ namespace SMAS_API.Controllers
         {
 
             if (!ModelState.IsValid) return BadRequest();
-            
+
             try
             {
                 var result = await _staffProfileService.CreateStaffAsync(dto);
@@ -374,11 +383,11 @@ namespace SMAS_API.Controllers
                         message = "Tạo staff thất bại. Có thể User không tồn tại hoặc đã là Staff."
                     });
                 }
-                return Ok(new{ message = "Tạo staff thành công"});
+                return Ok(new { message = "Tạo staff thành công" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new{message = "Lỗi hệ thống", detail = ex.Message });
+                return StatusCode(500, new { message = "Lỗi hệ thống", detail = ex.Message });
             }
         }
 
@@ -405,6 +414,40 @@ namespace SMAS_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi hệ thống", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin-staff-deatail/{staffId}")]
+        public async Task<ActionResult<StaffDetailresponseDTO>> GetStaffDetailByStaffId([FromRoute] int staffId)
+        {
+            try
+            {
+                var result = await _staffProfileService.GetStaffDetailToUpdateAsync(staffId);
+                if (result == null) return NotFound(new { MsgCode = "MSG_041", Message = "Không tìm thấy nhân viên nào !" });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy chi tiết nhân viên {StaffId}.", staffId);
+                return StatusCode(500, "Lỗi khi lấy chi tiết nhân viên");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("admin-update-staff-deatail")]
+        public async Task<ActionResult<StaffDetailresponseDTO>> UpdateStaffDetailByStaffId([FromBody] StaffDetailRequestDTO staff)
+        {
+            try
+            {
+                var result = await _staffProfileService.AdminUpdateStaffDetail(staff);
+                if (!result) return NotFound(new { MsgCode = "MSG_041", Message = "Không tìm thấy nhân viên nào !" });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi cập nhật thông tin nhân viên {StaffId}.", staff.UserId);
+                return StatusCode(500, "Lỗi khi lấy chi tiết nhân viên");
             }
         }
     }

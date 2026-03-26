@@ -10,6 +10,7 @@ using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
+using SMAS_Repositories.AdminRepository;
 using SMAS_Repositories.AuthRepositories;
 using SMAS_Repositories.BlogRepositories;
 using SMAS_Repositories.BookEventRepository;
@@ -32,6 +33,7 @@ using SMAS_Repositories.ServiceRepositories;
 using SMAS_Repositories.StaffRepository;
 using SMAS_Repositories.TableRepository;
 using SMAS_Repositories.WorkStaffRepository;
+using SMAS_Services.AdminServices;
 using SMAS_Services.AuthServices;
 using SMAS_Services.BlogServices;
 using SMAS_Services.BookEventService;
@@ -59,6 +61,7 @@ using SMAS_Services.StaffService;
 using SMAS_Services.TableService;
 using System.Security.Claims;
 using System.Text;
+using static SMAS_DataAccess.DAO.AdminDao;
 
 namespace SMAS_API
 {
@@ -251,6 +254,11 @@ namespace SMAS_API
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+            builder.Services.AddScoped<AdminDAO>();
+            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+
 
 
             builder.Services.AddMemoryCache();
