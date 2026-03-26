@@ -118,21 +118,14 @@ public class PaymentService : IPaymentService
             return false;
         }
 
-        if (payload?.Data == null || string.IsNullOrEmpty(payload.Signature))
+        if (payload?.Data == null)
             return false;
 
         // Request confirm webhook từ PayOS (payload mẫu orderCode 123, amount 3000): luôn trả 200 để đăng ký URL thành công
         if (payload.Data.OrderCode == 123 && payload.Data.Amount == 3000)
             return true;
 
-        using var doc = JsonDocument.Parse(rawBody);
-        var root = doc.RootElement;
-        if (!root.TryGetProperty("data", out var dataElm))
-            return false;
-
-        string dataStr = BuildSortedDataString(dataElm);
-        string expectedSignature = ComputeHmacSha256(dataStr, _payOsSettings.ChecksumKey);
-        if (!string.Equals(expectedSignature, payload.Signature, StringComparison.OrdinalIgnoreCase))
+        if (!VerifyWebhookSignature(rawBody, null))
             return false;
 
         if (!payload.Success)
@@ -156,6 +149,136 @@ public class PaymentService : IPaymentService
 
         await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Paid", payment);
         return true;
+    }
+
+    public async Task<ContractDepositPayOSResult> CreateContractDepositPaymentLinkAsync(
+        long orderCode,
+        int amountVnd,
+        string description,
+        string returnUrl,
+        string cancelUrl)
+    {
+        if (amountVnd <= 0)
+            return new ContractDepositPayOSResult { Success = false, Message = "Số tiền không hợp lệ." };
+
+        string desc = description.Length > 25 ? description[..25] : description;
+
+        string dataStr = $"amount={amountVnd}&cancelUrl={cancelUrl}&description={desc}&orderCode={orderCode}&returnUrl={returnUrl}";
+        string signature = ComputeHmacSha256(dataStr, _payOsSettings.ChecksumKey);
+
+        var body = new
+        {
+            orderCode,
+            amount = (long)amountVnd,
+            description = desc,
+            cancelUrl,
+            returnUrl,
+            signature
+        };
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/v2/payment-requests");
+        requestMessage.Headers.Add("x-client-id", _payOsSettings.ClientId);
+        requestMessage.Headers.Add("x-api-key", _payOsSettings.ApiKey);
+        requestMessage.Content = new StringContent(
+            JsonSerializer.Serialize(body),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await SharedHttpClient.SendAsync(requestMessage);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errBody = await response.Content.ReadAsStringAsync();
+            return new ContractDepositPayOSResult
+            {
+                Success = false,
+                Message = $"PayOS trả lỗi: {response.StatusCode}. {errBody}"
+            };
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object)
+        {
+            string? checkoutUrl = data.TryGetProperty("checkoutUrl", out var url) ? url.GetString() : null;
+            return new ContractDepositPayOSResult
+            {
+                Success = true,
+                CheckoutUrl = checkoutUrl,
+                Message = checkoutUrl == null ? "PayOS không trả về link thanh toán." : null
+            };
+        }
+
+        string? errMsg = root.TryGetProperty("desc", out var descEl) ? descEl.GetString() : null;
+        return new ContractDepositPayOSResult
+        {
+            Success = false,
+            Message = errMsg ?? "PayOS không trả về link thanh toán."
+        };
+    }
+
+    public async Task<bool> VerifyPaymentAsync(long orderCode)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/v2/payment-requests/{orderCode}");
+        request.Headers.Add("x-client-id", _payOsSettings.ClientId);
+        request.Headers.Add("x-api-key", _payOsSettings.ApiKey);
+
+        var response = await SharedHttpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+            return false;
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        if (!root.TryGetProperty("code", out var codeEl) || codeEl.GetString() != "00")
+            return false;
+
+        if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object)
+            return false;
+
+        if (data.TryGetProperty("status", out var statusEl))
+        {
+            var status = statusEl.GetString();
+            return string.Equals(status, "PAID", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+
+    public bool VerifyWebhookSignature(string rawBody, string? signatureHeader)
+    {
+        if (string.IsNullOrWhiteSpace(rawBody))
+            return false;
+
+        PayOSWebhookPayload? payload;
+        try
+        {
+            payload = JsonSerializer.Deserialize<PayOSWebhookPayload>(rawBody);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (payload?.Data == null)
+            return false;
+
+        string? signature = signatureHeader;
+        if (string.IsNullOrEmpty(signature))
+            signature = payload.Signature;
+
+        if (string.IsNullOrEmpty(signature))
+            return false;
+
+        using var doc = JsonDocument.Parse(rawBody);
+        var root = doc.RootElement;
+        if (!root.TryGetProperty("data", out var dataElm))
+            return false;
+
+        string dataStr = BuildSortedDataString(dataElm);
+        string expectedSignature = ComputeHmacSha256(dataStr, _payOsSettings.ChecksumKey);
+        return string.Equals(expectedSignature, signature, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
