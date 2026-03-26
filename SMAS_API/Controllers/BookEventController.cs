@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.BookEventDTO;
+using SMAS_BusinessObject.DTOs.Workflow;
 using SMAS_Services.BookEventService;
+using SMAS_Services.ContractWorkflow;
 using SMAS_Services.ManagerServices;
 using System.Security.Claims;
 
@@ -14,11 +16,16 @@ namespace SMAS_API.Controllers
     {
         private readonly IBookEventService _bookEventService;
         private readonly IManagerService _managerService;
+        private readonly IContractWorkflowService _contractWorkflowService;
 
-        public BookEventController(IBookEventService bookEventService, IManagerService managerService)
+        public BookEventController(
+            IBookEventService bookEventService,
+            IManagerService managerService,
+            IContractWorkflowService contractWorkflowService)
         {
             _bookEventService = bookEventService;
             _managerService = managerService;
+            _contractWorkflowService = contractWorkflowService;
         }
 
         /// <summary>
@@ -51,23 +58,67 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,Manager")]
-        [HttpGet("{bookEventId}")]
-        public async Task<IActionResult> GetBookEventById([FromRoute] int bookEventId)
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/review")]
+        public async Task<IActionResult> ReviewBookEvent([FromRoute] int id, [FromBody] BookEventReviewRequestDTO request)
         {
-            try
-            {
-                var bookEvent = await _bookEventService.GetBookEventByIdAsync(bookEventId);
+            var staffId = GetUserId();
+            if (staffId == null)
+                return Unauthorized();
 
-                if (bookEvent == null)
-                    return Ok(new { data = (object?)null, message = $"Không tìm thấy sự kiện với id: {bookEventId}" });
-
-                return Ok(new { data = bookEvent, message = "Lấy thông tin đặt sự kiện thành công." });
-            }
-            catch (Exception ex)
+            var (dto, status, error) = await _contractWorkflowService.ReviewBookEventAsync(id, request, staffId.Value);
+            return status switch
             {
-                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
-            }
+                200 => Ok(dto),
+                400 => BadRequest(new { message = error }),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/contract")]
+        public async Task<IActionResult> CreateContractFromBookEvent([FromRoute] int id, [FromBody] CreateContractFromBookEventRequestDTO request)
+        {
+            var (dto, status, error) = await _contractWorkflowService.CreateContractFromBookEventAsync(id, request);
+            return status switch
+            {
+                201 => Created($"/api/book-event/{dto!.BookEventId}/detail", dto),
+                400 => BadRequest(new { message = error }),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
+        }
+
+        [Authorize(Roles = "Manager,Staff")]
+        [HttpGet("{id:int}/detail")]
+        public async Task<IActionResult> GetBookEventDetail([FromRoute] int id)
+        {
+            var (dto, status, error) = await _contractWorkflowService.GetBookEventDetailAsync(id);
+            return status switch
+            {
+                200 => Ok(dto),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/confirm")]
+        public async Task<IActionResult> ConfirmBookEvent([FromRoute] int id)
+        {
+            var staffId = GetUserId();
+            if (staffId == null)
+                return Unauthorized();
+
+            var (dto, status, error) = await _contractWorkflowService.ConfirmBookEventAsync(id, staffId.Value);
+            return status switch
+            {
+                200 => Ok(dto),
+                400 => BadRequest(new { message = error }),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
         }
 
         [Authorize(Roles = "Admin,Manager")]
@@ -82,6 +133,25 @@ namespace SMAS_API.Controllers
                     return Ok(new { data = (object?)null, message = "Không có sự kiện đã hoàn thành hoặc đã huỷ." });
 
                 return Ok(new { data = bookEvents, message = "Lấy danh sách sự kiện thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("{bookEventId}")]
+        public async Task<IActionResult> GetBookEventById([FromRoute] int bookEventId)
+        {
+            try
+            {
+                var bookEvent = await _bookEventService.GetBookEventByIdAsync(bookEventId);
+
+                if (bookEvent == null)
+                    return Ok(new { data = (object?)null, message = $"Không tìm thấy sự kiện với id: {bookEventId}" });
+
+                return Ok(new { data = bookEvent, message = "Lấy thông tin đặt sự kiện thành công." });
             }
             catch (Exception ex)
             {
@@ -134,6 +204,12 @@ namespace SMAS_API.Controllers
             {
                 return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
             }
+        }
+
+        private int? GetUserId()
+        {
+            var v = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(v, out var id) ? id : null;
         }
     }
 }

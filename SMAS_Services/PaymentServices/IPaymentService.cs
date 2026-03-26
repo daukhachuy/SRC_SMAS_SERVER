@@ -14,4 +14,18 @@ public interface IPaymentService
     /// </summary>
     /// <param name="rawBody">Raw JSON body từ request (để build đúng chuỗi ký).</param>
     Task<bool> HandleWebhookAsync(string rawBody);
+
+    /// <summary>PayOS — tạo link thanh toán tiền cọc hợp đồng (không qua Order).</summary>
+    Task<ContractDepositPayOSResult> CreateContractDepositPaymentLinkAsync(
+        long orderCode,
+        int amountVnd,
+        string description,
+        string returnUrl,
+        string cancelUrl);
+
+    /// <summary>GET /v2/payment-requests/{orderCode} — xác minh đã thanh toán (PAID).</summary>
+    Task<bool> VerifyPaymentAsync(long orderCode);
+
+    /// <summary>Verify chữ ký webhook; ưu tiên header x-payos-signature, sau đó trường signature trong JSON.</summary>
+    bool VerifyWebhookSignature(string rawBody, string? signatureHeader);
 }
