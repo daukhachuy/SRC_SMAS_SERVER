@@ -35,9 +35,38 @@ namespace SMAS_Services.TableService
         public (bool Valid, string? ErrorCode, string? TableCode) ValidateAccessToken(string accessToken)
             => _repo.ValidateAccessToken(accessToken);
 
-        public async Task<List<TableResponseDTO>> GetAllTableAsync()
+        //public async Task<List<TableResponseDTO>> GetAllTableAsync()
+        //{
+        //    return await _repo.GetAllTableAsync();
+        //}
+        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status)
         {
-            return await _repo.GetAllTableAsync();
+            return await _repo.GetTablesAsync(tableType, status);
+        }
+
+        public async Task<TableResponseDTO> CreateTableAsync(CreateTableDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.TableName))
+                throw new ArgumentException("Tên bàn không được để trống.");
+            if (dto.NumberOfPeople < 1)
+                throw new ArgumentException("Số lượng khách phải lớn hơn 0.");
+
+            return await _repo.CreateTableAsync(dto);
+        }
+
+        public async Task<TableResponseDTO?> UpdateTableAsync(int tableId, UpdateTableDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.TableName))
+                throw new ArgumentException("Tên bàn không được để trống.");
+            if (dto.NumberOfPeople < 1)
+                throw new ArgumentException("Số lượng khách phải lớn hơn 0.");
+
+            return await _repo.UpdateTableAsync(tableId, dto);
+        }
+
+        public async Task<bool> DeleteTableAsync(int tableId)
+        {
+            return await _repo.DeleteTableAsync(tableId);
         }
     }   
 }

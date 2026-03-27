@@ -35,9 +35,11 @@ namespace SMAS_DataAccess.DAO
         public async Task<IEnumerable<Staff>> GetFilterStaffByPositionAsync(List<string> positions)
         {
             var query = _context.Staff
-                .Include(s => s.User)
-                .AsQueryable();
-
+          .Include(s => s.User)
+          .Where(s => s.User != null
+                   && s.User.Role != "Admin"          
+                   && s.Position != "Manager")        
+          .AsQueryable();
             if (positions != null && positions.Any())
                 query = query.Where(s => positions.Contains(s.Position));
 
