@@ -12,6 +12,9 @@ namespace SMAS_BusinessObject.DTOs.StaffDTO
         public string FullName { get; set; } = null!;
         public string? AvatarUrl { get; set; }
         public string? Position { get; set; }
+        public string? Phone { get; set; }
+        public DateOnly? HireDate { get; set; }
+        public decimal? Rating { get; set; }
     }
 
 

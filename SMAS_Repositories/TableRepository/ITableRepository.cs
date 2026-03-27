@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.TableDTO;
+using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,10 @@ namespace SMAS_Repositories.TableRepository
         // Guard dùng ở create order
         (bool Valid, string? ErrorCode, string? TableCode) ValidateAccessToken(string accessToken);
 
-        Task<List<TableResponseDTO>> GetAllTableAsync();
+        //Task<List<TableResponseDTO>> GetAllTableAsync();
+        Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status);
+        Task<TableResponseDTO> CreateTableAsync(CreateTableDto dto);
+        Task<TableResponseDTO?> UpdateTableAsync(int tableId, UpdateTableDto dto);
+        Task<bool> DeleteTableAsync(int tableId);
     }
 }

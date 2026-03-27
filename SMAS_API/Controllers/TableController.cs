@@ -162,22 +162,82 @@ namespace SMAS_API.Controllers
             return int.TryParse(claim, out var id) ? id : null;
         }
 
-        //[Authorize(Roles = "Admin,Manager,Waiter")]
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllTableAsync()
+        [HttpGet]
+        public async Task<IActionResult> GetAllTables(
+         [FromQuery] string? tableType,
+         [FromQuery] string? status)
         {
             try
             {
-                var result = await _tableService.GetAllTableAsync();
-
-                if (!result.Any())
-                    return Ok(new { MsgCode = nameof(MSGCode.MSG_021), Message = "Không có bàn nào.", Data = result });
-
-                return Ok(new { MsgCode = "Success", Message = "Lấy danh sách bàn thành công.", Data = result });
+                var result = await _tableService.GetTablesAsync(tableType, status);
+                return Ok(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>Thêm bàn mới</summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateTable([FromBody] CreateTableDto dto)
+        {
+            try
+            {
+                var result = await _tableService.CreateTableAsync(dto);
+                return Ok(new { success = true, data = result });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>Cập nhật thông tin bàn</summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTable(int id, [FromBody] UpdateTableDto dto)
+        {
+            try
+            {
+                var result = await _tableService.UpdateTableAsync(id, dto);
+                if (result == null)
+                    return NotFound(new { success = false, message = $"Không tìm thấy bàn #{id}." });
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>Xóa bàn (soft delete — không cho xóa bàn đang có khách)</summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTable(int id)
+        {
+            try
+            {
+                var result = await _tableService.DeleteTableAsync(id);
+                if (!result)
+                    return NotFound(new { success = false, message = $"Không tìm thấy bàn #{id}." });
+
+                return Ok(new { success = true, message = $"Đã xóa bàn #{id}." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
             }
         }
     }

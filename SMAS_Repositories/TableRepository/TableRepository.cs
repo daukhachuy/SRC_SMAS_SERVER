@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SMAS_BusinessObject.Models;
 
 namespace SMAS_Repositories.TableRepository
 {
@@ -194,20 +195,88 @@ namespace SMAS_Repositories.TableRepository
 
             return (true, null, tableCode);
         }
-        public async Task<List<TableResponseDTO>> GetAllTableAsync()
-        {
-            var tables = await _dao.GetAllTableAsync();
+        //public async Task<List<TableResponseDTO>> GetAllTableAsync()
+        //{
+        //    var tables = await _dao.GetAllTableAsync();
 
-            return tables.Select(t => new TableResponseDTO
+        //    return tables.Select(t => new TableResponseDTO
+        //    {
+        //        TableId = t.TableId,
+        //        TableName = t.TableName,
+        //        TableType = t.TableType,
+        //        NumberOfPeople = t.NumberOfPeople,
+        //        Status = t.Status,
+        //        IsActive = t.IsActive,
+        //        QrCode = t.QrCode
+        //    }).ToList();
+        //}
+
+        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status)
+        {
+            return await _dao.GetTablesAsync(tableType, status);
+        }
+
+        public async Task<TableResponseDTO> CreateTableAsync(CreateTableDto dto)
+        {
+            var table = new Table
             {
-                TableId = t.TableId,
-                TableName = t.TableName,
-                TableType = t.TableType,
-                NumberOfPeople = t.NumberOfPeople,
-                Status = t.Status,
-                IsActive = t.IsActive,
-                QrCode = t.QrCode
-            }).ToList();
+                TableName = dto.TableName,
+                TableType = dto.TableType,
+                NumberOfPeople = dto.NumberOfPeople,
+                Status = "AVAILABLE",
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+
+            var created = await _dao.CreateTableAsync(table);
+            return new TableResponseDTO
+            {
+                TableId = created.TableId,
+                TableName = created.TableName,
+                TableType = created.TableType,
+                NumberOfPeople = created.NumberOfPeople,
+                Status = created.Status,
+                IsActive = created.IsActive,
+                QrCode = created.QrCode,
+                CurrentGuests = 0,
+                CurrentAmount = 0
+            };
+        }
+
+        public async Task<TableResponseDTO?> UpdateTableAsync(int tableId, UpdateTableDto dto)
+        {
+            var table = await _dao.GetTableByIdAsync(tableId);
+            if (table == null) return null;
+
+            table.TableName = dto.TableName;
+            table.TableType = dto.TableType;
+            table.NumberOfPeople = dto.NumberOfPeople;
+            table.UpdatedAt = DateTime.Now;
+
+            await _dao.UpdateTableAsync(table);
+
+            return new TableResponseDTO
+            {
+                TableId = table.TableId,
+                TableName = table.TableName,
+                TableType = table.TableType,
+                NumberOfPeople = table.NumberOfPeople,
+                Status = table.Status,
+                IsActive = table.IsActive,
+                QrCode = table.QrCode,
+                CurrentGuests = 0,
+                CurrentAmount = 0
+            };
+        }
+
+        public async Task<bool> DeleteTableAsync(int tableId)
+        {
+            var isOccupied = await _dao.IsTableOccupiedAsync(tableId);
+            if (isOccupied)
+                throw new InvalidOperationException("Không thể xóa bàn đang có khách.");
+
+            return await _dao.SoftDeleteTableAsync(tableId);
         }
     }
 }

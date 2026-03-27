@@ -226,7 +226,11 @@ namespace SMAS_Repositories.StaffRepository
                UserId = s.UserId,
                FullName = s.User?.Fullname ?? string.Empty,
                AvatarUrl = s.User?.Avatar,
-               Position = s.Position
+               Position = s.Position,
+               Phone = s.User?.Phone,
+               HireDate = s.HireDate,
+               Rating = s.Rating
+
            };
 
         private static WorkHistoryDetailDto MapToDetailDto(WorkStaff ws)
