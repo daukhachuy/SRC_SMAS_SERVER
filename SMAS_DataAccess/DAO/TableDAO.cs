@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SMAS_BusinessObject.DTOs.TableDTO;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace SMAS_DataAccess.DAO
                 .FirstOrDefaultAsync(t => t.TableName == tableCode && t.IsActive == true);
         }
 
-        // Cập nhật Status của Table (OPEN / CLOSED / AVAILABLE...)
+        // Cập nhật Status của Table (OPEN / AVAILABLE...)
         public async Task UpdateTableStatusAsync(int tableId, string status)
         {
             var table = await _context.Tables.FindAsync(tableId);
@@ -33,13 +34,102 @@ namespace SMAS_DataAccess.DAO
             table.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
-        public async Task<List<Table>> GetAllTableAsync()
+        //public async Task<List<Table>> GetAllTableAsync()
+        //{
+        //    return await _context.Tables
+        //        .AsNoTracking()
+        //        .Where(t => t.IsActive == true)
+        //        .OrderBy(t => t.TableName)
+        //        .ToListAsync();
+        //}
+
+        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status)
+        {
+            var query = _context.Tables
+                .Where(t => t.IsActive != false)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(tableType))
+                query = query.Where(t => t.TableType == tableType);
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(t => t.Status == status);
+
+            var tables = await query.OrderBy(t => t.TableId).ToListAsync();
+
+            var tableIds = tables.Select(t => t.TableId).ToList();
+            var activeTableOrders = await _context.TableOrders
+                .Where(to => tableIds.Contains(to.TableId)
+                          && to.LeftAt == null
+                          && to.Order.OrderStatus != "Cancelled"
+                          && to.Order.OrderStatus != "Closed")
+                .Select(to => new
+                {
+                    to.TableId,
+                    to.Order.NumberOfGuests,
+                    to.Order.TotalAmount
+                })
+                .ToListAsync();
+
+            return tables.Select(t =>
+            {
+                var activeOrder = activeTableOrders.FirstOrDefault(o => o.TableId == t.TableId);
+                return new TableResponseDTO
+                {
+                    TableId = t.TableId,
+                    TableName = t.TableName,
+                    TableType = t.TableType,
+                    NumberOfPeople = t.NumberOfPeople,
+                    Status = t.Status,
+                    QrCode = t.QrCode,
+                    CurrentGuests = activeOrder?.NumberOfGuests ?? 0,
+                    CurrentAmount = activeOrder?.TotalAmount ?? 0
+                };
+            }).ToList();
+        }
+
+        public async Task<Table> CreateTableAsync(Table table)
+        {
+            _context.Tables.Add(table);
+            await _context.SaveChangesAsync();
+            return table;
+        }
+
+       
+        public async Task<Table?> GetTableByIdAsync(int tableId)
         {
             return await _context.Tables
-                .AsNoTracking()
-                .Where(t => t.IsActive == true)
-                .OrderBy(t => t.TableName)
-                .ToListAsync();
+                .FirstOrDefaultAsync(t => t.TableId == tableId && t.IsActive != false);
+        }
+
+        public async Task<bool> UpdateTableAsync(Table table)
+        {
+            _context.Tables.Update(table);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SoftDeleteTableAsync(int tableId)
+        {
+            var table = await _context.Tables.FindAsync(tableId);
+            if (table == null) return false;
+
+            table.IsActive = false;
+            table.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // ─── HELPER ──────────────────────────────────────────────────────────
+
+        /// <summary>Kiểm tra bàn có đang được dùng không (tránh xóa bàn đang có khách)</summary>
+        public async Task<bool> IsTableOccupiedAsync(int tableId)
+        {
+            return await _context.TableOrders
+                .AnyAsync(to => to.TableId == tableId
+                             && to.LeftAt == null
+                             && to.Order.OrderStatus != "Cancelled"
+                             && to.Order.OrderStatus != "Closed");
         }
     }
 }

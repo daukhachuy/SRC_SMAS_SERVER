@@ -33,7 +33,7 @@ namespace SMAS_API.Controllers
         /// Lấy danh sách nhân viên làm việc hôm nay (Manager dashboard)
         /// </summary>
         [Authorize(Roles = "Manager")]
-        [HttpGet("/manager/staffs-today")]
+        [HttpGet("manager/staffs-today")]
         public async Task<IActionResult> GetStaffWorkToday()
         {
 
@@ -69,7 +69,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager,Admin")]
+        //[Authorize(Roles = "Manager,Admin")]
         [HttpGet("filter-by-position")]
         public async Task<IActionResult> GetFilterStaffByPosition([FromQuery] string? positions)
         {
@@ -142,7 +142,8 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager,Admin")]
+
+        //[Authorize(Roles = "Manager,Admin")]
         [HttpGet("workshift/all")]
         public async Task<IActionResult> GetAllWorkShift()
         {
@@ -159,7 +160,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager,Admin")]
+        //[Authorize(Roles = "Manager,Admin")]
         [HttpPost("workshift")]
         public async Task<IActionResult> CreateWorkStaff([FromBody] CreateWorkStaffRequestDto dto)
         {

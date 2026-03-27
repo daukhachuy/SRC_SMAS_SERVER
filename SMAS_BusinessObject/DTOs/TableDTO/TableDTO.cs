@@ -63,5 +63,25 @@ namespace SMAS_BusinessObject.DTOs.TableDTO
         public string? Status { get; set; }   // ACTIVE, CLOSED
         public bool? IsActive { get; set; }
         public string? QrCode { get; set; }
+
+        /// <summary>Số khách hiện tại (từ TableOrder đang active)</summary>
+        public int CurrentGuests { get; set; }
+
+        /// <summary>Doanh thu hiện tại của bàn (từ Order đang OPEN)</summary>
+        public decimal CurrentAmount { get; set; }
     }
+    public class CreateTableDto
+    {
+        public string TableName { get; set; } = null!;
+        public string? TableType { get; set; }
+        public int NumberOfPeople { get; set; }
+    }
+
+    public class UpdateTableDto
+    {
+        public string TableName { get; set; } = null!;
+        public string? TableType { get; set; }
+        public int NumberOfPeople { get; set; }
+    }
+
 }
