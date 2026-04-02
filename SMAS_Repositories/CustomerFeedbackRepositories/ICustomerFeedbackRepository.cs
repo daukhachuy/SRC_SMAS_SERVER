@@ -11,5 +11,7 @@ namespace SMAS_Repositories.CustomerFeedbackRepositories
     public interface ICustomerFeedbackRepository
     {
         Task<IEnumerable<FeedbackListResponse>> GetAllFeedbacksAsync();
+
+        Task<IEnumerable<CustomerFeedback>> GetFeedbackToAnalysisAsync();
     }
 }

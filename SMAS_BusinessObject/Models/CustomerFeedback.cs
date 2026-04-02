@@ -15,9 +15,9 @@ public partial class CustomerFeedback
 
     public string? Comment { get; set; }
 
-    public string? FeedbackType { get; set; }
+    public string? FeedbackType { get; set; } //-- Service/Food/Ambience/Overall
 
-    public string? ResponseStatus { get; set; }
+    public string? ResponseStatus { get; set; } // -- Pending/Responded
 
     public string? ResponseText { get; set; }
 

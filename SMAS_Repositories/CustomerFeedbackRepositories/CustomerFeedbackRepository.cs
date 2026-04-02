@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.Feedback;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -31,6 +32,12 @@ namespace SMAS_Repositories.CustomerFeedbackRepositories
                 CreatedAt = f.CreatedAt,
                 UpdatedAt = f.UpdatedAt
             }).ToList();
+        }
+
+        public async Task<IEnumerable<CustomerFeedback>> GetFeedbackToAnalysisAsync()
+        {
+            return await _customerFeedbackDAO.GetFeedbackToAnalysisAsync();
+
         }
     }
 }
