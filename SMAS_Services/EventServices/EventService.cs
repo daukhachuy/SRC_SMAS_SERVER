@@ -26,7 +26,7 @@ namespace SMAS_Services.EventServices
         {
             return await _eventRepository.GetEventByIdAsync(eventId);
         }
-        public async Task<EventResponse> CreateAsync(EventCreateDto dto)
+        public async Task<EventListResponse> CreateAsync(EventCreateDto dto)
         {
             if (dto.MinGuests.HasValue && dto.MaxGuests.HasValue && dto.MinGuests > dto.MaxGuests)
                 throw new ArgumentException("MinGuests must be less than or equal to MaxGuests.");
@@ -34,7 +34,7 @@ namespace SMAS_Services.EventServices
             return await _eventRepository.CreateAsync(dto);
         }
 
-        public async Task<EventResponse> UpdateAsync(int id, EventUpdateDto dto)
+        public async Task<EventListResponse> UpdateAsync(int id, EventUpdateDto dto)
         {
             if (dto.MinGuests.HasValue && dto.MaxGuests.HasValue && dto.MinGuests > dto.MaxGuests)
                 throw new ArgumentException("MinGuests must be less than or equal to MaxGuests.");
