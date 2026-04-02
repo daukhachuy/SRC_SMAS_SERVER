@@ -20,7 +20,7 @@ namespace SMAS_DataAccess.DAO
         public async Task<List<Buffet>> GetAllBuffetsAsync()
         {
             return await _context.Buffets
-                .Where(b => b.IsAvailable == true)
+                //.Where(b => b.IsAvailable == true)
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
         }

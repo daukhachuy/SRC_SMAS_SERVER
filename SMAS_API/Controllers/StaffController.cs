@@ -220,7 +220,7 @@ namespace SMAS_API.Controllers
         }
 
 
-        [Authorize(Roles = "Waiter,Kitchen")]
+        [Authorize(Roles = "Waiter,Kitchen,Manager")]
         [HttpGet("sum-workshift-thismonth")]
         public async Task<IActionResult> GetSumWorkShiftThisMonthByStaffId()
         {
@@ -239,7 +239,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Waiter,Kitchen")]
+        [Authorize(Roles = "Waiter,Kitchen,Manager")]
         [HttpGet("sum-timework-thismonth")]
         public async Task<IActionResult> GetWorkShiftThisMonthByStaffId()
         {
