@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.Service;
 using SMAS_Services.ServiceServices;
-
+using Microsoft.AspNetCore.Authorization;
 namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/services")]
-    //[Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager")]
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _serviceService;
@@ -16,16 +16,16 @@ namespace SMAS_API.Controllers
             _serviceService = serviceService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ServiceListResponse>>> GetAll()
-        {
-            var result = await _serviceService.GetAllServicesAsync();
-            if (result == null || !result.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_022", Message = "Không có dịch vụ nào !" });
-            }
-            return Ok(result);
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<ServiceListResponse>>> GetAll()
+        //{
+        //    var result = await _serviceService.GetAllServicesAsync();
+        //    if (result == null || !result.Any())
+        //    {
+        //        return NotFound(new { MsgCode = "MSG_022", Message = "Không có dịch vụ nào !" });
+        //    }
+        //    return Ok(result);
+        //}
 
         // GET: api/service?id=5  hoặc  api/service (all)
         [HttpGet]

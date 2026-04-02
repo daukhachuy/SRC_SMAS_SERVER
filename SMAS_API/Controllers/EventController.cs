@@ -31,16 +31,16 @@ namespace SMAS_API.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<EventListResponse>>> GetAll()
-        {
-            var result = await _eventService.GetAllEventsAsync();
-            if (result == null || !result.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_015", Message = "Không có sự kiện nào !" });
-            }
-            return Ok(result);
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<EventListResponse>>> GetAll()
+        //{
+        //    var result = await _eventService.GetAllEventsAsync();
+        //    if (result == null || !result.Any())
+        //    {
+        //        return NotFound(new { MsgCode = "MSG_015", Message = "Không có sự kiện nào !" });
+        //    }
+        //    return Ok(result);
+        //}
         // GET: api/event?id=5  hoặc  api/event (all)
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] int? id)

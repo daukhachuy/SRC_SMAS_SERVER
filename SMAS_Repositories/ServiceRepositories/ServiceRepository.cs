@@ -50,35 +50,35 @@ namespace SMAS_Repositories.ServiceRepositories
                 CreatedAt = s.CreatedAt
             };
         }
-        public async Task<ServiceResponse> CreateAsync(ServiceCreateDto dto)
+        public async Task<ServiceListResponse> CreateAsync(ServiceCreateDto dto)
         {
             var entity = MapToEntity(dto);
-            var created = await _dao.CreateAsync(entity);
+            var created = await _serviceDAO.CreateAsync(entity);
             return MapToDto(created);
         }
 
-        public async Task<ServiceResponse> UpdateAsync(int id, ServiceUpdateDto dto)
+        public async Task<ServiceListResponse> UpdateAsync(int id, ServiceUpdateDto dto)
         {
-            var entity = await _dao.GetByIdAsync(id)
+            var entity = await _serviceDAO.GetServiceByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Service with id {id} not found.");
 
             ApplyUpdate(entity, dto);
-            var updated = await _dao.UpdateAsync(entity);
+            var updated = await _serviceDAO.UpdateAsync(entity);
             return MapToDto(updated);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _dao.GetByIdAsync(id)
+            var entity = await _serviceDAO.GetServiceByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Service with id {id} not found.");
 
             // SOFT DELETE
             entity.IsAvailable = false;
-            await _dao.UpdateAsync(entity);
+            await _serviceDAO.UpdateAsync(entity);
         }
 
         // ==================== MAPPERS ====================
-        private static ServiceResponse MapToDto(Service e) => new()
+        private static ServiceListResponse MapToDto(Service e) => new()
         {
             ServiceId = e.ServiceId,
             Title = e.Title,
