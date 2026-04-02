@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.DiscountDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
@@ -60,6 +61,105 @@ namespace SMAS_Repositories.DiscountRepositories
                 Status = discount.Status,
                 CreatedAt = discount.CreatedAt
             };
+        }
+        // ─── GET BY ID ─────────────────────────────────────────────────────────
+        public async Task<DiscountResponse?> GetByIdAsync(int id)
+        {
+            var entity = await _context.GetByIdAsync(id);
+            return entity is null ? null : MapToDto(entity);
+        }
+
+        // ─── CREATE ────────────────────────────────────────────────────────────
+        public async Task<DiscountResponse> CreateAsync(DiscountCreateDto dto)
+        {
+            var entity = MapToEntity(dto);
+            var created = await _context.CreateAsync(entity);
+            return MapToDto(created);
+        }
+
+        // ─── UPDATE ────────────────────────────────────────────────────────────
+        public async Task<DiscountResponse> UpdateAsync(int id, DiscountUpdateDto dto)
+        {
+            var entity = await _context.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"Discount with id {id} not found.");
+
+            ApplyUpdate(entity, dto);
+
+            var updated = await _context.UpdateAsync(entity);
+            return MapToDto(updated);
+        }
+
+        // ─── SOFT DELETE (Status → Disabled) ───────────────────────────────────────
+        public async Task DeleteAsync(int id)
+        {
+            var entity = await _context.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"Discount with id {id} not found.");
+
+            // Soft delete: change status instead of removing the record
+            entity.Status = "Disabled";
+
+            await _context.UpdateAsync(entity);
+        }
+
+        // ─── EXISTS CODE ───────────────────────────────────────────────────────
+        public async Task<bool> ExistsCodeAsync(string code, int? excludeId = null)
+            => await _context.ExistsCodeAsync(code, excludeId);
+        
+        // ==================== MAPPERS ====================
+
+        /// <summary>Entity → ResponseDto</summary>
+        private static DiscountResponse MapToDto(Discount e) => new()
+        {
+            DiscountId = e.DiscountId,
+            Code = e.Code,
+            Description = e.Description,
+            DiscountType = e.DiscountType,
+            Value = e.Value,
+            MinOrderAmount = e.MinOrderAmount,
+            MaxDiscountAmount = e.MaxDiscountAmount,
+            StartDate = e.StartDate,
+            EndDate = e.EndDate,
+            UsageLimit = e.UsageLimit,
+            UsedCount = e.UsedCount,
+            ApplicableFor = e.ApplicableFor,
+            Status = e.Status,
+            CreatedBy = e.CreatedBy,
+            CreatedAt = e.CreatedAt
+        };
+
+        /// <summary>CreateDto → Entity (dùng khi tạo mới)</summary>
+        private static Discount MapToEntity(DiscountCreateDto dto) => new()
+        {
+            Code = dto.Code.Trim().ToUpper(),
+            Description = dto.Description,
+            DiscountType = dto.DiscountType,
+            Value = dto.Value,
+            MinOrderAmount = dto.MinOrderAmount,
+            MaxDiscountAmount = dto.MaxDiscountAmount,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            UsageLimit = dto.UsageLimit,
+            UsedCount = 0,
+            ApplicableFor = dto.ApplicableFor,
+            Status = dto.Status ?? "Active",
+            CreatedBy = dto.CreatedBy,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        /// <summary>UpdateDto → áp lên Entity có sẵn (giữ nguyên các field không đổi)</summary>
+        private static void ApplyUpdate(Discount entity, DiscountUpdateDto dto)
+        {
+            entity.Description = dto.Description;
+            entity.DiscountType = dto.DiscountType;
+            entity.Value = dto.Value;
+            entity.MinOrderAmount = dto.MinOrderAmount;
+            entity.MaxDiscountAmount = dto.MaxDiscountAmount;
+            entity.StartDate = dto.StartDate;
+            entity.EndDate = dto.EndDate;
+            entity.UsageLimit = dto.UsageLimit;
+            entity.ApplicableFor = dto.ApplicableFor;
+            entity.Status = dto.Status;
+            entity.UsedCount = dto.UsedCount ?? entity.UsedCount;
         }
     }
 }

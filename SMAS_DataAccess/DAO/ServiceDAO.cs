@@ -24,5 +24,19 @@ namespace SMAS_DataAccess.DAO
             return await _context.Services
                 .FirstOrDefaultAsync(s => s.ServiceId == serviceId && (s.IsAvailable == true || s.IsAvailable == null));
         }
+
+        public async Task<Service> CreateAsync(Service service)
+        {
+            _context.Services.Add(service);
+            await _context.SaveChangesAsync();
+            return service;
+        }
+
+        public async Task<Service> UpdateAsync(Service service)
+        {
+            _context.Services.Update(service);
+            await _context.SaveChangesAsync();
+            return service;
+        }
     }
 }

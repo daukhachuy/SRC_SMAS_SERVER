@@ -29,7 +29,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Lấy danh sách bàn trống
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("empty")]
         public async Task<IActionResult> GetTableEmpty()
         {
@@ -41,7 +41,7 @@ namespace SMAS_API.Controllers
         /// Waiter mở bàn - POST /api/tables/{tableCode}/open
         /// </summary>
         [HttpPost("/api/tables/{tableCode}/open")]
-        [Authorize(Roles = "Manager,Admin,Waiter")]
+        [Authorize(Roles = "Manager,Admin")]
         public async Task<IActionResult> OpenTable(string tableCode, [FromQuery] int? userId = null)
         {
             try
@@ -64,7 +64,7 @@ namespace SMAS_API.Controllers
         /// Waiter đóng bàn - POST /api/tables/{tableCode}/close
         /// </summary>
         [HttpPost("/api/tables/{tableCode}/close")]
-        [Authorize(Roles = "Manager,Admin,Waiter")]
+        [Authorize(Roles = "Manager,Admin")]
         public async Task<IActionResult> CloseTable(string tableCode, [FromQuery] int? userId = null)
         {
             try
