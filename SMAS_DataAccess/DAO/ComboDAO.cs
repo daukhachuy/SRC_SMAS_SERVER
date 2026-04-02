@@ -24,7 +24,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(c => c.ComboFoods)
                     .ThenInclude(cf => cf.Food)   
                 .Where(c =>
-                    (c.IsAvailable == true || c.IsAvailable == null) &&
+                    //(c.IsAvailable == true || c.IsAvailable == null) &&
                     (c.ExpiryDate == null || c.ExpiryDate >= DateOnly.FromDateTime(DateTime.UtcNow))
                 )
                 .OrderByDescending(c => c.CreatedAt)   
