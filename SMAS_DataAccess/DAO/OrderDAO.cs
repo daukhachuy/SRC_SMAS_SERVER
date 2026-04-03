@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using SMAS_BusinessObject.Cache;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -11,10 +13,12 @@ namespace SMAS_DataAccess.DAO
     public class OrderDAO
     {
         private readonly RestaurantDbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public OrderDAO(RestaurantDbContext context)
+        public OrderDAO(RestaurantDbContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
         public async Task<List<Order>> GetAllActiveOrderAsync()
         {
@@ -200,7 +204,8 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Combos.FirstOrDefaultAsync(c => c.ComboId == comboId);
         }
-
+        private static string CacheKey(string tableCode)
+       => $"table_session_{tableCode.ToUpper()}";
         public async Task CreateInHouseOrderAsync(Order order, List<OrderItem> items, List<TableOrder> tableOrders, Reservation? reservationToUpdate)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -224,6 +229,35 @@ namespace SMAS_DataAccess.DAO
                     tableOrder.OrderId = order.OrderId;
                 }
                 _context.TableOrders.AddRange(tableOrders);
+                // Cập nhật status bàn + tự động tạo session cache
+                var tableIds = tableOrders.Select(t => t.TableId).ToList();
+                var tables = await _context.Tables
+                    .Where(t => tableIds.Contains(t.TableId))
+                    .ToListAsync();
+
+                var now = DateTime.UtcNow;
+                foreach (var table in tables)
+                {
+                    table.Status = "OPEN";
+                    table.UpdatedAt = now;
+
+                    // Tự động kích hoạt session để khách quét QR được
+                    var session = new TableSessionCache
+                    {
+                        TableCode = table.TableName.ToUpper(),
+                        TableId = table.TableId,
+                        SessionNonce = Guid.NewGuid().ToString("N"),
+                        Status = "ACTIVE",
+                        OpenedBy = order.ServedBy ?? 0,
+                        OpenedAt = now,
+                        ExpiresAt = now.AddHours(12)
+                    };
+                    _cache.Set(
+                        CacheKey(table.TableName),
+                        session,
+                        session.ExpiresAt - now);
+                }
+
 
                 if (reservationToUpdate != null)
                 {
@@ -322,6 +356,26 @@ namespace SMAS_DataAccess.DAO
                 payment.OrderId = orderId;
                 _context.Payments.Add(payment);
                 order.OrderStatus = orderStatus;
+                if (orderStatus == "Completed" || orderStatus == "Closed")
+                {
+                    var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
+                    var tables = await _context.Tables
+                        .Where(t => tableIds.Contains(t.TableId))
+                        .ToListAsync();
+
+                    foreach (var table in tables)
+                    {
+                        table.Status = "AVAILABLE";
+                        table.UpdatedAt = DateTime.UtcNow;
+
+                        // Xóa session cache — khách không quét QR được nữa
+                        _cache.Remove($"table_session_{table.TableName.ToUpper()}");
+                    }
+
+                    foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
+                        to.LeftAt = DateTime.UtcNow;
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return true;

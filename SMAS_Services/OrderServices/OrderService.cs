@@ -189,22 +189,8 @@ namespace SMAS_Services.OrderServices
 
             var now = DateTime.UtcNow;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
-            var builtItems = await BuildOrderItems(request.OrderItems);
-            var subTotal = builtItems.Sum(x => x.Subtotal);
-
-            var orderItems = builtItems.Select(b => new OrderItem
-            {
-                FoodId = b.Request.FoodId,
-                BuffetId = b.Request.BuffetId,
-                ComboId = b.Request.ComboId,
-                Quantity = b.Request.Quantity,
-                UnitPrice = b.UnitPrice,
-                Subtotal = b.Subtotal,
-                Status = "Pending",
-                Note = b.Request.Note,
-                OpeningTime = now,
-                ServedTime = null
-            }).ToList();
+            var subTotal = 0m;
+            var orderItems = new List<OrderItem>();
 
             var order = new Order
             {
@@ -219,11 +205,11 @@ namespace SMAS_Services.OrderServices
                 NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
                 ServedBy = waiterUserId,
-                SubTotal = subTotal,
+                SubTotal = 0,
                 DiscountAmount = null,
                 TaxAmount = null,
                 DeliveryPrice = null,
-                TotalAmount = subTotal,
+                TotalAmount = 0,
                 CreatedAt = now,
                 ClosedAt = null
             };
@@ -265,24 +251,10 @@ namespace SMAS_Services.OrderServices
 
             var now = DateTime.UtcNow;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
-            var builtItems = await BuildOrderItems(request.OrderItems);
+            var subTotal = 0m;
+            var orderItems = new List<OrderItem>();
 
-            var subTotal = builtItems.Sum(x => x.Subtotal);
-
-            var orderItems = builtItems.Select(b => new OrderItem
-            {
-                FoodId = b.Request.FoodId,
-                BuffetId = b.Request.BuffetId,
-                ComboId = b.Request.ComboId,
-                Quantity = b.Request.Quantity,
-                UnitPrice = b.UnitPrice,
-                Subtotal = b.Subtotal,
-                Status = "Pending",
-                Note = b.Request.Note,
-                OpeningTime = now,
-                ServedTime = null
-            }).ToList();
-
+ 
             var order = new Order
             {
                 OrderCode = GenerateOrderCode(now),
@@ -296,11 +268,11 @@ namespace SMAS_Services.OrderServices
                 NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
                 ServedBy = waiterUserId,
-                SubTotal = subTotal,
+                SubTotal = 0,
                 DiscountAmount = null,
                 TaxAmount = null,
                 DeliveryPrice = null,
-                TotalAmount = subTotal,
+                TotalAmount = 0,
                 CreatedAt = now,
                 ClosedAt = null
             };
@@ -318,23 +290,8 @@ namespace SMAS_Services.OrderServices
 
             var now = DateTime.UtcNow;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
-            var builtItems = await BuildOrderItems(request.OrderItems);
-
-            var subTotal = builtItems.Sum(x => x.Subtotal);
-
-            var orderItems = builtItems.Select(b => new OrderItem
-            {
-                FoodId = b.Request.FoodId,
-                BuffetId = b.Request.BuffetId,
-                ComboId = b.Request.ComboId,
-                Quantity = b.Request.Quantity,
-                UnitPrice = b.UnitPrice,
-                Subtotal = b.Subtotal,
-                Status = "Pending",
-                Note = b.Request.Note,
-                OpeningTime = now,
-                ServedTime = null
-            }).ToList();
+            var subTotal = 0m;
+            var orderItems = new List<OrderItem>();
 
             var order = new Order
             {
@@ -349,11 +306,11 @@ namespace SMAS_Services.OrderServices
                 NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
                 ServedBy = waiterUserId,
-                SubTotal = subTotal,
+                SubTotal = 0,
                 DiscountAmount = null,
                 TaxAmount = null,
                 DeliveryPrice = null,
-                TotalAmount = subTotal,
+                TotalAmount = 0,
                 CreatedAt = now,
                 ClosedAt = null
             };
