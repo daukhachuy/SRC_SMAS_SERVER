@@ -44,7 +44,7 @@ namespace SMAS_Services.AiBaseServices
                 $"- ({f.Rating} sao): {f.Comment}"
             ));
 
-            var prompt = 
+            var prompt =
 $@"Bạn là AI phân tích feedback nhà hàng.
 
 Dữ liệu feedback 3 tháng gần nhất:
@@ -66,7 +66,13 @@ Trả JSON:
   }},
   ""topIssues"": [],
   ""suggestions"": []
-}}";
+}}
+
+Yêu cầu:
+- nếu dữ liệu không đủ để phân tích, trả về  rỗng
+
+";
+
 
             var json = await _aiService.AskAI(prompt);
 
@@ -136,7 +142,7 @@ Mỗi item gồm:
 Trả về JSON:
 
 {{
-  ""items"": [
+  ""Items"": [
     {{
       ""type"": ""Keep"",
       ""name"": ""Gà rán"",
@@ -147,116 +153,147 @@ Trả về JSON:
 }}
 
 Yêu cầu:
-- Không phải lúc nào cũng có đủ 4 loại
+- nếu dữ liệu không đủ để phân tích, trả về Items rỗng
+- Key phải đúng EXACT: Items, Type, Name, Reason, DetailAnalysis
+- Không dùng chữ thường
+- Không trả null
 - Không thêm text ngoài JSON
+- chỉ trả về không quá 10 items
 ";
 
             var json = await _aiService.AskAI(prompt);
 
-            var result = JsonSerializer.Deserialize<MenuAnalysisDTO>(json);
+            var result = JsonSerializer.Deserialize<MenuAnalysisDTO>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
-            if (result == null)
+            if (result.Items == null)
                 throw new Exception("AI trả dữ liệu lỗi");
 
             return result;
         }
 
+
+
+
+
+
         public async Task<ComboAnalysisDTO> AnalyzeComboAsync()
         {
             var fromDate = DateTime.Now.AddMonths(-3);
 
-            var orders = await _context.Orders.Where(o => o.CreatedAt >= fromDate)
-                                        .Include(o => o.OrderItems)
-                                            .ThenInclude(oi => oi.Food)
-                                        .ToListAsync();
+            // 1. Lấy order + món
+            var orders = await _context.Orders
+                .Where(o => o.CreatedAt >= fromDate)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Food)
+                .ToListAsync();
 
-            var comboStats = new Dictionary<string, int>();
+            // 2. Lấy MENU hiện tại
+            var foods = await _context.Foods
+                .Where(f => f.IsAvailable == true || f.IsAvailable == null)
+                .Select(f => f.Name)
+                .ToListAsync();
 
-            foreach (var order in orders)
-            {
-                var foods = order.OrderItems
-                    .Where(x => x.FoodId != null)
+            var menuText = string.Join("\n", foods.Select(f => $"- {f}"));
+
+            // 3. Lấy combo từ đơn hàng (group nhiều món, không chỉ pair)
+            var orderCombos = orders
+                .Select(o => o.OrderItems
+                    .Where(x => x.FoodId != null && x.Food != null)
                     .Select(x => x.Food.Name)
                     .Distinct()
-                    .ToList();
-
-                for (int i = 0; i < foods.Count; i++)
-                {
-                    for (int j = i + 1; j < foods.Count; j++)
-                    {
-                        var key = $"{foods[i]} + {foods[j]}";
-
-                        if (!comboStats.ContainsKey(key))
-                            comboStats[key] = 0;
-
-                        comboStats[key]++;
-                    }
-                }
-            }
-
-            var topCombos = comboStats
-                .OrderByDescending(x => x.Value)
-                .Take(20)
-                .Select(x => $"{x.Key}: {x.Value} lần")
+                    .ToList())
+                .Where(list => list.Count >= 2)
                 .ToList();
 
-            var existingCombos = await _context.Combos.Include(c => c.ComboFoods).ThenInclude(cf => cf.Food).ToListAsync();
+            var comboStats = orderCombos
+                .GroupBy(c => string.Join(", ", c.OrderBy(x => x)))
+                .Select(g => new
+                {
+                    Combo = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(x => x.Count)
+                .Take(20)
+                .ToList();
+
+            var comboText = string.Join("\n", comboStats.Select(c =>
+                $"- {c.Combo}: {c.Count} lần"));
+
+            // 4. Combo hiện tại
+            var existingCombos = await _context.Combos
+                .Include(c => c.ComboFoods)
+                    .ThenInclude(cf => cf.Food)
+                .ToListAsync();
 
             var existingText = string.Join("\n", existingCombos.Select(c =>
                 $"- {c.Name}: {string.Join(", ", c.ComboFoods.Select(f => f.Food.Name))}"
             ));
 
-            var comboText = string.Join("\n", topCombos);
-
+            // 5. PROMPT (đã fix chuẩn)
             var prompt = $@"
 Bạn là AI phân tích combo nhà hàng.
 
-Dữ liệu 3 tháng:
+Nhà hàng chuyên: LẨU & NƯỚNG
 
-Các món hay gọi cùng nhau:
+===== MENU HIỆN TẠI =====
+{menuText}
+
+===== DỮ LIỆU 3 THÁNG =====
+Các nhóm món khách thường gọi chung:
 {comboText}
 
-Combo hiện tại:
+===== COMBO HIỆN TẠI =====
 {existingText}
 
+===== YÊU CẦU =====
 Hãy phân tích và đề xuất:
 
 - type: Create | Improve | Remove
 - comboName
-- foods: danh sách món
+- foods: danh sách món (PHẢI có trong MENU)
 - reason
 - detailAnalysis
 
-Trả JSON:
-
+===== FORMAT JSON (BẮT BUỘC) =====
 {{
-  ""items"": [
+  ""Items"": [
     {{
-      ""type"": ""Create"",
-      ""comboName"": ""Combo Gà + Pepsi"",
-      ""foods"": [""Gà rán"", ""Pepsi""],
-      ""reason"": ""Thường được gọi cùng"",
-      ""detailAnalysis"": ""Xuất hiện 120 lần trong 3 tháng nhưng chưa có combo""
+      ""Type"": ""Create"",
+      ""ComboName"": ""Combo Lẩu Hải Sản"",
+      ""Foods"": [""Lẩu Thái"", ""Tôm Sú""],
+      ""Reason"": ""Hay được gọi cùng"",
+      ""DetailAnalysis"": ""Xuất hiện nhiều lần trong đơn hàng""
     }}
   ]
 }}
 
-Yêu cầu:
+===== RULE =====
+- Chỉ dùng món có trong MENU
+- Ưu tiên combo lẩu/nướng
+- Combo phải có 2 → 10 món
 - Không trùng combo đã có
-- Không giải thích ngoài JSON
+- Không trả null
+- Không thêm text ngoài JSON
+- Tối đa 5 items
 ";
 
-        
+            // 6. Gọi AI
             var json = await _aiService.AskAI(prompt);
 
+            Console.WriteLine("===== CLEAN JSON =====");
+            Console.WriteLine(json);
+
+            // 7. Deserialize chuẩn
             var result = JsonSerializer.Deserialize<ComboAnalysisDTO>(json, new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true,
-                Converters = { new JsonStringEnumConverter() }
+                PropertyNameCaseInsensitive = true
             });
 
-            if (result == null || result.Items == null)
-                throw new Exception("AI combo lỗi");
+            if (result == null || result.Items == null || !result.Items.Any())
+                throw new Exception("AI combo lỗi hoặc không có dữ liệu");
 
             return result;
         }

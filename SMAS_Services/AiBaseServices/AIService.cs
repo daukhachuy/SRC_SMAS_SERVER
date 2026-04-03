@@ -23,52 +23,69 @@ namespace SMAS_Services.AiBaseServices
 
         public async Task<string> AskAI(string prompt)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
 
             var requestBody = new
             {
                 contents = new[]
                 {
-                new
+            new
+            {
+                parts = new[]
                 {
-                    parts = new[]
-                    {
-                        new { text = prompt }
-                    }
+                    new { text = prompt }
                 }
             }
+        }
             };
 
             var response = await _httpClient.PostAsJsonAsync(url, requestBody);
 
+            var result = await response.Content.ReadAsStringAsync();
+
+            Console.WriteLine("===== GEMINI RAW =====");
+            Console.WriteLine(result);
+
             if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Gemini API error: {response.StatusCode}");
-            }
+                throw new Exception($"Gemini API error: {result}");
 
-            var json = await response.Content.ReadAsStringAsync();
-
-            // 👉 extract text từ Gemini
-            return ExtractText(json);
+            return ExtractText(result);
         }
 
-        // 🔥 Hàm QUAN TRỌNG
         private string ExtractText(string json)
         {
-            var gemini = JsonSerializer.Deserialize<GeminiResponse>(json);
+            using var doc = JsonDocument.Parse(json);
 
-            var text = gemini?.Candidates?[0]?.Content?.Parts?[0]?.Text;
+            var candidates = doc.RootElement.GetProperty("candidates");
 
-            if (string.IsNullOrEmpty(text))
-                throw new Exception("AI không trả dữ liệu");
+            if (candidates.GetArrayLength() == 0)
+                throw new Exception("AI không có candidates");
 
-            // 👉 cleanup nếu AI trả thêm text ngoài JSON
-            return CleanJson(text);
+            var parts = candidates[0]
+                .GetProperty("content")
+                .GetProperty("parts");
+
+            foreach (var part in parts.EnumerateArray())
+            {
+                if (part.TryGetProperty("text", out var textElement))
+                {
+                    var text = textElement.GetString();
+
+                    if (!string.IsNullOrEmpty(text))
+                        return CleanJson(text);
+                }
+            }
+
+            throw new Exception("AI không trả text hợp lệ");
         }
 
-        // 🔥 Fix lỗi AI trả sai format
         private string CleanJson(string text)
         {
+            // remove markdown
+            text = text.Replace("```json", "")
+                       .Replace("```", "")
+                       .Trim();
+
             var start = text.IndexOf("{");
             var end = text.LastIndexOf("}");
 
@@ -77,8 +94,7 @@ namespace SMAS_Services.AiBaseServices
                 return text.Substring(start, end - start + 1);
             }
 
-            // fallback
-            return text;
+            throw new Exception("Không tìm thấy JSON hợp lệ từ AI");
         }
     }
 }
