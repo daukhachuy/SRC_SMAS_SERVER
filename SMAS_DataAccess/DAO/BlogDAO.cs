@@ -21,5 +21,26 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Blogs.Include(u => u.Author).ToListAsync();
         }
+        public async Task<Blog?> GetByIdAsync(int id)
+        {
+            return await _context.Blogs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.BlogId == id);
+        }
+
+        public async Task<Blog> CreateAsync(Blog blog)
+        {
+            _context.Blogs.Add(blog);
+            await _context.SaveChangesAsync();
+            return blog;
+        }
+
+        public async Task<Blog> UpdateAsync(Blog blog)
+        {
+            _context.Blogs.Update(blog);
+            await _context.SaveChangesAsync();
+            return blog;
+        }
+
     }
 }

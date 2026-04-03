@@ -29,7 +29,59 @@ namespace SMAS_DataAccess.DAO
             //return await _context.Discounts.FirstOrDefaultAsync(d => d.Code == Code && d.Status == "Active"
             //                     && d.StartDate.ToDateTime(TimeOnly.MinValue) <= now
             //                     && d.EndDate.ToDateTime(TimeOnly.MaxValue) >= now);
-            return await _context.Discounts.FirstOrDefaultAsync(d => d.Code == Code && d.Status == "Active");
+
+            return await _context.Discounts.AsNoTracking().FirstOrDefaultAsync(d => d.Code == Code && d.Status == "Active");
+        }
+
+
+        //Hoang lam
+        public async Task<IEnumerable<Discount>> GetAllAsync()
+        {
+            return await _context.Discounts
+                .Include(d => d.CreatedByNavigation)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<Discount?> GetByIdAsync(int id)
+        {
+            return await _context.Discounts
+                .Include(d => d.CreatedByNavigation)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.DiscountId == id);
+        }
+
+        public async Task<Discount?> GetByCodeAsync(string code)
+        {
+            return await _context.Discounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.Code == code);
+        }
+
+        public async Task<Discount> CreateAsync(Discount discount)
+        {
+            _context.Discounts.Add(discount);
+            await _context.SaveChangesAsync();
+            return discount;
+        }
+
+        public async Task<Discount> UpdateAsync(Discount discount)
+        {
+            _context.Discounts.Update(discount);
+            await _context.SaveChangesAsync();
+            return discount;
+        }
+
+        public async Task DeleteAsync(Discount discount)
+        {
+            _context.Discounts.Remove(discount);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsCodeAsync(string code, int? excludeId = null)
+        {
+            return await _context.Discounts.AnyAsync(d =>
+                d.Code == code && (excludeId == null || d.DiscountId != excludeId));
         }
     }
 }

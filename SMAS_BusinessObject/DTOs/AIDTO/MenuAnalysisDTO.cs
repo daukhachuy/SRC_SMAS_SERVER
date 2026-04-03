@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace SMAS_BusinessObject.DTOs.AIDTO
 {
-    public class ComboAnalysisDTO
+    public class MenuAnalysisDTO
     {
-        public List<ComboAnalysisItemDTO> Items { get; set; }
+        public List<MenuAnalysisItemDTO> Items { get; set; }
     }
-    public class ComboAnalysisItemDTO
+
+    public class MenuAnalysisItemDTO
     {
         public string Type { get; set; }
-        public string ComboName { get; set; }
-        public List<string> Foods { get; set; }
+        public string Name { get; set; }
         public string Reason { get; set; }
         public string DetailAnalysis { get; set; }
     }
-
 }
+

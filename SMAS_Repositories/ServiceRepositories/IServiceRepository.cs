@@ -11,6 +11,9 @@ namespace SMAS_Repositories.ServiceRepositories
     {
         Task<IEnumerable<ServiceListResponse>> GetAllServicesAsync();
         Task<ServiceListResponse?> GetServiceByIdAsync(int serviceId);
+        Task<ServiceListResponse> CreateAsync(ServiceCreateDto dto);
+        Task<ServiceListResponse> UpdateAsync(int id, ServiceUpdateDto dto);
+        Task DeleteAsync(int id);
     }
 
 }

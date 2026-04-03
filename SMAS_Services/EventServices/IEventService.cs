@@ -11,6 +11,9 @@ namespace SMAS_Services.EventServices
     {
         Task<IEnumerable<EventListResponse>> GetAllEventsAsync();
         Task<EventListResponse?> GetEventByIdAsync(int eventId);
+        Task<EventListResponse> CreateAsync(EventCreateDto dto);
+        Task<EventListResponse> UpdateAsync(int id, EventUpdateDto dto);
+        Task DeleteAsync(int id);
     }
 
 }

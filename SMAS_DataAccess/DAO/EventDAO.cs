@@ -25,6 +25,19 @@ namespace SMAS_DataAccess.DAO
             return await _context.Events
                 .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null));
         }
+        public async Task<Event> CreateAsync(Event entity)
+        {
+            _context.Events.Add(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+
+        public async Task<Event> UpdateAsync(Event entity)
+        {
+            _context.Events.Update(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
     }
 
 }

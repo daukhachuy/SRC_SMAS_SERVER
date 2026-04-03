@@ -26,6 +26,18 @@ namespace SMAS_Services.ServiceServices
         {
             return await _serviceRepository.GetServiceByIdAsync(serviceId);
         }
+        public async Task<ServiceListResponse> CreateAsync(ServiceCreateDto dto)
+        {
+            return await _serviceRepository.CreateAsync(dto);
+        }
+
+        public async Task<ServiceListResponse> UpdateAsync(int id, ServiceUpdateDto dto)
+        {
+            return await _serviceRepository.UpdateAsync(id, dto);
+        }
+
+        public async Task DeleteAsync(int id)
+            => await _serviceRepository.DeleteAsync(id);
     }
 
 }

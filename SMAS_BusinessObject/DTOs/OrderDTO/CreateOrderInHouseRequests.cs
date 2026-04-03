@@ -32,7 +32,7 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         public string? Note { get; set; }
 
-        public List<OrderItemRequest>? OrderItems { get; set; }
+       
     }
 
     public class CreateOrderByContactRequest
@@ -52,7 +52,7 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         public string? Note { get; set; }
 
-        public List<OrderItemRequest>? OrderItems { get; set; }
+      
     }
 
     // API 3: guest order (no reservation and no phone/email)
@@ -70,7 +70,6 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         public string? Note { get; set; }
 
-        public List<OrderItemRequest>? OrderItems { get; set; }
     }
 
     // API 0: lookup thông tin khách trước khi tạo order
