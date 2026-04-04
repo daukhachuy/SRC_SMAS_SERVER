@@ -22,5 +22,10 @@ namespace SMAS_Services.FoodServices
         Task<decimal> GetFoodPriceAsync(int foodId);
 
         Task<bool> UpdateStatusByFoodId(int foodId);
+        //Task<IEnumerable<Food>> GetAllAsync();
+        //Task<Food?> GetByIdAsync(int id);
+        //Task<Food> CreateAsync(Food food);
+        //Task<Food> UpdateAsync(Food food);
+        //Task SoftDeleteAsync(int id);
     }
 }

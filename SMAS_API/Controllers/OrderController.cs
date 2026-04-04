@@ -251,7 +251,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-    [Authorize(Roles = "Admin,Manager,Staff")]
+    [Authorize(Roles = "Admin,Manager,Waiter")]
     [HttpPost("{orderCode}/items")]
      public async Task<IActionResult> PostAddOrderItemByOrderCode(
     [FromRoute] string orderCode,

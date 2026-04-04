@@ -412,6 +412,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
+                .Include(o => o.TableOrders).ThenInclude(to => to.Table)
                 .Where(o => (o.OrderType == "DineIn" || o.OrderType == "TakeAway")
                          && o.OrderStatus != "Completed"
                          && o.OrderStatus != "Cancelled"
