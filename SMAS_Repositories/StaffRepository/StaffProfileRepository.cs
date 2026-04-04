@@ -86,6 +86,7 @@ namespace SMAS_Repositories.StaffRepository
                 Fullname = u.Fullname,
                 Phone = u.Phone,
                 Email = u.Email,
+                Address = u.Address,
                 Avatar = u.Avatar,
                 IsDeleted = u.IsDeleted,
                 CreatedAt = u.CreatedAt
