@@ -166,6 +166,29 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
             }
         }
+
+        //[Authorize(Roles = "Waiter")]
+        [HttpPatch("order-items/{orderItemId}/Served")]
+        public async Task<IActionResult> PatchUpdateStatusOrderItemServedAsync([FromRoute] int orderItemId)
+        {
+            try
+            {
+                var result = await _orderItemService.PatchUpdateStatusOrderItemServedAsync(orderItemId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return StatusCode(404, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(400, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
     }
 }
 
