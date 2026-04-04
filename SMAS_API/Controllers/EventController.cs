@@ -8,7 +8,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/events")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin")]
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;

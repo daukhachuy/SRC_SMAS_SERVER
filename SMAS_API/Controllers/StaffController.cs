@@ -8,7 +8,7 @@ using SMAS_Services.StaffService;
 
 namespace SMAS_API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class StaffController : ControllerBase

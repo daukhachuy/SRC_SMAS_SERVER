@@ -8,6 +8,7 @@ namespace SMAS_BusinessObject.DTOs.StaffDTO
 {
     public class StaffSlotDto
     {
+        public int WorkStaffId { get; set; }
         public int UserId { get; set; }
         public string FullName { get; set; } = null!;
         public string? AvatarUrl { get; set; }

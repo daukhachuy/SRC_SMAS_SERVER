@@ -7,7 +7,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/discount")]
-    //[Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin")]
     public class DiscountController : Controller
     {
         private readonly IDiscountService _discountService;
