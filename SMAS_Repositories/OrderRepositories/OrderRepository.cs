@@ -167,6 +167,13 @@ namespace SMAS_Repositories.OrderRepositories
                 CreatedAt = o.CreatedAt,
                 ClosedAt = o.ClosedAt,
 
+                Tables = o.TableOrders.Select(to => new TableInfoDto
+                {
+                    TableId = to.TableId,
+                    TableName = to.Table?.TableName ?? "",
+                    IsMainTable = to.IsMainTable ?? false
+                }).ToList(),
+
                 Customer = new UserInfoDto
                 {
                     UserId = o.User.UserId,

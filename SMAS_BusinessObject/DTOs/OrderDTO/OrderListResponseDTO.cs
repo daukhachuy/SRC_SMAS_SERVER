@@ -23,7 +23,7 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
         public decimal TotalAmount { get; set; }
 
         public string? Note { get; set; }
-
+        public List<TableInfoDto> Tables { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public DateTime? ClosedAt { get; set; }
 
@@ -58,6 +58,12 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
     {
         public int UserId { get; set; }
         public string Fullname { get; set; } = null!;
+    }
+    public class TableInfoDto
+    {
+        public int TableId { get; set; }
+        public string TableName { get; set; } = string.Empty;
+        public bool IsMainTable { get; set; }
     }
     public class DeliveryDto
     {

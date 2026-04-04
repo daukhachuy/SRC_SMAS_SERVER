@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/blogs")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin")]
     public class BlogController : Controller
     {
         private readonly IBlogServices _blogServices;

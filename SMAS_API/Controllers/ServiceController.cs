@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/services")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin")]
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _serviceService;

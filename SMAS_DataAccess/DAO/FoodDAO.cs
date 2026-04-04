@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,50 @@ namespace SMAS_DataAccess.DAO
         {
             _context = context;
         }
+        // Lấy tất cả Food còn hoạt động (IsAvailable != false)
+        public async Task<IEnumerable<Food>> GetAllAsync()
+        {
+            return await _context.Foods
+                .Where(f => f.IsAvailable != false)
+                .AsNoTracking()
+                .ToListAsync();
+        }
 
+        // Lấy Food theo Id
+        public async Task<Food?> GetByIdAsync(int id)
+        {
+            return await _context.Foods
+                .AsNoTracking()
+                .FirstOrDefaultAsync(f => f.FoodId == id);
+        }
+
+        // Thêm mới Food
+        public async Task<Food> CreateAsync(Food food)
+        {
+            _context.Foods.Add(food);
+            await _context.SaveChangesAsync();
+            return food;
+        }
+
+        // Cập nhật Food
+        public async Task<Food> UpdateAsync(Food food)
+        {
+            _context.Foods.Update(food);
+            await _context.SaveChangesAsync();
+            return food;
+        }
+
+        // Soft delete: tắt IsAvailable thay vì xóa thật
+        public async Task SoftDeleteAsync(int id)
+        {
+            var food = await _context.Foods.FindAsync(id);
+            if (food != null)
+            {
+                food.IsAvailable = false;
+                food.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
         public async Task<List<Food>> GetAllFoodsCategoryAsync()
         {
             return await _context.Foods.Include(c => c.Categories).ToListAsync();
