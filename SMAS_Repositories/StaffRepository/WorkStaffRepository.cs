@@ -78,6 +78,7 @@ namespace SMAS_Repositories.StaffRepository
                             .Where(ws => ws.WorkDay == date)
                             .Select(ws => new StaffSlotDto
                             {
+                                WorkStaffId = ws.WorkStaffId,
                                 UserId = ws.UserId,
                                 FullName = ws.User?.Fullname ?? string.Empty,
                                 AvatarUrl = ws.User?.Avatar,
