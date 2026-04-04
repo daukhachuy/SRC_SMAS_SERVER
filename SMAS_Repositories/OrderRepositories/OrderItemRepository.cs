@@ -33,6 +33,9 @@ namespace SMAS_Repositories.OrderRepositories
         public Task UpdateReadyAsync(int orderItemId, DateTime servedTimeUtc)
             => _orderItemDAO.UpdateReadyAsync(orderItemId, servedTimeUtc);
 
+        public Task UpdateServedAsync(int orderItemId, DateTime servedTimeUtc)
+            => _orderItemDAO.UpdateServedAsync(orderItemId, servedTimeUtc);
+
         public Task<int> UpdateAllPendingToPreparingAsync(int orderId)
             => _orderItemDAO.UpdateAllPendingToPreparingAsync(orderId);
 

@@ -19,6 +19,8 @@ namespace SMAS_Repositories.OrderRepositories
 
         Task UpdateReadyAsync(int orderItemId, DateTime servedTimeUtc);
 
+        Task UpdateServedAsync(int orderItemId, DateTime servedTimeUtc);
+
         Task<int> UpdateAllPendingToPreparingAsync(int orderId);
 
         Task<int> UpdateAllPreparingToReadyAsync(int orderId, DateTime servedTimeUtc);

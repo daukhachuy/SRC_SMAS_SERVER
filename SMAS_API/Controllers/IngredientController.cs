@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.IngredientDTO;
 using SMAS_Services.FoodServices;
 using SMAS_Services.IngredientServices;
@@ -16,7 +17,7 @@ namespace SMAS_API.Controllers
         {
             _ingredientService = ingredientService;
         }
-
+        [Authorize(Roles = "Admin,Customer,Waiter,Kitchen,Manager")]
         [HttpGet("GetAll")]
         public async Task<ActionResult<IngredientResponseDTO>>   GetAllIngredientAsync()
         {
