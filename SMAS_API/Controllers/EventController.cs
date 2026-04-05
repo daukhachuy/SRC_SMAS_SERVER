@@ -8,7 +8,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/events")]
-    [Authorize(Roles = "Admin")]
+    
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
@@ -23,7 +23,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay)
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager/Admin")]
         [HttpGet("upcoming-events")]
         public async Task<IActionResult> GetAllUpcomingEvent()
         {
@@ -41,9 +41,10 @@ namespace SMAS_API.Controllers
         //    }
         //    return Ok(result);
         //}
+
         // GET: api/event?id=5  hoặc  api/event (all)
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int? id)
+        public async Task<IActionResult> GetEventAsync([FromQuery] int? id)
         {
             if (id.HasValue)
             {
@@ -64,8 +65,9 @@ namespace SMAS_API.Controllers
         }
 
         // POST
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] EventCreateDto dto)
+        public async Task<IActionResult> CreateEventAsync([FromBody] EventCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -73,7 +75,7 @@ namespace SMAS_API.Controllers
             try
             {
                 var result = await _eventService.CreateAsync(dto);
-                return CreatedAtAction(nameof(Get), new { id = result.EventId },
+                return CreatedAtAction(nameof(GetEventAsync), new { id = result.EventId },
                     new { Message = "Tạo sự kiện thành công", Data = result });
             }
             catch (ArgumentException ex)
@@ -82,9 +84,10 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // PUT
+
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] EventUpdateDto dto)
+        public async Task<IActionResult> UpdateEventAsync(int id, [FromBody] EventUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -104,9 +107,10 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // DELETE → Soft Delete (IsActive = false)
+
+        [Authorize(Roles = "Manager/Admin")]
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteEventAsync(int id)
         {
             try
             {

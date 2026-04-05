@@ -63,9 +63,7 @@ namespace SMAS_Repositories.BlogRepositories
             var entity = await _blogDAO.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Blog with id {id} not found.");
 
-            // SOFT DELETE
-            entity.Status = "Disabled";
-            await _blogDAO.UpdateAsync(entity);
+            await _blogDAO.UpdateStatusAsync(id);
         }
 
         // ==================== MAPPERS ====================
@@ -89,7 +87,7 @@ namespace SMAS_Repositories.BlogRepositories
             Content = dto.Content,
             Image = dto.Image,
             ViewCount = dto.ViewCount ?? 0,
-            Status = dto.Status ?? "Active",
+            Status = dto.Status ?? "Published",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             PublishedAt = dto.PublishedAt,

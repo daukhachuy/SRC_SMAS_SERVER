@@ -28,4 +28,6 @@ public interface IPaymentService
 
     /// <summary>Verify chữ ký webhook; ưu tiên header x-payos-signature, sau đó trường signature trong JSON.</summary>
     bool VerifyWebhookSignature(string rawBody, string? signatureHeader);
+
+    Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid);
 }

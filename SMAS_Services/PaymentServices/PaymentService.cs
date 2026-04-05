@@ -14,13 +14,16 @@ public class PaymentService : IPaymentService
     private readonly IOrderRepository _orderRepository;
     private readonly PayOSSettings _payOsSettings;
     private static readonly HttpClient SharedHttpClient = new() { BaseAddress = new Uri("https://api-merchant.payos.vn") };
+    private readonly IPaymentRepository _paymentRepo;
 
     public PaymentService(
         IOrderRepository orderRepository,
-        IOptions<PayOSSettings> payOsSettings)
+        IOptions<PayOSSettings> payOsSettings,
+        IPaymentRepository paymentRepo)
     {
         _orderRepository = orderRepository;
         _payOsSettings = payOsSettings.Value;
+        _paymentRepo = paymentRepo;
     }
 
     public async Task<CreatePaymentLinkResponse> CreatePaymentLinkAsync(CreatePaymentLinkRequest request, int userId)
@@ -139,7 +142,7 @@ public class PaymentService : IPaymentService
             PaymentCode = "PAY" + Guid.NewGuid().ToString("N")[..12].ToUpperInvariant(),
             OrderId = orderId,
             PaymentMethod = "PayOS",
-            PaymentStatus = "Completed",
+            PaymentStatus = "Paid",
             Amount = data.Amount,
             TransactionId = data.Reference ?? data.PaymentLinkId,
             PaidAt = DateTime.UtcNow,
@@ -147,7 +150,7 @@ public class PaymentService : IPaymentService
             Note = data.Description
         };
 
-        await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Paid", payment);
+        await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Completed", payment);
         return true;
     }
 
@@ -307,5 +310,11 @@ public class PaymentService : IPaymentService
         using var hmac = new HMACSHA256(keyBytes);
         var hash = hmac.ComputeHash(dataBytes);
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+    }
+
+
+    public async Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid)
+    {
+        return await _paymentRepo.CreatePaymentOrderCashAsync(payment,userid);
     }
 }
