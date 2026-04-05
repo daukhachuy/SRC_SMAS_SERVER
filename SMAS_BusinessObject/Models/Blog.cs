@@ -15,7 +15,7 @@ public partial class Blog
 
     public int? ViewCount { get; set; }
 
-    public string? Status { get; set; }
+    public string? Status { get; set; }   // Draft/Published
 
     public DateTime? CreatedAt { get; set; }
 

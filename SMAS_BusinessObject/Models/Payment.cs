@@ -13,9 +13,9 @@ public partial class Payment
 
     public int? ContractId { get; set; }
 
-    public string PaymentMethod { get; set; } = null!;
+    public string PaymentMethod { get; set; } = null!;  // Cash/Banking/Momo/ZaloPay
 
-    public string? PaymentStatus { get; set; }
+    public string? PaymentStatus { get; set; }   // Paid, Unpaid
 
     public decimal Amount { get; set; }
 

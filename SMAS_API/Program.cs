@@ -180,6 +180,7 @@ namespace SMAS_API
 
             builder.Services.AddScoped<ContractDAO>();
             builder.Services.AddScoped<PaymentDAO>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IContractRepository, ContractRepository>();
             builder.Services.AddScoped<IContractService, ContractService>();
             builder.Services.AddScoped<IContractWorkflowRepository, ContractWorkflowRepository>();

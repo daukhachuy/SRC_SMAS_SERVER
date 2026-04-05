@@ -72,9 +72,7 @@ namespace SMAS_Repositories.ServiceRepositories
             var entity = await _serviceDAO.GetServiceByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Service with id {id} not found.");
 
-            // SOFT DELETE
-            entity.IsAvailable = false;
-            await _serviceDAO.UpdateAsync(entity);
+            await _serviceDAO.UpdateStatusAsync(id);
         }
 
         // ==================== MAPPERS ====================

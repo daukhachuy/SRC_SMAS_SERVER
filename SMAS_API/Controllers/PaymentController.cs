@@ -52,4 +52,23 @@ public class PaymentController : ControllerBase
         var handled = await _paymentService.HandleWebhookAsync(rawBody);
         return handled ? Ok() : (IActionResult)BadRequest();
     }
+
+    [Authorize(Roles = "Admin,Waiter,Kitchen,Manager")]
+    [HttpPost("payment-order-cash")]
+    public async Task<IActionResult> CreatePaymentOrderCashAsync([FromBody] PaymentOrderCashRequestDTO request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out int userId))
+            return Unauthorized();
+
+        var result = await _paymentService.CreatePaymentOrderCashAsync(request, userId);
+        if (!result.status)
+            return BadRequest(result.message);
+
+        return Ok(result.message);
+    }
+
 }

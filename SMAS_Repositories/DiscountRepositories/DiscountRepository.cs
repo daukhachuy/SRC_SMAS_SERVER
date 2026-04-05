@@ -95,10 +95,8 @@ namespace SMAS_Repositories.DiscountRepositories
             var entity = await _context.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Discount with id {id} not found.");
 
-            // Soft delete: change status instead of removing the record
-            entity.Status = "Disabled";
 
-            await _context.UpdateAsync(entity);
+            await _context.UpdateStatusAsync(id);
         }
 
         // ─── EXISTS CODE ───────────────────────────────────────────────────────
