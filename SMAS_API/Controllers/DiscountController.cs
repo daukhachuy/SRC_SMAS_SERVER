@@ -7,7 +7,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/discount")]
-    //[Authorize(Roles = "Manager")]
+  
     public class DiscountController : Controller
     {
         private readonly IDiscountService _discountService;
@@ -19,7 +19,7 @@ namespace SMAS_API.Controllers
 
         // GET: Có id → lấy theo id | Không có → lấy all
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int? id)
+        public async Task<IActionResult> GetDiscountAsync([FromQuery] int? id)
         {
             if (id.HasValue)
             {
@@ -40,9 +40,9 @@ namespace SMAS_API.Controllers
 
             return Ok(new { Message = "Lấy danh sách thành công", Data = list });
         }
-
+       
         [HttpGet("code/{code}")]
-        public async Task<ActionResult<DiscountResponse>> GetDiscountByCode(string code)
+        public async Task<ActionResult<DiscountResponse>> GetDiscountByCodeAsync(string code)
         {
             var result = await _discountService.GetDiscountByCodeAsync(code);
             if (result == null)
@@ -52,7 +52,7 @@ namespace SMAS_API.Controllers
             return Ok(result);
         }
 
-        // POST
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DiscountCreateDto dto)
         {
@@ -64,7 +64,7 @@ namespace SMAS_API.Controllers
                 var result = await _discountService.CreateAsync(dto);
 
                 return CreatedAtAction(
-                    nameof(Get),
+                    nameof(GetDiscountAsync),
                     new { id = result.DiscountId },
                     new { Message = "Tạo mã giảm giá thành công", Data = result }
                 );
@@ -79,9 +79,9 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // PUT
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] DiscountUpdateDto dto)
+        public async Task<IActionResult> UpdateDiscountAsync(int id, [FromBody] DiscountUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -101,9 +101,9 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // DELETE (có message)
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Manager/Admin")]
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> DeleteDiscountAsync(int id)
         {
             try
             {
@@ -119,7 +119,7 @@ namespace SMAS_API.Controllers
         // VALIDATE
         [HttpPost("validate")]
         [AllowAnonymous]
-        public async Task<IActionResult> Validate([FromBody] DiscountValidateDto dto)
+        public async Task<IActionResult> ValidateDiscountAsync([FromBody] DiscountValidateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

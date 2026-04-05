@@ -94,19 +94,8 @@ namespace SMAS_API.Controllers
         [Authorize(Roles = "Customer")]
         [HttpPost("create/delivery")]
 
-        //Cai nay bua sau bo vo truoc phan create order
         public async Task<ActionResult<OrderDeliveryResponse>> CreateOrder([FromBody] CreateOrderDeliveryRequest request)
         {
-
-        //    var accessToken = Request.Headers["X-Table-Token"].FirstOrDefault();
-
-        //    if (string.IsNullOrEmpty(accessToken))
-        //        return Unauthorized(new { errorCode = "INVALID_QR_TOKEN" });
-
-        //    (bool valid, string? errorCode, string? tableCode) = _tableSessionService.ValidateAccessToken(accessToken);
-        //    if (!valid)
-        //        return BadRequest(new { errorCode });
-        ////phan o giua nhe
 
             if (!ModelState.IsValid)
             {
