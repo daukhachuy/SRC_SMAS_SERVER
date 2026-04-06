@@ -36,8 +36,8 @@ namespace SMAS_Services.ServiceServices
             return await _serviceRepository.UpdateAsync(id, dto);
         }
 
-        public async Task DeleteAsync(int id)
-            => await _serviceRepository.DeleteAsync(id);
+        public Task<bool> DeleteAsync(int id) => _serviceRepository.DeleteAsync(id);
+        public Task<bool> UpdateStatusAsync(int id, bool isAvailable) => _serviceRepository.UpdateStatusAsync(id, isAvailable);
     }
 
 }

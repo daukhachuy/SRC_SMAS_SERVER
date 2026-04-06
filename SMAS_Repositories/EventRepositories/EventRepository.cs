@@ -75,21 +75,9 @@ namespace SMAS_Repositories.EventRepositories
             return MapToDto(updated);
         }
 
-        public async Task<EventListResponse> PatchStatusAsync(int id, EventStatusPatchDto dto)
-        {
-            var updated = await _eventDAO.PatchStatusAsync(id, dto.IsActive)
-                ?? throw new KeyNotFoundException($"Event with id {id} not found.");
+        public Task<bool> DeleteAsync(int id) => _eventDAO.DeleteAsync(id);
 
-            return MapToDto(updated);
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _eventDAO.GetEventByIdAsync(id)
-                ?? throw new KeyNotFoundException($"Event with id {id} not found.");
-
-            await _eventDAO.UpdateStatusAsync(id);
-        }
+        public Task<bool> UpdateStatusAsync(int id, bool isActive) => _eventDAO.UpdateStatusAsync(id, isActive);
 
         // ==================== MAPPERS ====================
         private static EventListResponse MapToDto(Event e) => new()
@@ -134,7 +122,7 @@ namespace SMAS_Repositories.EventRepositories
             entity.BasePrice = dto.BasePrice;
             entity.IsActive = dto.IsActive;
             entity.UpdatedAt = DateTime.UtcNow;
-            // CreatedBy gi? nguyên
+            // CreatedBy gi? nguyÃªn
         }
     }
 
