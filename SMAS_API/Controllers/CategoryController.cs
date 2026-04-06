@@ -9,7 +9,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/category")]
-    [Authorize(Roles = "Admin")]
+
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -31,6 +31,19 @@ namespace SMAS_API.Controllers
         //}
         // GET: api/categories        -> lấy tất cả
         // GET: api/categories?id=3   -> lấy theo id
+
+        [HttpGet("lists")]
+        public async Task<ActionResult<CategoryResponse>> GetAllCategoryContainFoodAsync()
+        {
+            var result = await _categoryService.GetAllCategoryContainFoodAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_027", Message = "Không có danh mục nào !" });
+            }
+            return Ok(result);
+        }
+
+
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
@@ -99,16 +112,7 @@ namespace SMAS_API.Controllers
             return Ok(new { message = $"Đã cập nhật trạng thái danh mục Id = {id} thành {isAvailable}." });
         }
 
-        [HttpGet("lists-contaifood")]
-        public async Task<ActionResult<CategoryResponse>> GetAllCategoryContainFoodAsync()
-        {
-            var result = await _categoryService.GetAllCategoryContainFoodAsync();
-            if (result == null || !result.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_027", Message = "Không có danh mục nào !" });
-            }
-            return Ok(result);
-        }
+  
 
     }
 }
