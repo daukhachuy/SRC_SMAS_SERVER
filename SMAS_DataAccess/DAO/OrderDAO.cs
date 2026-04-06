@@ -337,6 +337,7 @@ namespace SMAS_DataAccess.DAO
             var order = await _context.Orders
                                        .Include(o => o.Payments)
                                        .Include(d => d.Delivery)
+                                       .Include(o => o.TableOrders).ThenInclude(to => to.Table)
                                        .FirstOrDefaultAsync(o => o.OrderId == orderId);
             if (order == null) return false;
             order.OrderStatus = orderStatus;

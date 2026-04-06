@@ -81,7 +81,7 @@ namespace SMAS_API.Controllers
                 return NotFound(new { Message = ex.Message });
             }
         }
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         // DELETE → Soft Delete (IsAvailable = false)
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> DeleteServiceAsync(int id)

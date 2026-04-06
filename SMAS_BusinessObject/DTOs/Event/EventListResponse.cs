@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -56,6 +56,12 @@ namespace SMAS_BusinessObject.DTOs.Event
         public int? MaxGuests { get; set; }
         public decimal? BasePrice { get; set; }
         public bool? IsActive { get; set; }
+    }
+
+    public class EventStatusPatchDto
+    {
+        [Required(ErrorMessage = "IsActive is required")]
+        public bool IsActive { get; set; }
     }
 
 }
