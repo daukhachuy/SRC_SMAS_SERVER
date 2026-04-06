@@ -45,6 +45,17 @@ namespace SMAS_API.Controllers
             return Ok(await _discountService.GetAllDiscountsAsync());
         }
 
+        [HttpGet("lists")]
+        public async Task<ActionResult<DiscountResponse>> GetAllDiscounts()
+        {
+            var result = await _discountService.GetAllDiscountsAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_014", Message = "Không có mã giảm giá nào !" });
+            }
+            return Ok(result);
+        }
+
         // POST: api/discounts
         [Authorize(Roles = "Admin")]
         [HttpPost]
