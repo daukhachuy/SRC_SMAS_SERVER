@@ -13,7 +13,6 @@ namespace SMAS_BusinessObject.Enums
         Confirmed = 2,     // Đã xác nhận
         Preparing = 3,     // Đang thưởng thức
         Completed = 4,     // Đã hoàn thành
-        Cancelled = 5,     // Đã hủy
-        Paid      = 6
+        Cancelled = 5     // Đã hủy
     }
 }

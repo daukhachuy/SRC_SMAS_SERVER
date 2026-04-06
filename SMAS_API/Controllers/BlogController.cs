@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/blogs")]
-    [Authorize(Roles = "Admin")]
+    
     public class BlogController : Controller
     {
         private readonly IBlogServices _blogServices;
@@ -17,7 +17,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet("lists")]
-        public async Task<ActionResult<BlogResponse>> GetAllBlogs()
+        public async Task<ActionResult<BlogResponse>> GetAllBlogAsync()
         {
             var result = await _blogServices.GetAllBlogsAsync();
             if(result == null || !result.Any())
@@ -28,7 +28,7 @@ namespace SMAS_API.Controllers
         }
         // GET: api/blog?id=5  hoặc  api/blog (all)
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int? id)
+        public async Task<IActionResult> GetBlogAsync([FromQuery] int? id)
         {
             if (id.HasValue)
             {
@@ -49,8 +49,9 @@ namespace SMAS_API.Controllers
         }
 
         // POST
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] BlogCreateDto dto)
+        public async Task<IActionResult> CreateBlogAsync([FromBody] BlogCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -58,7 +59,7 @@ namespace SMAS_API.Controllers
             try
             {
                 var result = await _blogServices.CreateAsync(dto);
-                return CreatedAtAction(nameof(Get), new { id = result.BlogId },
+                return CreatedAtAction(nameof(GetBlogAsync), new { id = result.BlogId },
                     new { Message = "Tạo blog thành công", Data = result });
             }
             catch (ArgumentException ex)
@@ -68,8 +69,9 @@ namespace SMAS_API.Controllers
         }
 
         // PUT
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BlogUpdateDto dto)
+        public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -89,9 +91,11 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // DELETE → Soft Delete (Status = "Disabled")
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+
+
+        [Authorize(Roles = "Manager/Admin")]
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> DeleteBlogAsync(int id)
         {
             try
             {

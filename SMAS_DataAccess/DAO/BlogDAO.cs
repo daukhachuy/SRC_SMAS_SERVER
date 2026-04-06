@@ -42,5 +42,21 @@ namespace SMAS_DataAccess.DAO
             return blog;
         }
 
+        public async Task<bool> UpdateStatusAsync(int id)
+        {
+            var blog = await _context.Blogs.FindAsync(id);
+            if (blog == null) return false;
+            if (blog.Status == "Published")
+            {
+                blog.Status = "Draft";
+            }
+            else
+            {
+                blog.Status = "Published";
+            }
+            _context.Blogs.Update(blog);
+            return await _context.SaveChangesAsync() > 0;
+
+        }
     }
 }

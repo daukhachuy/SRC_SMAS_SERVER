@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/services")]
-    [Authorize(Roles = "Admin")]
+    
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _serviceService;
@@ -28,8 +28,9 @@ namespace SMAS_API.Controllers
         //}
 
         // GET: api/service?id=5  hoặc  api/service (all)
+        //[Authorize(Roles = "Manager/Admin")]
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int? id)
+        public async Task<IActionResult> GetServiceAsync([FromQuery] int? id)
         {
             if (id.HasValue)
             {
@@ -50,20 +51,22 @@ namespace SMAS_API.Controllers
         }
 
         // POST
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ServiceCreateDto dto)
+        public async Task<IActionResult> CreateServiceAsync([FromBody] ServiceCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var result = await _serviceService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = result.ServiceId },
+            return CreatedAtAction(nameof(GetServiceAsync), new { id = result.ServiceId },
                 new { Message = "Tạo dịch vụ thành công", Data = result });
         }
 
         // PUT
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ServiceUpdateDto dto)
+        public async Task<IActionResult> UpdateServiceAsync(int id, [FromBody] ServiceUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -78,10 +81,10 @@ namespace SMAS_API.Controllers
                 return NotFound(new { Message = ex.Message });
             }
         }
-
+        [Authorize(Roles = "Manager/Admin")]
         // DELETE → Soft Delete (IsAvailable = false)
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> DeleteServiceAsync(int id)
         {
             try
             {

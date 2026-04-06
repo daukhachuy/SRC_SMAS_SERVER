@@ -80,9 +80,7 @@ namespace SMAS_Repositories.EventRepositories
             var entity = await _eventDAO.GetEventByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Event with id {id} not found.");
 
-            // SOFT DELETE
-            entity.IsActive = false;
-            await _eventDAO.UpdateAsync(entity);
+            await _eventDAO.UpdateStatusAsync(id);
         }
 
         // ==================== MAPPERS ====================

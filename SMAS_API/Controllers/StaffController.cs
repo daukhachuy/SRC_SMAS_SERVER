@@ -368,7 +368,7 @@ namespace SMAS_API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost("create-staff-userid")]
-        public async Task<IActionResult> CreateStaffByUserId([FromBody] CreateNewStaffByUseridResquestDTO dto)
+        public async Task<IActionResult> CreateStaffByUserIdAsync([FromBody] CreateNewStaffByUseridResquestDTO dto)
         {
 
             if (!ModelState.IsValid) return BadRequest();
@@ -394,7 +394,7 @@ namespace SMAS_API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost("create-staff-new")]
-        public async Task<IActionResult> CreateNewStaff([FromBody] CreateNewStaffRequestDTO dto)
+        public async Task<IActionResult> CreateNewStaffAsync([FromBody] CreateNewStaffRequestDTO dto)
         {
 
             if (!ModelState.IsValid) return BadRequest();
@@ -420,7 +420,7 @@ namespace SMAS_API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet("admin-staff-deatail/{staffId}")]
-        public async Task<ActionResult<StaffDetailresponseDTO>> GetStaffDetailByStaffId([FromRoute] int staffId)
+        public async Task<ActionResult<StaffDetailresponseDTO>> GetStaffDetailByStaffIdAsync([FromRoute] int staffId)
         {
             try
             {

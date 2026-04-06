@@ -334,9 +334,40 @@ namespace SMAS_DataAccess.DAO
         /// </summary>
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string orderStatus)
         {
-            var order = await _context.Orders.FindAsync(orderId);
+            var order = await _context.Orders
+                                       .Include(o => o.Payments)
+                                       .Include(d => d.Delivery)
+                                       .FirstOrDefaultAsync(o => o.OrderId == orderId);
             if (order == null) return false;
             order.OrderStatus = orderStatus;
+            if (orderStatus == "Completed" )
+            {
+                var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
+                var tables = await _context.Tables
+                    .Where(t => tableIds.Contains(t.TableId))
+                    .ToListAsync();
+                foreach (var table in tables)
+                {
+                    table.Status = "AVAILABLE";
+                    table.UpdatedAt = DateTime.UtcNow;             
+                    _cache.Remove($"table_session_{table.TableName.ToUpper()}");
+                }
+                foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
+                    to.LeftAt = DateTime.UtcNow;
+            }
+            if (order.Delivery != null)
+            {
+                if (orderStatus == "Completed")
+                {
+                    order.Delivery.DeliveryStatus = "Delivered";
+                    order.Delivery.UpdatedAt = DateTime.UtcNow;
+                }
+                else if (orderStatus == "Cancelled")
+                {
+                    order.Delivery.DeliveryStatus = "Failed";
+                    order.Delivery.UpdatedAt = DateTime.UtcNow;
+                }
+            }
             await _context.SaveChangesAsync();
             return true;
         }
@@ -453,5 +484,7 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
+
+
     }
 }
