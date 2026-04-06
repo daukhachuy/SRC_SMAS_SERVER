@@ -21,6 +21,8 @@ namespace SMAS_Services.OrderItemServices
         Task<KitchenUpdateAllReadyResponseDTO> PatchUpdateStatusAllOrderItemReadyAsync(int orderId);
 
         Task<KitchenTodayHistoryResponseDTO> GetAllOrderItemsHistoryTodayAsync(int? orderId);
+
+        Task<(bool status, string message)> AddOrderItemByOrderCodeAsync(string orderCode, List<AddOrderItemRequest> request);
     }
 }
 

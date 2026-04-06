@@ -44,6 +44,7 @@ namespace SMAS_DataAccess.DAO
             if (user == null) return false;
             try
             {            
+                user.Role = "Staff";
                 _context.Staff.Add(request);
                 await _context.SaveChangesAsync();
                 return true;

@@ -133,6 +133,7 @@ namespace SMAS_DataAccess.DAO
         public async Task<Order?> GetOrderByCodeNoTrackingAsync(string orderCode)
         {
             return await _context.Orders
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet).ThenInclude(b => b.BuffetFoods).ThenInclude(bf => bf.Food) // Include chi tiết món buffet
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
 
@@ -283,6 +284,21 @@ namespace SMAS_DataAccess.DAO
             return item;
         }
 
+        public async Task<bool> AddOrderItemToOrderAsync(OrderItem item)
+        {
+            try
+            {
+                _context.OrderItems.Add(item);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nếu cần
+                return false;
+            }
+        }
+
         public async Task UpdateOrderTotalAsync(int orderId, decimal subtotal)
         {
             var order = await _context.Orders.FindAsync(orderId);
@@ -340,10 +356,11 @@ namespace SMAS_DataAccess.DAO
             var order = await _context.Orders
                                        .Include(o => o.Payments)
                                        .Include(d => d.Delivery)
+                                       .Include(o => o.TableOrders).ThenInclude(to => to.Table)
                                        .FirstOrDefaultAsync(o => o.OrderId == orderId);
             if (order == null) return false;
             order.OrderStatus = orderStatus;
-            if (orderStatus == "Completed" )
+            if (orderStatus == "Completed")
             {
                 var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
                 var tables = await _context.Tables
@@ -352,7 +369,7 @@ namespace SMAS_DataAccess.DAO
                 foreach (var table in tables)
                 {
                     table.Status = "AVAILABLE";
-                    table.UpdatedAt = DateTime.UtcNow;             
+                    table.UpdatedAt = DateTime.UtcNow;
                     _cache.Remove($"table_session_{table.TableName.ToUpper()}");
                 }
                 foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
