@@ -19,11 +19,4 @@ public class PaymentDAO
             p.Note == "deposit" &&
             p.PaymentStatus == "Paid");
     }
-
-    public async Task<bool> ExistsByTransactionIdAsync(string? transactionId)
-    {
-        if (string.IsNullOrEmpty(transactionId))
-            return false;
-        return await _context.Payments.AnyAsync(p => p.TransactionId == transactionId);
-    }
 }
