@@ -574,5 +574,10 @@ namespace SMAS_Repositories.OrderRepositories
             var orders = await _orderDAO.GetAllOrderHistoryByWaiterIdInSevenDayAsync(userId);
             return MapToDTO(orders);
         }
+
+        public async Task<Order?> GetOrderByIdNoTrackingAsync(string orderCode)
+        {
+            return await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
+        }
     }
 }
