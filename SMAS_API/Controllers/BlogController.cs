@@ -6,7 +6,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/blogs")]
-    
     public class BlogController : Controller
     {
         private readonly IBlogServices _blogServices;
@@ -19,6 +18,7 @@ namespace SMAS_API.Controllers
         // GET: api/blogs        -> lấy tất cả
         // GET: api/blogs?id=2   -> lấy theo id
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
@@ -33,6 +33,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/blogs
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<BlogResponse>> CreateAsync([FromBody] BlogCreateDto dto)
         {
@@ -43,6 +44,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/blogs/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<BlogResponse>> UpdateAsync(int id, [FromBody] BlogUpdateDto dto)
         {
@@ -55,7 +57,8 @@ namespace SMAS_API.Controllers
             return Ok(updated);
         }
 
-        // DELETE: api/blogs/{id} -> xóa thật
+        // DELETE: api/blogs/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -67,6 +70,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/blogs/{id}/status?status=Published
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] string status)
         {

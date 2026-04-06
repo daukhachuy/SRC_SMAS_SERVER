@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/services")]
-    
+
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _serviceService;
@@ -51,7 +51,8 @@ namespace SMAS_API.Controllers
         }
 
         // POST
-        [Authorize(Roles = "Manager/Admin")]
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromBody] ServiceCreateDto dto)
         {
@@ -64,7 +65,8 @@ namespace SMAS_API.Controllers
         }
 
         // PUT
-        [Authorize(Roles = "Manager/Admin")]
+
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateAsync(int id, [FromBody] ServiceUpdateDto dto)
         {
@@ -82,7 +84,8 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // DELETE: api/services/{id} -> xóa thật
+        // DELETE: api/services/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -94,6 +97,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/services/{id}/status?isAvailable=true|false
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
         {

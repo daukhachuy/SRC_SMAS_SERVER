@@ -7,7 +7,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/combo")]
-    [Authorize(Roles = "Admin")]
     public class ComboController : ControllerBase
     {
         private readonly IComboService _comboService;
@@ -69,6 +68,7 @@ namespace SMAS_API.Controllers
         // GET: api/combos        -> lấy tất cả
         // GET: api/combos?id=2   -> lấy theo id
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
@@ -83,6 +83,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/combos
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ComboListResponse>> CreateAsync([FromBody] ComboCreateDto dto)
         {
@@ -93,6 +94,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/combos/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ComboListResponse>> UpdateAsync(int id, [FromBody] ComboUpdateDto dto)
         {
@@ -106,6 +108,7 @@ namespace SMAS_API.Controllers
         }
 
         // DELETE: api/combos/{id}
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -117,6 +120,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/combos/{id}/status?isAvailable=true|false
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
         {

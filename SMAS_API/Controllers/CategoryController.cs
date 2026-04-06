@@ -32,6 +32,7 @@ namespace SMAS_API.Controllers
         // GET: api/categories        -> lấy tất cả
         // GET: api/categories?id=3   -> lấy theo id
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
@@ -48,6 +49,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/categories
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<CategoryResponse>> CreateAsync([FromBody] CategoryCreateDto dto)
         {
@@ -59,6 +61,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/categories/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<CategoryResponse>> UpdaUpdateAsyncte(int id, [FromBody] CategoryUpdateDto dto)
         {
@@ -72,7 +75,8 @@ namespace SMAS_API.Controllers
             return Ok(updated);
         }
 
-        // DELETE: api/categories/{id} -> xóa thật
+        // DELETE: api/categories/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -84,6 +88,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/categories/{id}/status?isAvailable=true|false
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
         {

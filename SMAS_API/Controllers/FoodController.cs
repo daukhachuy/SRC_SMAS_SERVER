@@ -9,7 +9,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/food")]
-    [Authorize(Roles = "Admin")]
     public class FoodController : Controller
     {
         private readonly IFoodService _ifoodservice;
@@ -20,6 +19,7 @@ namespace SMAS_API.Controllers
         }
         // GET: api/foods        -> lấy tất cả
         // GET: api/foods?id=5   -> lấy theo id
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
@@ -37,6 +37,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/foods
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<FoodListResponse>> CreateAsync([FromBody] FoodCreateDto dto)
         {
@@ -48,6 +49,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/foods/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<FoodListResponse>> UpdateAsync(int id, [FromBody] FoodUpdateDto dto)
         {
@@ -61,7 +63,8 @@ namespace SMAS_API.Controllers
             return Ok(updated);
         }
 
-        // DELETE: api/foods/{id} -> xóa thật
+        // DELETE: api/foods/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -73,6 +76,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/foods/{id}/status?isAvailable=true|false
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
         {

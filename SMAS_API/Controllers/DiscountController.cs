@@ -7,7 +7,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/discount")]
-  
     public class DiscountController : Controller
     {
         private readonly IDiscountService _discountService;
@@ -32,6 +31,7 @@ namespace SMAS_API.Controllers
         // GET: api/discounts        -> lấy tất cả
         // GET: api/discounts?id=2   -> lấy theo id
         [HttpGet]
+        [AllowAnonymous] 
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
@@ -46,6 +46,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/discounts
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<DiscountResponse>> CreateAsync([FromBody] DiscountCreateDto dto)
         {
@@ -56,6 +57,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/discounts/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<DiscountResponse>> UpdateAsync(int id, [FromBody] DiscountUpdateDto dto)
         {
@@ -69,6 +71,7 @@ namespace SMAS_API.Controllers
         }
 
         // DELETE: api/discounts/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -80,6 +83,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/discounts/{id}/status?status=Active
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] string status)
         {

@@ -8,7 +8,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/events")]
-    
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
@@ -45,6 +44,7 @@ namespace SMAS_API.Controllers
 
         // GET: api/events        -> lấy tất cả
         // GET: api/events?id=2   -> lấy theo id
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
@@ -60,6 +60,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/events
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<EventListResponse>> CreateAsync([FromBody] EventCreateDto dto)
         {
@@ -70,6 +71,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/events/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<EventListResponse>> UpdateAsync(int id, [FromBody] EventUpdateDto dto)
         {
@@ -83,6 +85,7 @@ namespace SMAS_API.Controllers
         }
 
         // DELETE: api/events/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -94,6 +97,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/events/{id}/status?isActive=true|false
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isActive)
         {

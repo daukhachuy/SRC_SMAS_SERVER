@@ -8,7 +8,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/Buffer")]
-    [Authorize(Roles = "Admin")]
     public class BuffetController : Controller
     {
         private readonly IBufferServices _buffetService;
@@ -45,6 +44,7 @@ namespace SMAS_API.Controllers
 
         // GET: api/buffets        -> lấy tất cả
         // GET: api/buffets?id=2   -> lấy theo id
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
@@ -60,6 +60,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/buffets
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<BuffetListResponseDTO>> CreateAsync([FromBody] BuffetCreateDto dto)
         {
@@ -70,6 +71,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT: api/buffets/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<BuffetListResponseDTO>> UpdateAsync(int id, [FromBody] BuffetUpdateDto dto)
         {
@@ -83,6 +85,7 @@ namespace SMAS_API.Controllers
         }
 
         // DELETE: api/buffets/{id} 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
@@ -94,6 +97,7 @@ namespace SMAS_API.Controllers
         }
 
         // PATCH: api/buffets/{id}/status?isAvailable=true|false
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
         {

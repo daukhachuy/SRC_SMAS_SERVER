@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class SalaryRecordController : ControllerBase
     {
         private readonly ISalaryRecordService _salaryRecordService;
