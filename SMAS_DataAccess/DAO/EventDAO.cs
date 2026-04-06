@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -50,6 +51,21 @@ namespace SMAS_DataAccess.DAO
             _context.Events.Update(existingEvent);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<Event?> PatchStatusAsync(int eventId, bool isActive)
+        {
+            var existingEvent = await _context.Events.FindAsync(eventId);
+            if (existingEvent == null)
+            {
+                return null;
+            }
+
+            existingEvent.IsActive = isActive;
+            existingEvent.UpdatedAt = DateTime.UtcNow;
+            _context.Events.Update(existingEvent);
+            await _context.SaveChangesAsync();
+            return existingEvent;
         }
     }
 

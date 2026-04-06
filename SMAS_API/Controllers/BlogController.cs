@@ -49,7 +49,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateBlogAsync([FromBody] BlogCreateDto dto)
         {
@@ -69,7 +69,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogUpdateDto dto)
         {
@@ -93,14 +93,14 @@ namespace SMAS_API.Controllers
 
 
 
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPatch("{id:int}")]
         public async Task<IActionResult> DeleteBlogAsync(int id)
         {
             try
             {
                 await _blogServices.DeleteAsync(id);
-                return Ok(new { Message = "Xóa blog thành công" });
+                return Ok(new { Message = "Thay đổi trạng thái blog thành công" });
             }
             catch (KeyNotFoundException ex)
             {

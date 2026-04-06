@@ -75,6 +75,14 @@ namespace SMAS_Repositories.EventRepositories
             return MapToDto(updated);
         }
 
+        public async Task<EventListResponse> PatchStatusAsync(int id, EventStatusPatchDto dto)
+        {
+            var updated = await _eventDAO.PatchStatusAsync(id, dto.IsActive)
+                ?? throw new KeyNotFoundException($"Event with id {id} not found.");
+
+            return MapToDto(updated);
+        }
+
         public async Task DeleteAsync(int id)
         {
             var entity = await _eventDAO.GetEventByIdAsync(id)
