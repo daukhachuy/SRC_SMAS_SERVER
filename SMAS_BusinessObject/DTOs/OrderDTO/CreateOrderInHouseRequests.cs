@@ -20,7 +20,19 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
         [Required]
         public string ReservationCode { get; set; } = string.Empty;
 
+        [Required]
+        public string OrderType { get; set; } = "DineIn"; // Frontend gửi, nhưng backend cố định "DineIn"
+
+        [Required]
+        public List<int>? TableIds { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int NumberOfGuests { get; set; }
+
         public string? Note { get; set; }
+
+
     }
 
     public class CreateOrderByContactRequest
@@ -28,31 +40,34 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
         public string? Phone { get; set; }
         public string? Email { get; set; }
 
-        /// <summary>DineIn hoặc TakeAway</summary>
         [Required]
-        public string OrderType { get; set; } = string.Empty;
+        public List<int>? TableIds { get; set; }
 
-        /// <summary>Số khách do waiter nhập.</summary>
+        [Required]
+        public string OrderType { get; set; } = string.Empty; // "DineIn" | "Buffet"
         [Required]
         [Range(1, int.MaxValue)]
         public int NumberOfGuests { get; set; }
 
         public string? Note { get; set; }
+
+
     }
 
     // API 3: guest order (no reservation and no phone/email)
     public class CreateGuestOrderRequest
     {
-        /// <summary>DineIn hoặc TakeAway</summary>
         [Required]
-        public string OrderType { get; set; } = string.Empty;
+        public string OrderType { get; set; } = string.Empty; // "DineIn" | "Buffet"
 
-        /// <summary>Số khách do waiter nhập.</summary>
+        [Required]
+        public List<int>? TableIds { get; set; }
         [Required]
         [Range(1, int.MaxValue)]
         public int NumberOfGuests { get; set; }
 
         public string? Note { get; set; }
+
     }
 
     // API 0: lookup thông tin khách trước khi tạo order
@@ -89,8 +104,9 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
         public string? OrderCode { get; set; }
         public string? OrderStatus { get; set; }
         public string? OrderType { get; set; }
-        /// <summary>Đặt bàn: theo reservation; contact/guest: theo waiter nhập.</summary>
-        public int? NumberOfGuests { get; set; }
+        public List<int> TableIds { get; set; } = new();
+        public int MainTableId { get; set; }
+        public int NumberOfGuests { get; set; }
         public decimal SubTotal { get; set; }
         public decimal TotalAmount { get; set; }
         public List<CreateInHouseOrderItemResponse> OrderItems { get; set; } = new();

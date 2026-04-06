@@ -1,3 +1,5 @@
+using Azure.Core;
+using CloudinaryDotNet.Actions;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
@@ -22,7 +24,7 @@ namespace SMAS_Services.OrderServices
             return await _orderRepository.GetOrdersByUserAndStatusAsync(request, userid);
         }
 
-        public async Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request , int userid)
+        public async Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request, int userid)
         {
             return await _orderRepository.CreateOrderDeliveryAsync(request, userid);
         }
@@ -188,7 +190,8 @@ namespace SMAS_Services.OrderServices
                 throw new ArgumentException("Reservation already has an active order");
 
             var now = DateTime.UtcNow;
-            var tableOrders = new List<TableOrder>();
+            var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
+            var subTotal = 0m;  
             var orderItems = new List<OrderItem>();
 
             var order = new Order
@@ -201,7 +204,7 @@ namespace SMAS_Services.OrderServices
                 DeliveryId = null,
                 OrderType = "DineIn",
                 OrderStatus = "Pending",
-                NumberOfGuests = reservation.NumberOfGuests,
+                NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
                 ServedBy = waiterUserId,
                 SubTotal = 0,
@@ -215,7 +218,8 @@ namespace SMAS_Services.OrderServices
 
             await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, reservation);
 
-            return MapCreateInHouseOrderResponse(order, orderItems, reservation.NumberOfGuests);
+            return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
+            
         }
 
         public async Task<CreateInHouseOrderResponse> CreateOrderByContactAsync(CreateOrderByContactRequest request, int waiterUserId)
@@ -224,7 +228,7 @@ namespace SMAS_Services.OrderServices
                 throw new ArgumentException("Phone or email is required");
 
             if (!string.Equals(request.OrderType, "DineIn", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(request.OrderType, "TakeAway", StringComparison.OrdinalIgnoreCase))
+                !string.Equals(request.OrderType, "Buffet", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Invalid order type");
 
             User? user = null;
@@ -249,12 +253,10 @@ namespace SMAS_Services.OrderServices
                 throw new ArgumentException("Account is not a customer account");
 
             var now = DateTime.UtcNow;
-            var tableOrders = new List<TableOrder>();
+            var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
+            var subTotal = 0m;
             var orderItems = new List<OrderItem>();
 
-            var normalizedOrderType = string.Equals(request.OrderType, "DineIn", StringComparison.OrdinalIgnoreCase)
-                ? "DineIn"
-                : "TakeAway";
 
             var order = new Order
             {
@@ -264,7 +266,7 @@ namespace SMAS_Services.OrderServices
                 BookEventId = null,
                 DiscountId = null,
                 DeliveryId = null,
-                OrderType = normalizedOrderType,
+                OrderType = request.OrderType,
                 OrderStatus = "Pending",
                 NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
@@ -280,22 +282,20 @@ namespace SMAS_Services.OrderServices
 
             await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, null);
 
-            return MapCreateInHouseOrderResponse(order, orderItems, request.NumberOfGuests);
+            return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
         }
 
         public async Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int waiterUserId)
         {
             if (!string.Equals(request.OrderType, "DineIn", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(request.OrderType, "TakeAway", StringComparison.OrdinalIgnoreCase))
+                !string.Equals(request.OrderType, "Buffet", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Invalid order type");
 
             var now = DateTime.UtcNow;
-            var tableOrders = new List<TableOrder>();
+            var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
+            var subTotal = 0m;
             var orderItems = new List<OrderItem>();
 
-            var normalizedGuestOrderType = string.Equals(request.OrderType, "DineIn", StringComparison.OrdinalIgnoreCase)
-                ? "DineIn"
-                : "TakeAway";
 
             var order = new Order
             {
@@ -305,7 +305,7 @@ namespace SMAS_Services.OrderServices
                 BookEventId = null,
                 DiscountId = null,
                 DeliveryId = null,
-                OrderType = normalizedGuestOrderType,
+                OrderType = request.OrderType,
                 OrderStatus = "Pending",
                 NumberOfGuests = request.NumberOfGuests,
                 Note = request.Note,
@@ -321,7 +321,39 @@ namespace SMAS_Services.OrderServices
 
             await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, null);
 
-            return MapCreateInHouseOrderResponse(order, orderItems, request.NumberOfGuests);
+            return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
+        }
+
+        // Shared helper: validate/occupancy and build TableOrder list (main table = tableIds[0])
+        private async Task<List<TableOrder>> ValidateAndBuildTableOrders(List<int>? tableIds)
+        {
+            if (tableIds == null || tableIds.Count == 0)
+                throw new ArgumentException("At least one table is required");
+
+            var now = DateTime.UtcNow;
+            var tableOrders = new List<TableOrder>();
+
+            foreach (var tableId in tableIds)
+            {
+                var tableExists = await _orderRepository.TableExistsAsync(tableId);
+                if (!tableExists)
+                    throw new KeyNotFoundException($"Table {tableId} not found");
+
+                var isOccupied = await _orderRepository.IsTableOccupiedAsync(tableId);
+                if (isOccupied)
+                    throw new ArgumentException($"Table {tableId} is currently occupied");
+
+                tableOrders.Add(new TableOrder
+                {
+                    TableId = tableId,
+                    OrderId = 0, // will be assigned after order is saved
+                    IsMainTable = tableOrders.Count == 0,
+                    JoinedAt = now,
+                    LeftAt = null
+                });
+            }
+
+            return tableOrders;
         }
 
         private sealed class BuiltOrderItem
@@ -409,16 +441,21 @@ namespace SMAS_Services.OrderServices
 
         private static CreateInHouseOrderResponse MapCreateInHouseOrderResponse(
             Order order,
-            List<OrderItem> orderItems,
-            int? numberOfGuestsForResponse)
+            List<int> tableIds,
+            List<TableOrder> tableOrders,
+            List<OrderItem> orderItems)
+
         {
+            var mainTableId = tableIds.First();
             return new CreateInHouseOrderResponse
             {
                 OrderId = order.OrderId,
                 OrderCode = order.OrderCode,
                 OrderStatus = order.OrderStatus,
                 OrderType = order.OrderType,
-                NumberOfGuests = numberOfGuestsForResponse,
+                TableIds = tableIds,
+                MainTableId = mainTableId,
+                NumberOfGuests = order.NumberOfGuests ?? 0,
                 SubTotal = order.SubTotal ?? 0,
                 TotalAmount = order.TotalAmount,
                 CreatedAt = order.CreatedAt,
@@ -433,7 +470,7 @@ namespace SMAS_Services.OrderServices
                     Subtotal = x.Subtotal ?? 0,
                     Status = x.Status,
                     Note = x.Note
-                }).ToList()
+    }).ToList()
             };
         }
     }

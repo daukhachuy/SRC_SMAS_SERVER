@@ -224,42 +224,39 @@ namespace SMAS_DataAccess.DAO
                     _context.OrderItems.AddRange(items);
                 }
 
-                if (tableOrders.Count > 0)
+                foreach (var tableOrder in tableOrders)
                 {
-                    foreach (var tableOrder in tableOrders)
-                    {
-                        tableOrder.OrderId = order.OrderId;
-                    }
-                    _context.TableOrders.AddRange(tableOrders);
-                    // Cập nhật status bàn + tự động tạo session cache
-                    var tableIds = tableOrders.Select(t => t.TableId).ToList();
-                    var tables = await _context.Tables
-                        .Where(t => tableIds.Contains(t.TableId))
-                        .ToListAsync();
-
-                    var now = DateTime.UtcNow;
-                    foreach (var table in tables)
-                    {
-                        table.Status = "OPEN";
-                        table.UpdatedAt = now;
-
-                        // Tự động kích hoạt session để khách quét QR được
-                        var session = new TableSessionCache
-                        {
-                            TableCode = table.TableName.ToUpper(),
-                            TableId = table.TableId,
-                            SessionNonce = Guid.NewGuid().ToString("N"),
-                            Status = "ACTIVE",
-                            OpenedBy = order.ServedBy ?? 0,
-                            OpenedAt = now,
-                            ExpiresAt = now.AddHours(12)
-                        };
-                        _cache.Set(
-                            CacheKey(table.TableName),
-                            session,
-                            session.ExpiresAt - now);
-                    }
+                    tableOrder.OrderId = order.OrderId;
                 }
+                _context.TableOrders.AddRange(tableOrders);
+                // Cập nhật status bàn + tự động tạo session cache
+                var tableIds = tableOrders.Select(t => t.TableId).ToList();
+                var tables = await _context.Tables
+                    .Where(t => tableIds.Contains(t.TableId))
+                    .ToListAsync();
+
+                var now = DateTime.UtcNow;
+                foreach (var table in tables)
+                {
+                    table.Status = "OPEN";
+                    table.UpdatedAt = now;
+                    // Tự động kích hoạt session để khách quét QR được
+                    var session = new TableSessionCache
+                    {
+                        TableCode = table.TableName.ToUpper(),
+                        TableId = table.TableId,
+                        SessionNonce = Guid.NewGuid().ToString("N"),
+                        Status = "ACTIVE",
+                        OpenedBy = order.ServedBy ?? 0,
+                        OpenedAt = now,
+                        ExpiresAt = now.AddHours(12)
+                    };
+                    _cache.Set(
+                        CacheKey(table.TableName),
+                        session,
+                        session.ExpiresAt - now);
+                }
+
 
                 if (reservationToUpdate != null)
                 {
@@ -380,11 +377,7 @@ namespace SMAS_DataAccess.DAO
         /// </summary>
         public async Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment)
         {
-            var order = await _context.Orders
-                .Include(o => o.TableOrders)
-                .ThenInclude(to => to.Table)
-                .FirstOrDefaultAsync(o => o.OrderId == orderId);
-            if (order == null) return false;
+            var order = await _context.Orders.FindAsync(orderId); if (order == null) return false;
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -394,30 +387,23 @@ namespace SMAS_DataAccess.DAO
                 order.OrderStatus = orderStatus;
                 if (orderStatus == "Completed" || orderStatus == "Closed")
                 {
-                    var tableOrders = order.TableOrders.ToList();
-                    var tableIds = tableOrders.Select(t => t.TableId).ToList();
-                    if (tableIds.Count > 0)
+                    var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
+                    var tables = await _context.Tables
+                        .Where(t => tableIds.Contains(t.TableId))
+                        .ToListAsync();
+
+                    foreach (var table in tables)
                     {
-                        var tables = await _context.Tables
-                            .Where(t => tableIds.Contains(t.TableId))
-                            .ToListAsync();
-
-                        foreach (var table in tables)
-                        {
-                            table.Status = "AVAILABLE";
-                            table.UpdatedAt = DateTime.UtcNow;
-
-                            // Xóa session cache — khách không quét QR được nữa
-                            _cache.Remove($"table_session_{table.TableName.ToUpper()}");
-                        }
-
-                        foreach (var to in tableOrders.Where(t => t.LeftAt == null))
-                            to.LeftAt = DateTime.UtcNow;
+                        table.Status = "AVAILABLE";
+                        table.UpdatedAt = DateTime.UtcNow;
+                        // Xóa session cache — khách không quét QR được nữa
+                        _cache.Remove($"table_session_{table.TableName.ToUpper()}");
                     }
+                    foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
+                        to.LeftAt = DateTime.UtcNow;
                 }
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await _context.SaveChangesAsync(); await transaction.CommitAsync();
                 return true;
             }
             catch
@@ -437,8 +423,7 @@ namespace SMAS_DataAccess.DAO
             order.OrderStatus = "Cancelled";
             delivery.Note = note;
             delivery.DeliveryStatus = "Failed";
-            await _context.SaveChangesAsync();
-            return true;
+            await _context.SaveChangesAsync(); return true;
         }
 
         public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int userId)
@@ -458,8 +443,7 @@ namespace SMAS_DataAccess.DAO
                          && o.OrderStatus != "Cancelled"
                          && o.ServedByNavigation != null
                          && o.ServedByNavigation.UserId == userId)
-                .OrderByDescending(o => o.CreatedAt)
-                .ToListAsync();
+                .OrderByDescending(o => o.CreatedAt).ToListAsync();
         }
         public async Task<List<Order>> GetAllOrderDeliveryByWaiterIdAsync(int userId)
         {
@@ -480,7 +464,6 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
-
         public async Task<List<Order>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId)
         {
             var sevenDaysAgo = DateTime.Now.AddDays(-7);
