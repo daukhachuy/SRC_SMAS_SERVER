@@ -16,16 +16,16 @@ namespace SMAS_API.Controllers
             _comboService = comboService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAvailableCombos()
-        {
-            var combos = await _comboService.GetAvailableCombosAsync();
-            if (combos == null || !combos.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_025", Message = "Không có combo nào đang hoạt động !" });
-            }
-            return Ok(combos);
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAvailableCombos()
+        //{
+        //    var combos = await _comboService.GetAvailableCombosAsync();
+        //    if (combos == null || !combos.Any())
+        //    {
+        //        return NotFound(new { MsgCode = "MSG_025", Message = "Không có combo nào đang hoạt động !" });
+        //    }
+        //    return Ok(combos);
+        //}
 
         [HttpPost("filter")]
         public async Task<IActionResult> GetCombosFilter([FromQuery] CombosFilterRequest request)

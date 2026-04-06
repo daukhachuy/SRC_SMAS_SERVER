@@ -10,6 +10,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/reservation")]
+    [Authorize]
     public class ReservationController : Controller
     {
         private readonly IReservationService _reservationservice;
@@ -22,12 +23,14 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet]
+        //[Authorize(Roles = "Admin,Manager")]
         public async Task<ActionResult<ReservationListResponse>> GetAllReservation()
         {
             var  reservation = await _reservationservice.GetAllReservationsAsync();
             return Ok(reservation);
         }
         // GET api/reservation/my  - lấy reservation của người đang đăng nhập
+        //[Authorize(Roles = "Waiter")]
         [HttpGet("my")]
         public async Task<ActionResult<IEnumerable<ReservationListResponse>>> GetMyReservations([FromQuery] int? userId = null)
         {
