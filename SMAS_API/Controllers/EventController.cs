@@ -107,6 +107,23 @@ namespace SMAS_API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,Admin")]
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> PatchEventStatusAsync(int id, [FromBody] EventStatusPatchDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _eventService.PatchStatusAsync(id, dto);
+                return Ok(new { Message = "Cập nhật trạng thái sự kiện thành công", Data = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+        }
 
         [Authorize(Roles = "Manager/Admin")]
         [HttpDelete("{id:int}")]
