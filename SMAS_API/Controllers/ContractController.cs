@@ -61,8 +61,24 @@ namespace SMAS_API.Controllers
             };
         }
 
+        /// <summary>Bước 1: xem nội dung hợp đồng (chưa ký). Query: token.</summary>
         [AllowAnonymous]
-        [HttpPost("sign")]
+        [HttpGet("sign", Order = 0)]
+        public async Task<IActionResult> GetContractForSign([FromQuery] string? token)
+        {
+            var (dto, status, error) = await _contractWorkflowService.GetContractByTokenAsync(token);
+            return status switch
+            {
+                200 => Ok(dto),
+                400 => BadRequest(new { message = error }),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
+        }
+
+        /// <summary>Bước 2: xác nhận ký hợp đồng.</summary>
+        [AllowAnonymous]
+        [HttpPost("sign", Order = 0)]
         public async Task<IActionResult> Sign([FromBody] ContractSignRequestDTO request)
         {
             var (dto, status, error) = await _contractWorkflowService.SignContractByTokenAsync(request);
@@ -77,14 +93,13 @@ namespace SMAS_API.Controllers
 
         [Authorize(Roles = "Manager,Cashier")]
         [HttpPost("{id:int}/deposit")]
-        public async Task<IActionResult> Deposit([FromRoute] int id, [FromBody] ContractDepositRequestDTO request)
+        public async Task<IActionResult> Deposit([FromRoute] int id)
         {
-            var staffId = GetUserId();
-            if (staffId == null)
+            if (GetUserId() == null)
                 return Unauthorized();
 
             var apiBase = _configuration["App:PublicBaseUrl"] ?? _appSettings.PublicBaseUrl;
-            var (dto, status, error) = await _contractWorkflowService.DepositAsync(id, request, staffId.Value, apiBase);
+            var (dto, status, error) = await _contractWorkflowService.DepositAsync(id, apiBase);
             return status switch
             {
                 200 => Ok(dto),
@@ -100,15 +115,13 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> DepositCallback(
             [FromRoute] int id,
             [FromQuery] string? status,
-            [FromQuery] long? orderCode,
-            [FromQuery] string? transactionId)
+            [FromQuery] long? orderCode)
         {
             var fe = _configuration["App:FrontendBaseUrl"] ?? _appSettings.FrontendBaseUrl;
             var url = await _contractWorkflowService.DepositCallbackRedirectAsync(
                 id,
                 status ?? "",
                 orderCode ?? 0,
-                transactionId,
                 fe);
             return Redirect(url);
         }
@@ -129,7 +142,7 @@ namespace SMAS_API.Controllers
             return Ok();
         }
 
-        [HttpGet("{bookingCode}")]
+        [HttpGet("{bookingCode}", Order = 10)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

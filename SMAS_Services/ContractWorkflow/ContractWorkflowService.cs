@@ -255,7 +255,7 @@ public class ContractWorkflowService : IContractWorkflowService
         var token = Guid.NewGuid().ToString("N");
         var deadline = DateTime.UtcNow.AddHours(72);
         var baseUrl = string.IsNullOrWhiteSpace(publicBaseUrl) ? _appSettings.PublicBaseUrl.TrimEnd('/') : publicBaseUrl.TrimEnd('/');
-        var signLink = $"{baseUrl}/contract/sign?token={token}";
+        var signLink = $"{baseUrl}/api/contract/sign?token={token}";
 
         var customerName = contract.Customer?.Fullname ?? "Quý khách";
         var html = $@"
@@ -289,6 +289,30 @@ public class ContractWorkflowService : IContractWorkflowService
         }, 200, null);
     }
 
+    public async Task<(ContractDetailByTokenDTO? dto, int statusCode, string? error)> GetContractByTokenAsync(string? token)
+    {
+        var t = token?.Trim();
+        if (string.IsNullOrEmpty(t))
+            return (null, 404, "Link không hợp lệ");
+
+        var contract = await _repo.GetContractBySignTokenWithBookEventAsync(t);
+        var (status, error) = ValidateContractReadyToSign(contract);
+        if (status != 0)
+            return (null, status, error);
+
+        return (new ContractDetailByTokenDTO
+        {
+            ContractCode = contract!.ContractCode,
+            EventDate = contract.EventDate.ToString("yyyy-MM-dd"),
+            NumberOfGuests = contract.NumberOfGuests,
+            TotalAmount = contract.TotalAmount,
+            DepositAmount = contract.DepositAmount,
+            TermsAndConditions = contract.TermsAndConditions,
+            ContractFileUrl = contract.ContractFileUrl,
+            Token = t
+        }, 200, null);
+    }
+
     public async Task<(ContractSignResponseDTO? dto, int statusCode, string? error)> SignContractByTokenAsync(ContractSignRequestDTO request)
     {
         var token = request.Token?.Trim();
@@ -296,22 +320,11 @@ public class ContractWorkflowService : IContractWorkflowService
             return (null, 404, "Link không hợp lệ");
 
         var contract = await _repo.GetContractBySignTokenWithBookEventAsync(token);
-        if (contract == null)
-            return (null, 404, "Link không hợp lệ");
+        var (status, error) = ValidateContractReadyToSign(contract);
+        if (status != 0)
+            return (null, status, error);
 
-        if (contract.Status == "Signed")
-            return (null, 400, "Hợp đồng đã được ký trước đó");
-
-        if (contract.Status == "Cancelled")
-            return (null, 400, "Hợp đồng đã bị hủy");
-
-        if (contract.Status != "Sent")
-            return (null, 400, "Link không hợp lệ");
-
-        if (contract.UpdatedAt == null || contract.UpdatedAt.Value.AddHours(72) < DateTime.UtcNow)
-            return (null, 400, "Link đã hết hạn, vui lòng liên hệ nhà hàng để gửi lại");
-
-        await _repo.SignContractAndUpdateBookEventAsync(contract);
+        await _repo.SignContractAndUpdateBookEventAsync(contract!);
 
         return (new ContractSignResponseDTO
         {
@@ -322,8 +335,7 @@ public class ContractWorkflowService : IContractWorkflowService
         }, 200, null);
     }
 
-    public async Task<(object? dto, int statusCode, string? error)> DepositAsync(
-        int contractId, ContractDepositRequestDTO request, int staffUserId, string apiBaseUrl)
+    public async Task<(object? dto, int statusCode, string? error)> DepositAsync(int contractId, string apiBaseUrl)
     {
         var contract = await _repo.GetContractByIdForDepositAsync(contractId);
         if (contract == null)
@@ -335,49 +347,9 @@ public class ContractWorkflowService : IContractWorkflowService
         if (await _repo.ExistsPaidDepositForContractAsync(contractId))
             return (null, 400, "Hợp đồng này đã được thanh toán tiền cọc");
 
-        var method = request.PaymentMethod?.Trim();
-        var allowed = new[] { "Cash", "BankTransfer", "Card", "PayOS" };
-        if (string.IsNullOrEmpty(method) || !allowed.Contains(method))
-            return (null, 400, "Phương thức thanh toán không hợp lệ");
-
         decimal deposit = contract.DepositAmount ?? 0;
         if (deposit <= 0)
             return (null, 400, "Số tiền đặt cọc không hợp lệ.");
-
-        decimal totalAmount = contract.TotalAmount;
-
-        if (method != "PayOS")
-        {
-            var code = "DEP-" + DateTime.UtcNow.ToString("yyyyMMddHHmm") + "-" + contractId;
-            var payment = new Payment
-            {
-                PaymentCode = code,
-                ContractId = contractId,
-                OrderId = null,
-                Amount = deposit,
-                PaymentMethod = method,
-                PaymentStatus = "Paid",
-                TransactionId = request.TransactionId,
-                Note = "deposit",
-                ReceivedBy = staffUserId,
-                PaidAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var saved = await _repo.AddDepositPaymentAndUpdateContractAsync(
-                contract, payment, totalAmount, deposit);
-
-            return (new ContractDepositDirectResponseDTO
-            {
-                PaymentId = saved.PaymentId,
-                PaymentCode = saved.PaymentCode!,
-                ContractId = contractId,
-                Amount = saved.Amount,
-                RemainingAmount = contract.RemainingAmount ?? 0,
-                PaymentMethod = saved.PaymentMethod,
-                PaidAt = saved.PaidAt!.Value
-            }, 200, null);
-        }
 
         long orderCode = long.Parse(DateTime.UtcNow.ToString("yyMMddHHmm") + contractId);
         int amountVnd = (int)Math.Round(deposit, MidpointRounding.AwayFromZero);
@@ -405,7 +377,7 @@ public class ContractWorkflowService : IContractWorkflowService
     }
 
     public async Task<string> DepositCallbackRedirectAsync(
-        int contractId, string status, long orderCode, string? transactionId, string frontendBaseUrl)
+        int contractId, string status, long orderCode, string frontendBaseUrl)
     {
         var fe = string.IsNullOrWhiteSpace(frontendBaseUrl) ? _appSettings.FrontendBaseUrl.TrimEnd('/') : frontendBaseUrl.TrimEnd('/');
 
@@ -427,9 +399,6 @@ public class ContractWorkflowService : IContractWorkflowService
             if (!ok)
                 return $"{fe}/events/{bookEventId}?payment=error";
 
-            if (await _repo.ExistsByTransactionIdAsync(orderCode.ToString()))
-                return $"{fe}/events/{bookEventId}?payment=success";
-
             if (await _repo.ExistsPaidDepositForContractAsync(contractId))
                 return $"{fe}/events/{bookEventId}?payment=success";
 
@@ -444,7 +413,7 @@ public class ContractWorkflowService : IContractWorkflowService
                 Amount = deposit,
                 PaymentMethod = "PayOS",
                 PaymentStatus = "Paid",
-                TransactionId = orderCode.ToString(),
+                TransactionId = $"PAYOS-{contractId}-{DateTime.UtcNow.Ticks}",
                 Note = "deposit",
                 ReceivedBy = null,
                 PaidAt = DateTime.UtcNow,
@@ -478,10 +447,6 @@ public class ContractWorkflowService : IContractWorkflowService
         if (payload?.Data == null || !payload.Success)
             return;
 
-        var transactionId = payload.Data.Reference ?? payload.Data.PaymentLinkId ?? payload.Data.OrderCode.ToString();
-        if (await _repo.ExistsByTransactionIdAsync(transactionId))
-            return;
-
         var contract = await _repo.GetContractByIdForDepositAsync(contractId);
         if (contract == null)
             return;
@@ -500,7 +465,7 @@ public class ContractWorkflowService : IContractWorkflowService
             Amount = deposit,
             PaymentMethod = "PayOS",
             PaymentStatus = "Paid",
-            TransactionId = transactionId,
+            TransactionId = $"PAYOS-{contractId}-{DateTime.UtcNow.Ticks}",
             Note = "deposit",
             ReceivedBy = null,
             PaidAt = DateTime.UtcNow,
@@ -586,5 +551,26 @@ public class ContractWorkflowService : IContractWorkflowService
         var domain = email[at..];
         var prefix = local.Length <= 3 ? local : local[..3];
         return prefix + "***" + domain;
+    }
+
+    /// <summary>Cùng điều kiện với ký: token tồn tại, Sent, chưa hết hạn 72h.</summary>
+    private static (int statusCode, string? error) ValidateContractReadyToSign(Contract? contract)
+    {
+        if (contract == null)
+            return (404, "Link không hợp lệ");
+
+        if (contract.Status == "Signed")
+            return (400, "Hợp đồng đã được ký trước đó");
+
+        if (contract.Status == "Cancelled")
+            return (400, "Hợp đồng đã bị hủy");
+
+        if (contract.Status != "Sent")
+            return (400, "Link không hợp lệ");
+
+        if (contract.UpdatedAt == null || contract.UpdatedAt.Value.AddHours(72) < DateTime.UtcNow)
+            return (400, "Link đã hết hạn, vui lòng liên hệ nhà hàng để gửi lại");
+
+        return (0, null);
     }
 }
