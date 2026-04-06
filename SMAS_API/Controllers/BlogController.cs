@@ -15,6 +15,17 @@ namespace SMAS_API.Controllers
             _blogServices = blogServices;
         }
 
+        [HttpGet("lists")]
+        public async Task<ActionResult<BlogResponse>> GetAllBlogs()
+        {
+            var result = await _blogServices.GetAllAsync();
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { MsgCode = "MSG_029", Message = "Không có bài viết nào !" });
+            }
+            return Ok(result);
+        }
+
         // GET: api/blogs        -> lấy tất cả
         // GET: api/blogs?id=2   -> lấy theo id
         [HttpGet]
