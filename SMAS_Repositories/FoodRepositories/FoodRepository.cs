@@ -18,7 +18,104 @@ namespace SMAS_Repositories.FoodRepositories
         {
             _foodDAO = foodDAO;
         }
+        public async Task<IEnumerable<FoodListResponse>> GetAllAsync()
+        {
+            var foods = await _foodDAO.GetAllAsync();
+            return foods.Select(MapToResponseDto);
+        }
 
+        public async Task<FoodListResponse?> GetByIdAsync(int id)
+        {
+            var food = await _foodDAO.GetByIdAsync(id);
+            return food == null ? null : MapToResponseDto(food);
+        }
+
+        public async Task<FoodListResponse> CreateAsync(FoodCreateDto dto)
+        {
+            var food = MapFromCreateDto(dto);
+            var created = await _foodDAO.CreateAsync(food);
+            return MapToResponseDto(created);
+        }
+
+        public async Task<FoodListResponse?> UpdateAsync(int id, FoodUpdateDto dto)
+        {
+            var food = await _foodDAO.GetByIdAsync(id);
+            if (food == null) return null;
+
+            MapFromUpdateDto(dto, food);
+            var updated = await _foodDAO.UpdateAsync(food);
+            return MapToResponseDto(updated);
+        }
+
+        public Task<bool> DeleteAsync(int id)
+                   => _foodDAO.DeleteAsync(id);
+
+        public Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+            => _foodDAO.UpdateStatusAsync(id, isAvailable);
+
+        // -------------------------------------------------------
+        // Mapping helpers
+        // -------------------------------------------------------
+
+        private static FoodListResponse MapToResponseDto(Food food) => new FoodListResponse
+        {
+            FoodId = food.FoodId,
+            Name = food.Name,
+            Description = food.Description,
+            Price = food.Price,
+            PromotionalPrice = food.PromotionalPrice,
+            Image = food.Image,
+            Unit = food.Unit,
+            IsAvailable = food.IsAvailable,
+            IsDirectSale = food.IsDirectSale,
+            IsFeatured = food.IsFeatured,
+            PreparationTime = food.PreparationTime,
+            Calories = food.Calories,
+            ViewCount = food.ViewCount,
+            OrderCount = food.OrderCount,
+            Rating = food.Rating,
+            Note = food.Note,
+            CreatedAt = food.CreatedAt,
+            UpdatedAt = food.UpdatedAt
+        };
+
+        private static Food MapFromCreateDto(FoodCreateDto dto) => new Food
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            Price = dto.Price,
+            PromotionalPrice = dto.PromotionalPrice,
+            Image = dto.Image,
+            Unit = dto.Unit,
+            IsAvailable = dto.IsAvailable ?? true,
+            IsDirectSale = dto.IsDirectSale,
+            IsFeatured = dto.IsFeatured,
+            PreparationTime = dto.PreparationTime,
+            Calories = dto.Calories,
+            Note = dto.Note,
+            ViewCount = 0,
+            OrderCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // Cập nhật trực tiếp vào entity đã có (tránh tạo object mới mất FoodId)
+        private static void MapFromUpdateDto(FoodUpdateDto dto, Food food)
+        {
+            food.Name = dto.Name;
+            food.Description = dto.Description;
+            food.Price = dto.Price;
+            food.PromotionalPrice = dto.PromotionalPrice;
+            food.Image = dto.Image;
+            food.Unit = dto.Unit;
+            food.IsAvailable = dto.IsAvailable;
+            food.IsDirectSale = dto.IsDirectSale;
+            food.IsFeatured = dto.IsFeatured;
+            food.PreparationTime = dto.PreparationTime;
+            food.Calories = dto.Calories;
+            food.Note = dto.Note;
+            food.UpdatedAt = DateTime.UtcNow;
+        }
         public async Task<IEnumerable<FoodListResponse>> GetAllFoodsCategoryAsync()
         {
             var foods = await _foodDAO.GetAllFoodsCategoryAsync();

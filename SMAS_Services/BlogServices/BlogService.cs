@@ -18,32 +18,11 @@ namespace SMAS_Services.BlogServices
             _blogRepository = blogRepository;
         }
 
-        public async Task<IEnumerable<BlogResponse>> GetAllBlogsAsync()
-        {
-            return await _blogRepository.GetAllBlogsAsync();
-        }
-        public async Task<BlogResponse?> GetByIdAsync(int id)
-        {
-            return await _blogRepository.GetByIdAsync(id);
-        }
-
-        public async Task<BlogResponse> CreateAsync(BlogCreateDto dto)
-        {
-            if (dto.PublishedAt.HasValue && dto.PublishedAt < DateTime.UtcNow.Date)
-                throw new ArgumentException("PublishedAt cannot be in the past.");
-
-            return await _blogRepository.CreateAsync(dto);
-        }
-
-        public async Task<BlogResponse> UpdateAsync(int id, BlogUpdateDto dto)
-        {
-            if (dto.PublishedAt.HasValue && dto.PublishedAt < DateTime.UtcNow.Date)
-                throw new ArgumentException("PublishedAt cannot be in the past.");
-
-            return await _blogRepository.UpdateAsync(id, dto);
-        }
-
-        public async Task DeleteAsync(int id)
-            => await _blogRepository.DeleteAsync(id);
+        public Task<IEnumerable<BlogResponse>> GetAllAsync() => _blogRepository.GetAllAsync();
+        public Task<BlogResponse?> GetByIdAsync(int id) => _blogRepository.GetByIdAsync(id);
+        public Task<BlogResponse> CreateAsync(BlogCreateDto dto) => _blogRepository.CreateAsync(dto);
+        public Task<BlogResponse?> UpdateAsync(int id, BlogUpdateDto dto) => _blogRepository.UpdateAsync(id, dto);
+        public Task<bool> DeleteAsync(int id) => _blogRepository.DeleteAsync(id);
+        public Task<bool> UpdateStatusAsync(int id, string status) => _blogRepository.UpdateStatusAsync(id, status);
     }
 }

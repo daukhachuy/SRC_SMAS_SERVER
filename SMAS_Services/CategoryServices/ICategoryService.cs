@@ -12,5 +12,10 @@ namespace SMAS_Services.CategoryServices
         Task<IEnumerable<CategoryResponse>> GetAllCategoryContainFoodAsync();
 
         Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync();
+        Task<CategoryResponse?> GetByIdAsync(int id);
+        Task<CategoryResponse> CreateAsync(CategoryCreateDto dto);
+        Task<CategoryResponse?> UpdateAsync(int id, CategoryUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isAvailable);
     }
 }

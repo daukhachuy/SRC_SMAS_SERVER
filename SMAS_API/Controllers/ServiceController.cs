@@ -29,7 +29,7 @@ namespace SMAS_API.Controllers
 
         // GET: api/service?id=5  hoặc  api/service (all)
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int? id)
+        public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
             {
@@ -51,19 +51,19 @@ namespace SMAS_API.Controllers
 
         // POST
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ServiceCreateDto dto)
+        public async Task<IActionResult> CreateAsync([FromBody] ServiceCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var result = await _serviceService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = result.ServiceId },
+            return CreatedAtAction(nameof(GetAsync), new { id = result.ServiceId },
                 new { Message = "Tạo dịch vụ thành công", Data = result });
         }
 
         // PUT
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ServiceUpdateDto dto)
+        public async Task<IActionResult> UpdateAsync(int id, [FromBody] ServiceUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -79,19 +79,26 @@ namespace SMAS_API.Controllers
             }
         }
 
-        // DELETE → Soft Delete (IsAvailable = false)
+        // DELETE: api/services/{id} -> xóa thật
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteAsync(int id)
         {
-            try
-            {
-                await _serviceService.DeleteAsync(id);
-                return Ok(new { Message = "Xóa dịch vụ thành công" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            var success = await _serviceService.DeleteAsync(id);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy dịch vụ với Id = {id}." });
+
+            return Ok(new { message = $"Đã xóa dịch vụ Id = {id}." });
+        }
+
+        // PATCH: api/services/{id}/status?isAvailable=true|false
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
+        {
+            var success = await _serviceService.UpdateStatusAsync(id, isAvailable);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy dịch vụ với Id = {id}." });
+
+            return Ok(new { message = $"Đã cập nhật trạng thái dịch vụ Id = {id} thành {isAvailable}." });
         }
     }
 }

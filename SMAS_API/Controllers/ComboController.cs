@@ -7,6 +7,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/combo")]
+    [Authorize(Roles = "Admin")]
     public class ComboController : ControllerBase
     {
         private readonly IComboService _comboService;
@@ -62,6 +63,68 @@ namespace SMAS_API.Controllers
             if (!result)
                 return NotFound(new { MsgCode = "MSG_021", Message = "Không tìm thấy combo !" });
             return Ok(new { MsgCode = "MSG_022", Message = "Cập nhật trạng thái món ăn thành công !" });
+        }
+
+
+        // GET: api/combos        -> lấy tất cả
+        // GET: api/combos?id=2   -> lấy theo id
+        [HttpGet]
+        public async Task<IActionResult> GetAsync([FromQuery] int? id)
+        {
+            if (id.HasValue)
+            {
+                var combo = await _comboService.GetByIdAsync(id.Value);
+                if (combo == null)
+                    return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+                return Ok(combo);
+            }
+
+            return Ok(await _comboService.GetAllAsync());
+        }
+
+        // POST: api/combos
+        [HttpPost]
+        public async Task<ActionResult<ComboListResponse>> CreateAsync([FromBody] ComboCreateDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var created = await _comboService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetAsync), new { id = created.ComboId }, created);
+        }
+
+        // PUT: api/combos/{id}
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ComboListResponse>> UpdateAsync(int id, [FromBody] ComboUpdateDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var updated = await _comboService.UpdateAsync(id, dto);
+            if (updated == null)
+                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+
+            return Ok(updated);
+        }
+
+        // DELETE: api/combos/{id}
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteAsync(int id)
+        {
+            var success = await _comboService.DeleteAsync(id);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+
+            return Ok(new { message = $"Đã xóa combo Id = {id}." });
+        }
+
+        // PATCH: api/combos/{id}/status?isAvailable=true|false
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
+        {
+            var success = await _comboService.UpdateStatusAsync(id, isAvailable);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+
+            return Ok(new { message = $"Đã cập nhật trạng thái combo Id = {id} thành {isAvailable}." });
         }
 
     }

@@ -17,7 +17,20 @@ namespace SMAS_Services.FoodServices
         {
             _foodRepository = foodRepository;
         }
+        public Task<IEnumerable<FoodListResponse>> GetAllAsync()
+           => _foodRepository.GetAllAsync();
 
+        public Task<FoodListResponse?> GetByIdAsync(int id)
+            => _foodRepository.GetByIdAsync(id);
+
+        public Task<FoodListResponse> CreateAsync(FoodCreateDto dto)
+            => _foodRepository.CreateAsync(dto);
+
+        public Task<FoodListResponse?> UpdateAsync(int id, FoodUpdateDto dto)
+            => _foodRepository.UpdateAsync(id, dto);
+
+        public Task<bool> SoftDeleteAsync(int id)
+            => _foodRepository.SoftDeleteAsync(id);
         public async Task<IEnumerable<FoodListResponse>> GetAllFoodsCategoryAsync()
         {
             return await _foodRepository.GetAllFoodsCategoryAsync();

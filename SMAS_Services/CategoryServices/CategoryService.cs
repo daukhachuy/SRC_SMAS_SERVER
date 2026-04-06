@@ -27,5 +27,20 @@ namespace SMAS_Services.CategoryServices
         {
             return await _categoryRepository.GetAllCategoriesAsync();
         }
+
+        public Task<CategoryResponse?> GetByIdAsync(int id)
+            => _categoryRepository.GetByIdAsync(id);
+
+        public Task<CategoryResponse> CreateAsync(CategoryCreateDto dto)
+            => _categoryRepository.CreateAsync(dto);
+
+        public Task<CategoryResponse?> UpdateAsync(int id, CategoryUpdateDto dto)
+            => _categoryRepository.UpdateAsync(id, dto);
+
+        public Task<bool> DeleteAsync(int id)
+             => _categoryRepository.DeleteAsync(id);
+
+        public Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+            => _categoryRepository.UpdateStatusAsync(id, isAvailable);
     }
 }

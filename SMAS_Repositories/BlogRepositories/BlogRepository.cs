@@ -18,93 +18,78 @@ namespace SMAS_Repositories.BlogRepositories
             _blogDAO = blogDAO;
         }
 
-        public async Task<IEnumerable<BlogResponse>> GetAllBlogsAsync()
+        public async Task<IEnumerable<BlogResponse>> GetAllAsync()
         {
-            var blogs = await _blogDAO.GetAllBlogsAsync();
-            return blogs.Select(b => new BlogResponse
-            {
-                BlogId = b.BlogId,
-                Title = b.Title,
-                Content = b.Content,
-                Image = b.Image,
-                ViewCount = b.ViewCount,
-                Status = b.Status,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt,
-                PublishedAt = b.PublishedAt,
-                Fullname = b.Author.Fullname
-            });
+            var blogs = await _blogDAO.GetAllAsync();
+            return blogs.Select(MapToResponseDto);
         }
+
         public async Task<BlogResponse?> GetByIdAsync(int id)
         {
-            var entity = await _blogDAO.GetByIdAsync(id);
-            return entity is null ? null : MapToDto(entity);
+            var blog = await _blogDAO.GetByIdAsync(id);
+            return blog == null ? null : MapToResponseDto(blog);
         }
 
         public async Task<BlogResponse> CreateAsync(BlogCreateDto dto)
         {
-            var entity = MapToEntity(dto);
-            var created = await _blogDAO.CreateAsync(entity);
-            return MapToDto(created);
+            var blog = MapFromCreateDto(dto);
+            var created = await _blogDAO.CreateAsync(blog);
+            return MapToResponseDto(created);
         }
 
-        public async Task<BlogResponse> UpdateAsync(int id, BlogUpdateDto dto)
+        public async Task<BlogResponse?> UpdateAsync(int id, BlogUpdateDto dto)
         {
-            var entity = await _blogDAO.GetByIdAsync(id)
-                ?? throw new KeyNotFoundException($"Blog with id {id} not found.");
+            var blog = await _blogDAO.GetByIdAsync(id);
+            if (blog == null) return null;
 
-            ApplyUpdate(entity, dto);
-            var updated = await _blogDAO.UpdateAsync(entity);
-            return MapToDto(updated);
+            MapFromUpdateDto(dto, blog);
+            var updated = await _blogDAO.UpdateAsync(blog);
+            return MapToResponseDto(updated);
         }
 
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _blogDAO.GetByIdAsync(id)
-                ?? throw new KeyNotFoundException($"Blog with id {id} not found.");
+        public Task<bool> DeleteAsync(int id) => _blogDAO.DeleteAsync(id);
 
-            // SOFT DELETE
-            entity.Status = "Disabled";
-            await _blogDAO.UpdateAsync(entity);
-        }
+        public Task<bool> UpdateStatusAsync(int id, string status) => _blogDAO.UpdateStatusAsync(id, status);
 
-        // ==================== MAPPERS ====================
-        private static BlogResponse MapToDto(Blog e) => new()
+        // -------------------------------------------------------
+        // Mapping helpers
+        // -------------------------------------------------------
+
+        private static BlogResponse MapToResponseDto(Blog b) => new BlogResponse
         {
-            BlogId = e.BlogId,
-            Title = e.Title,
-            Content = e.Content,
-            Image = e.Image,
-            ViewCount = e.ViewCount,
-            Status = e.Status,
-            CreatedAt = e.CreatedAt,
-            UpdatedAt = e.UpdatedAt,
-            PublishedAt = e.PublishedAt,
-            AuthorId = e.AuthorId
+            BlogId = b.BlogId,
+            Title = b.Title,
+            Content = b.Content,
+            Image = b.Image,
+            ViewCount = b.ViewCount,
+            Status = b.Status,
+            AuthorId = b.AuthorId,
+            CreatedAt = b.CreatedAt,
+            UpdatedAt = b.UpdatedAt,
+            PublishedAt = b.PublishedAt
         };
 
-        private static Blog MapToEntity(BlogCreateDto dto) => new()
+        private static Blog MapFromCreateDto(BlogCreateDto dto) => new Blog
         {
-            Title = dto.Title.Trim(),
+            Title = dto.Title,
             Content = dto.Content,
             Image = dto.Image,
-            ViewCount = dto.ViewCount ?? 0,
-            Status = dto.Status ?? "Active",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            Status = dto.Status ?? "Draft",
+            AuthorId = dto.AuthorId,
+            ViewCount = 0,
             PublishedAt = dto.PublishedAt,
-            AuthorId = dto.AuthorId
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
-        private static void ApplyUpdate(Blog entity, BlogUpdateDto dto)
+        private static void MapFromUpdateDto(BlogUpdateDto dto, Blog blog)
         {
-            entity.Title = dto.Title.Trim();
-            entity.Content = dto.Content;
-            entity.Image = dto.Image;
-            entity.ViewCount = dto.ViewCount ?? entity.ViewCount;
-            entity.Status = dto.Status;
-            entity.PublishedAt = dto.PublishedAt;
-            entity.UpdatedAt = DateTime.UtcNow;
+            blog.Title = dto.Title;
+            blog.Content = dto.Content;
+            blog.Image = dto.Image;
+            blog.Status = dto.Status;
+            blog.PublishedAt = dto.PublishedAt;
+            blog.UpdatedAt = DateTime.UtcNow;
         }
 
     }

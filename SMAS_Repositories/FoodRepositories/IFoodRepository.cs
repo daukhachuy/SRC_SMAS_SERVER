@@ -17,5 +17,11 @@ namespace SMAS_Repositories.FoodRepositories
         Task<FoodListResponse?> GetFoodByIdAsync(int foodId);
         Task<decimal> GetFoodPriceAsync(int foodId);
         Task<bool> UpdateStatusByFoodId(int foodId);
+        Task<IEnumerable<FoodListResponse>> GetAllAsync();
+        Task<FoodListResponse?> GetByIdAsync(int id);
+        Task<FoodListResponse> CreateAsync(FoodCreateDto dto);
+        Task<FoodListResponse?> UpdateAsync(int id, FoodUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isAvailable);
     }
 }

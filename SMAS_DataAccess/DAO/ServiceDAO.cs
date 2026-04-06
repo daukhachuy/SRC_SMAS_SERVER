@@ -38,5 +38,25 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return service;
         }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var service = await _context.Services.FindAsync(id);
+            if (service == null) return false;
+
+            _context.Services.Remove(service);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Patch status: ch? c?p nh?t IsAvailable
+        public async Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+        {
+            var service = await _context.Services.FindAsync(id);
+            if (service == null) return false;
+
+            service.IsAvailable = isAvailable;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

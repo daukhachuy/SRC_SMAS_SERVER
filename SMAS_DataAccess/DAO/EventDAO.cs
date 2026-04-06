@@ -38,6 +38,27 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return entity;
         }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var evt = await _context.Events.FindAsync(id);
+            if (evt == null) return false;
+
+            _context.Events.Remove(evt);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Patch status: ch? c?p nh?t IsActive
+        public async Task<bool> UpdateStatusAsync(int id, bool isActive)
+        {
+            var evt = await _context.Events.FindAsync(id);
+            if (evt == null) return false;
+
+            evt.IsActive = isActive;
+            evt.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 
 }

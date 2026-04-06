@@ -17,10 +17,13 @@ namespace SMAS_DataAccess.DAO
             _context = context;
         }
 
-        public async Task<List<Blog>> GetAllBlogsAsync()
+        public async Task<IEnumerable<Blog>> GetAllAsync()
         {
-            return await _context.Blogs.Include(u => u.Author).ToListAsync();
+            return await _context.Blogs
+                .AsNoTracking()
+                .ToListAsync();
         }
+
         public async Task<Blog?> GetByIdAsync(int id)
         {
             return await _context.Blogs
@@ -40,6 +43,28 @@ namespace SMAS_DataAccess.DAO
             _context.Blogs.Update(blog);
             await _context.SaveChangesAsync();
             return blog;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var blog = await _context.Blogs.FindAsync(id);
+            if (blog == null) return false;
+
+            _context.Blogs.Remove(blog);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Patch status: chỉ cập nhật Status (Draft / Published / Archived...)
+        public async Task<bool> UpdateStatusAsync(int id, string status)
+        {
+            var blog = await _context.Blogs.FindAsync(id);
+            if (blog == null) return false;
+
+            blog.Status = status;
+            blog.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
     }

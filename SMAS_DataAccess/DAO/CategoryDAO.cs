@@ -29,5 +29,47 @@ namespace SMAS_DataAccess.DAO
             return await _context.Categories.ToListAsync();
 
         }
+        public async Task<Category?> GetByIdAsync(int id)
+        {
+            return await _context.Categories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CategoryId == id);
+        }
+
+        public async Task<Category> CreateAsync(Category category)
+        {
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
+            return category;
+        }
+
+        public async Task<Category> UpdateAsync(Category category)
+        {
+            _context.Categories.Update(category);
+            await _context.SaveChangesAsync();
+            return category;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null) return false;
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Patch status: chỉ cập nhật IsAvailable
+        public async Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null) return false;
+
+            category.IsAvailable = isAvailable;
+            category.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

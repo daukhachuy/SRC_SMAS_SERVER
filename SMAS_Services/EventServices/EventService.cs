@@ -42,8 +42,8 @@ namespace SMAS_Services.EventServices
             return await _eventRepository.UpdateAsync(id, dto);
         }
 
-        public async Task DeleteAsync(int id)
-            => await _eventRepository.DeleteAsync(id);
+        public Task<bool> DeleteAsync(int id) => _eventRepository.DeleteAsync(id);
+        public Task<bool> UpdateStatusAsync(int id, bool isActive) => _eventRepository.UpdateStatusAsync(id, isActive);
     }
 
 }

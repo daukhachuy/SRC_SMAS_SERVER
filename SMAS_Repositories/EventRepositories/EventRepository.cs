@@ -75,15 +75,9 @@ namespace SMAS_Repositories.EventRepositories
             return MapToDto(updated);
         }
 
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _eventDAO.GetEventByIdAsync(id)
-                ?? throw new KeyNotFoundException($"Event with id {id} not found.");
+        public Task<bool> DeleteAsync(int id) => _eventDAO.DeleteAsync(id);
 
-            // SOFT DELETE
-            entity.IsActive = false;
-            await _eventDAO.UpdateAsync(entity);
-        }
+        public Task<bool> UpdateStatusAsync(int id, bool isActive) => _eventDAO.UpdateStatusAsync(id, isActive);
 
         // ==================== MAPPERS ====================
         private static EventListResponse MapToDto(Event e) => new()
