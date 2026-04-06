@@ -64,7 +64,4 @@ public class ContractWorkflowRepository : IContractWorkflowRepository
 
     public Task<bool> ExistsPaidDepositForContractAsync(int contractId) =>
         _paymentDAO.ExistsPaidDepositForContractAsync(contractId);
-
-    public Task<bool> ExistsByTransactionIdAsync(string? transactionId) =>
-        _paymentDAO.ExistsByTransactionIdAsync(transactionId);
 }

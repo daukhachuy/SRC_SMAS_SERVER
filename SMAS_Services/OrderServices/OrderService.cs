@@ -1,3 +1,5 @@
+using Azure.Core;
+using CloudinaryDotNet.Actions;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
@@ -22,7 +24,7 @@ namespace SMAS_Services.OrderServices
             return await _orderRepository.GetOrdersByUserAndStatusAsync(request, userid);
         }
 
-        public async Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request , int userid)
+        public async Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request, int userid)
         {
             return await _orderRepository.CreateOrderDeliveryAsync(request, userid);
         }
@@ -189,7 +191,7 @@ namespace SMAS_Services.OrderServices
 
             var now = DateTime.UtcNow;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
-            var subTotal = 0m;
+            var subTotal = 0m;  
             var orderItems = new List<OrderItem>();
 
             var order = new Order
@@ -217,6 +219,7 @@ namespace SMAS_Services.OrderServices
             await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, reservation);
 
             return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
+            
         }
 
         public async Task<CreateInHouseOrderResponse> CreateOrderByContactAsync(CreateOrderByContactRequest request, int waiterUserId)
@@ -254,7 +257,7 @@ namespace SMAS_Services.OrderServices
             var subTotal = 0m;
             var orderItems = new List<OrderItem>();
 
- 
+
             var order = new Order
             {
                 OrderCode = GenerateOrderCode(now),
@@ -292,6 +295,7 @@ namespace SMAS_Services.OrderServices
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
             var subTotal = 0m;
             var orderItems = new List<OrderItem>();
+
 
             var order = new Order
             {
@@ -440,6 +444,7 @@ namespace SMAS_Services.OrderServices
             List<int> tableIds,
             List<TableOrder> tableOrders,
             List<OrderItem> orderItems)
+
         {
             var mainTableId = tableIds.First();
             return new CreateInHouseOrderResponse
@@ -465,7 +470,7 @@ namespace SMAS_Services.OrderServices
                     Subtotal = x.Subtotal ?? 0,
                     Status = x.Status,
                     Note = x.Note
-                }).ToList()
+    }).ToList()
             };
         }
     }

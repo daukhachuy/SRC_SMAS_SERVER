@@ -9,7 +9,7 @@ public partial class Table
 
     public string TableName { get; set; } = null!;
 
-    public string? TableType { get; set; }
+    public string? TableType { get; set; }  
 
     public int NumberOfPeople { get; set; }
 

@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SMAS_API.Helpers;
 using SMAS_BusinessObject.Configurations;
-using SMAS_Repositories.ContractWorkflow;
+using SMAS_BusinessObject.DTOs.AIDTO;
 using SMAS_BusinessObject.DTOs.Auth;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
 using SMAS_BusinessObject.Models;
@@ -18,6 +18,7 @@ using SMAS_Repositories.BuffetRepositories;
 using SMAS_Repositories.CategoryRepositories;
 using SMAS_Repositories.ComboRepositories;
 using SMAS_Repositories.ContractRepository;
+using SMAS_Repositories.ContractWorkflow;
 using SMAS_Repositories.CustomerFeedbackRepositories;
 using SMAS_Repositories.DiscountRepositories;
 using SMAS_Repositories.EventRepositories;
@@ -34,6 +35,7 @@ using SMAS_Repositories.StaffRepository;
 using SMAS_Repositories.TableRepository;
 using SMAS_Repositories.WorkStaffRepository;
 using SMAS_Services.AdminServices;
+using SMAS_Services.AiBaseServices;
 using SMAS_Services.AuthServices;
 using SMAS_Services.BlogServices;
 using SMAS_Services.BookEventService;
@@ -41,6 +43,7 @@ using SMAS_Services.BufferServices;
 using SMAS_Services.CategoryServices;
 using SMAS_Services.ComboServices;
 using SMAS_Services.ContractService;
+using SMAS_Services.ContractWorkflow;
 using SMAS_Services.CustomerFeedbackServices;
 using SMAS_Services.DiscountServices;
 using SMAS_Services.EmailServices;
@@ -53,7 +56,6 @@ using SMAS_Services.NotificationServices;
 using SMAS_Services.OrderItemServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
-using SMAS_Services.ContractWorkflow;
 using SMAS_Services.ReservationServices;
 using SMAS_Services.SalaryService;
 using SMAS_Services.ServiceServices;
@@ -76,6 +78,9 @@ namespace SMAS_API
             builder.Services.Configure<JwtSettings>(
                 builder.Configuration.GetSection("JwtSettings")
             );
+
+            builder.Services.Configure<GeminiSettings>(
+            builder.Configuration.GetSection("Gemini"));
 
             var jwtSettings = builder.Configuration
                 .GetSection("JwtSettings")
@@ -175,6 +180,7 @@ namespace SMAS_API
 
             builder.Services.AddScoped<ContractDAO>();
             builder.Services.AddScoped<PaymentDAO>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
             builder.Services.AddScoped<IContractRepository, ContractRepository>();
             builder.Services.AddScoped<IContractService, ContractService>();
             builder.Services.AddScoped<IContractWorkflowRepository, ContractWorkflowRepository>();
@@ -266,6 +272,9 @@ namespace SMAS_API
             builder.Services.AddScoped<ITableRepository, TableRepository>();
             builder.Services.AddScoped<ITableService, TableService>();
             builder.Services.AddSingleton<ITableTokenHelper, TableTokenHelper>(); 
+
+            builder.Services.AddScoped<IAIService, AIService>();
+            builder.Services.AddScoped<IAIAnalysisServices, AIAnalysisServices>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 

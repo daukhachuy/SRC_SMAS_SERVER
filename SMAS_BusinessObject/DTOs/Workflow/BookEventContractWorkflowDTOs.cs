@@ -146,24 +146,6 @@ public class ContractSignResponseDTO
     public string Message { get; set; } = null!;
 }
 
-public class ContractDepositRequestDTO
-{
-    public string PaymentMethod { get; set; } = null!;
-    public string? TransactionId { get; set; }
-    public string? Note { get; set; }
-}
-
-public class ContractDepositDirectResponseDTO
-{
-    public int PaymentId { get; set; }
-    public string PaymentCode { get; set; } = null!;
-    public int ContractId { get; set; }
-    public decimal Amount { get; set; }
-    public decimal RemainingAmount { get; set; }
-    public string PaymentMethod { get; set; } = null!;
-    public DateTime PaidAt { get; set; }
-}
-
 public class ContractDepositPayOSResponseDTO
 {
     public int ContractId { get; set; }

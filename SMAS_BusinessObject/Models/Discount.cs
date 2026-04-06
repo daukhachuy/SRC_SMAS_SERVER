@@ -29,7 +29,7 @@ public partial class Discount
 
     public string? ApplicableFor { get; set; }
 
-    public string? Status { get; set; }
+    public string? Status { get; set; }    // Active/Inactive/Expired
 
     public int? CreatedBy { get; set; }
 

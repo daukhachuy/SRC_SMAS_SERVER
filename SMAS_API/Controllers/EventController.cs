@@ -8,7 +8,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/events")]
-    [Authorize(Roles = "Admin")]
+    
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
@@ -23,7 +23,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay)
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager/Admin")]
         [HttpGet("upcoming-events")]
         public async Task<IActionResult> GetAllUpcomingEvent()  
         {

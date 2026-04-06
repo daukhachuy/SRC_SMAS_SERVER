@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.Auth;
+using SMAS_BusinessObject.DTOs.CustomerDTO;
 using SMAS_BusinessObject.DTOs.Profile;
 using SMAS_BusinessObject.DTOs.StaffDTO;
 using SMAS_Services.AuthServices;
@@ -84,6 +85,17 @@ namespace SMAS_API.Controllers
             if (!customers.Any()) return NotFound(new { MsgCode = "MSG_041", Message = "Không có tài khoản nhân viên  nào !" });
             return Ok(customers);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("customer-{userid}-details-admin")]
+        public async Task<ActionResult<CustomerDetailResponseDTO>> GetCustomerDetailAsync(int userid)
+        {
+            if (userid <= 0) return BadRequest(new { MsgCode = "MSG_042", Message = "ID người dùng không hợp lệ !" });
+            var customers = await _staffProfileService.GetCustomerDetailAsync(userid);
+            if (customers == null) return NotFound(new { MsgCode = "MSG_041", Message = "Không có tài khoản khách hàng !" });
+            return Ok(customers);
+        }
+
 
     }
 }

@@ -159,6 +159,39 @@ namespace SMAS_Services.OrderItemServices
             }
         }
 
+        public async Task<KitchenOrderItemReadyResponseDTO> PatchUpdateStatusOrderItemServedAsync(int orderItemId)
+        {
+            try
+            {
+                var orderItem = await _orderItemRepository.GetOrderItemWithOrderAndNamesAsync(orderItemId);
+                if (orderItem == null)
+                    throw new KeyNotFoundException("Order item not found");
+
+                _ = GetItemName(orderItem);
+
+                await ValidateOrderActive(orderItem.OrderId);
+
+                var currentStatus = orderItem.Status;
+                if (currentStatus != "Ready")
+                    throw new InvalidOperationException($"Order item is not in Served status. Current status: {currentStatus}");
+
+                var servedTime = DateTime.UtcNow;
+                await _orderItemRepository.UpdateServedAsync(orderItemId, servedTime);
+
+                return new KitchenOrderItemReadyResponseDTO
+                {
+                    OrderItemId = orderItem.OrderItemId,
+                    OrderId = orderItem.OrderId,
+                    Status = "Served",
+                    ServedTime = servedTime
+                };
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public async Task<KitchenOrderItemCancelledResponseDTO> PostUpdateStatusOrderItemCancelledAsync(int orderItemId, KitchenCancelOrderItemRequestDTO request)
         {
             try

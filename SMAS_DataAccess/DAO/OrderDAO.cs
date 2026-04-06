@@ -240,7 +240,6 @@ namespace SMAS_DataAccess.DAO
                 {
                     table.Status = "OPEN";
                     table.UpdatedAt = now;
-
                     // Tự động kích hoạt session để khách quét QR được
                     var session = new TableSessionCache
                     {
@@ -295,7 +294,7 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<Order>> GetOrdersByUserAndStatusAsync(int userId,string orderType,List<string> statuses)
+        public async Task<List<Order>> GetOrdersByUserAndStatusAsync(int userId, string orderType, List<string> statuses)
         {
             return await _context.Orders
                 .Where(o => o.UserId == userId
@@ -335,9 +334,41 @@ namespace SMAS_DataAccess.DAO
         /// </summary>
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string orderStatus)
         {
-            var order = await _context.Orders.FindAsync(orderId);
+            var order = await _context.Orders
+                                       .Include(o => o.Payments)
+                                       .Include(d => d.Delivery)
+                                       .Include(o => o.TableOrders).ThenInclude(to => to.Table)
+                                       .FirstOrDefaultAsync(o => o.OrderId == orderId);
             if (order == null) return false;
             order.OrderStatus = orderStatus;
+            if (orderStatus == "Completed" )
+            {
+                var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
+                var tables = await _context.Tables
+                    .Where(t => tableIds.Contains(t.TableId))
+                    .ToListAsync();
+                foreach (var table in tables)
+                {
+                    table.Status = "AVAILABLE";
+                    table.UpdatedAt = DateTime.UtcNow;             
+                    _cache.Remove($"table_session_{table.TableName.ToUpper()}");
+                }
+                foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
+                    to.LeftAt = DateTime.UtcNow;
+            }
+            if (order.Delivery != null)
+            {
+                if (orderStatus == "Completed")
+                {
+                    order.Delivery.DeliveryStatus = "Delivered";
+                    order.Delivery.UpdatedAt = DateTime.UtcNow;
+                }
+                else if (orderStatus == "Cancelled")
+                {
+                    order.Delivery.DeliveryStatus = "Failed";
+                    order.Delivery.UpdatedAt = DateTime.UtcNow;
+                }
+            }
             await _context.SaveChangesAsync();
             return true;
         }
@@ -347,8 +378,7 @@ namespace SMAS_DataAccess.DAO
         /// </summary>
         public async Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-            if (order == null) return false;
+            var order = await _context.Orders.FindAsync(orderId); if (order == null) return false;
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -367,17 +397,14 @@ namespace SMAS_DataAccess.DAO
                     {
                         table.Status = "AVAILABLE";
                         table.UpdatedAt = DateTime.UtcNow;
-
                         // Xóa session cache — khách không quét QR được nữa
                         _cache.Remove($"table_session_{table.TableName.ToUpper()}");
                     }
-
                     foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
                         to.LeftAt = DateTime.UtcNow;
                 }
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await _context.SaveChangesAsync(); await transaction.CommitAsync();
                 return true;
             }
             catch
@@ -386,9 +413,9 @@ namespace SMAS_DataAccess.DAO
                 throw;
             }
         }
-        public async Task<bool> UpdateOrderDeliveryFailedAtAsync(int orderId , string note)
+        public async Task<bool> UpdateOrderDeliveryFailedAtAsync(int orderId, string note)
         {
-            var order = await _context.Orders.Include(d =>d.DeliveryDetails).FirstOrDefaultAsync(o => o.OrderId == orderId);
+            var order = await _context.Orders.Include(d => d.DeliveryDetails).FirstOrDefaultAsync(o => o.OrderId == orderId);
             var delivery = await _context.DeliveryDetails.FirstOrDefaultAsync(d => d.OrderId == orderId);
             var closedAT = DateTime.UtcNow;
             if (order == null) return false;
@@ -397,8 +424,7 @@ namespace SMAS_DataAccess.DAO
             order.OrderStatus = "Cancelled";
             delivery.Note = note;
             delivery.DeliveryStatus = "Failed";
-            await _context.SaveChangesAsync();
-            return true;
+            await _context.SaveChangesAsync(); return true;
         }
 
         public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int userId)
@@ -418,8 +444,7 @@ namespace SMAS_DataAccess.DAO
                          && o.OrderStatus != "Cancelled"
                          && o.ServedByNavigation != null
                          && o.ServedByNavigation.UserId == userId)
-                .OrderByDescending(o => o.CreatedAt)
-                .ToListAsync();
+                .OrderByDescending(o => o.CreatedAt).ToListAsync();
         }
         public async Task<List<Order>> GetAllOrderDeliveryByWaiterIdAsync(int userId)
         {
@@ -440,7 +465,6 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
-
         public async Task<List<Order>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId)
         {
             var sevenDaysAgo = DateTime.Now.AddDays(-7);
@@ -461,5 +485,7 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
+
+
     }
 }

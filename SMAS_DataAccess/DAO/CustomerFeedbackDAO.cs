@@ -21,5 +21,12 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.CustomerFeedbacks.Include(c => c.User).ToListAsync();
         }
+
+        public async Task<List<CustomerFeedback>> GetFeedbackToAnalysisAsync()
+        {
+            return await _context.CustomerFeedbacks
+                                          .Where(f => f.CreatedAt >= DateTime.Now.AddMonths(-3) && f.Comment != null)
+                                          .ToListAsync();
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/discount")]
-    [Authorize(Roles = "Admin")]
+  
     public class DiscountController : Controller
     {
         private readonly IDiscountService _discountService;
@@ -19,7 +19,7 @@ namespace SMAS_API.Controllers
 
 
         [HttpGet("code/{code}")]
-        public async Task<ActionResult<DiscountResponse>> GetDiscountByCode(string code)
+        public async Task<ActionResult<DiscountResponse>> GetDiscountByCodeAsync(string code)
         {
             var result = await _discountService.GetDiscountByCodeAsync(code);
             if (result == null)

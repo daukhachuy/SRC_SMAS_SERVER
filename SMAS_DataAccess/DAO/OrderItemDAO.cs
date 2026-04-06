@@ -78,6 +78,16 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateServedAsync(int orderItemId, DateTime servedTimeUtc)
+        {
+            var orderItem = await _context.OrderItems.FirstOrDefaultAsync(oi => oi.OrderItemId == orderItemId);
+            if (orderItem == null) return;
+
+            orderItem.Status = "Served";
+            orderItem.ServedTime = servedTimeUtc;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<int> UpdateAllPendingToPreparingAsync(int orderId)
         {
             var items = await _context.OrderItems
@@ -167,6 +177,8 @@ namespace SMAS_DataAccess.DAO
                 .OrderByDescending(oi => oi.ServedTime ?? DateTime.MinValue)
                 .ToListAsync();
         }
+
+
     }
 }
 

@@ -1,5 +1,7 @@
-﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+﻿using SMAS_BusinessObject.DTOs.CustomerDTO;
+using SMAS_BusinessObject.DTOs.StaffDTO;
 using SMAS_BusinessObject.Models;
+using SMAS_DataAccess.DAO;
 using SMAS_Repositories.StaffRepository;
 using System;
 using System.Collections.Generic;
@@ -13,10 +15,12 @@ namespace SMAS_Services.StaffService
     public class StaffProfileService : IStaffProfileService
     {
         private readonly IStaffProfileRepository _staffProfileRepository;
+        private readonly OrderDAO _orders;
 
-        public StaffProfileService(IStaffProfileRepository staffProfileRepository)
+        public StaffProfileService(IStaffProfileRepository staffProfileRepository , OrderDAO order)
         {
             _staffProfileRepository = staffProfileRepository;
+            _orders = order;
         }
 
         public async Task<StaffProfileDto?> GetProfileStaffAsync(int userId)
@@ -99,6 +103,31 @@ namespace SMAS_Services.StaffService
         public async Task<bool> AdminUpdateStaffDetail(StaffDetailRequestDTO request)
         {
             return await _staffProfileRepository.AdminUpdateStaffDetail(request);
+        }
+
+
+        public async Task<CustomerDetailResponseDTO?> GetCustomerDetailAsync(int userId)
+        {
+            var customers = await _staffProfileRepository.GetAllAcountCustomerAsync();
+            var customer = customers.FirstOrDefault(c => c.UserId == userId);
+            if (customer == null) return null;
+            var orders = await _orders.GetAllActiveOrderAsync();
+            var customerOrders = orders.Where(o => o.UserId == userId).ToList();
+            var result = new CustomerDetailResponseDTO
+            {
+                UserId = customer?.UserId ?? 0,
+                Fullname = customer?.Fullname,
+                Email = customer?.Email,
+                Phone = customer?.Phone,
+                Address = customer?.Address,
+                Avatar = customer?.Avatar,
+                totalOrders = customerOrders.Count,
+                totalOrderCancel = customerOrders.Count(o => o.OrderStatus == "Cancelled"),
+                totalOrderNoShow = 0,
+                totalSpending = customerOrders.Where(o => o.OrderStatus == "Completed").Sum(o => (decimal?)o.TotalAmount) ?? 0
+            };
+            return result;
+
         }
 
     }

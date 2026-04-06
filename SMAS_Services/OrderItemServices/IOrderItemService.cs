@@ -12,6 +12,8 @@ namespace SMAS_Services.OrderItemServices
 
         Task<KitchenOrderItemReadyResponseDTO> PatchUpdateStatusOrderItemReadyAsync(int orderItemId);
 
+        Task<KitchenOrderItemReadyResponseDTO> PatchUpdateStatusOrderItemServedAsync(int orderItemId);
+
         Task<KitchenOrderItemCancelledResponseDTO> PostUpdateStatusOrderItemCancelledAsync(int orderItemId, KitchenCancelOrderItemRequestDTO request);
 
         Task<KitchenUpdateAllPreparingResponseDTO> PatchUpdateStatusAllOrderItemPreparingAsync(int orderId);

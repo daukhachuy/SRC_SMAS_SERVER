@@ -104,7 +104,7 @@ namespace SMAS_Repositories.ServiceRepositories
             entity.Unit = dto.Unit;
             entity.Image = dto.Image;
             entity.IsAvailable = dto.IsAvailable;
-            // CreatedAt gi? nguyên (không update)
+            // CreatedAt gi? nguyÃªn (khÃ´ng update)
         }
     }
 

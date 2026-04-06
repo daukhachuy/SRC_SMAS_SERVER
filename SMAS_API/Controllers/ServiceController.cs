@@ -6,7 +6,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/services")]
-    [Authorize(Roles = "Admin")]
+    
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _serviceService;
@@ -28,6 +28,7 @@ namespace SMAS_API.Controllers
         //}
 
         // GET: api/service?id=5  hoặc  api/service (all)
+        //[Authorize(Roles = "Manager/Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
@@ -50,6 +51,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromBody] ServiceCreateDto dto)
         {
@@ -62,6 +64,7 @@ namespace SMAS_API.Controllers
         }
 
         // PUT
+        [Authorize(Roles = "Manager/Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateAsync(int id, [FromBody] ServiceUpdateDto dto)
         {

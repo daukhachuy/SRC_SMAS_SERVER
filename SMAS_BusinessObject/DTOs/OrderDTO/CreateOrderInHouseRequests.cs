@@ -32,7 +32,7 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         public string? Note { get; set; }
 
-       
+
     }
 
     public class CreateOrderByContactRequest
@@ -45,14 +45,13 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         [Required]
         public string OrderType { get; set; } = string.Empty; // "DineIn" | "Buffet"
-
         [Required]
         [Range(1, int.MaxValue)]
         public int NumberOfGuests { get; set; }
 
         public string? Note { get; set; }
 
-      
+
     }
 
     // API 3: guest order (no reservation and no phone/email)
@@ -63,7 +62,6 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         [Required]
         public List<int>? TableIds { get; set; }
-
         [Required]
         [Range(1, int.MaxValue)]
         public int NumberOfGuests { get; set; }

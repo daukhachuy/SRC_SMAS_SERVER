@@ -20,5 +20,4 @@ public interface IContractWorkflowRepository
     Task<Payment> AddDepositPaymentAndUpdateContractAsync(Contract contract, Payment payment, decimal totalAmount, decimal depositAmount);
 
     Task<bool> ExistsPaidDepositForContractAsync(int contractId);
-    Task<bool> ExistsByTransactionIdAsync(string? transactionId);
 }

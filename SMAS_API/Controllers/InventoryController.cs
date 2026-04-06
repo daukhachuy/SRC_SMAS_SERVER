@@ -16,7 +16,7 @@ namespace SMAS_API.Controllers
         {
             _inventoryService = inventoryService;
         }
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("getall")]
         public async Task<ActionResult<InventoryResponseDTO>> GetAllInventoryAsync()
         {
@@ -27,7 +27,7 @@ namespace SMAS_API.Controllers
             }
             return Ok(result);
         }
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("logs")]
         public async Task<ActionResult<InventorylogResponseDTO>> GetAllInventoryLogsAsync()
         {
@@ -38,7 +38,7 @@ namespace SMAS_API.Controllers
             }
             return Ok(result);
         }
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("newbatchcode")]
         public async Task<ActionResult<string>> GetNewBatchCodeAsync()
         {
@@ -46,7 +46,7 @@ namespace SMAS_API.Controllers
             return Ok(newBatchCode);
         }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost("create")]
         public async Task<ActionResult> CreateInventoryAsync([FromBody] CreateInventoryRequestDTO request)
         {
@@ -58,7 +58,7 @@ namespace SMAS_API.Controllers
             return Ok(new { MsgCode = "MSG_038", Message = "Tạo lô nguyên liệu thành công." });
         }
 
-        [Authorize(Roles = " Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost("create-export")]
         public async Task<ActionResult> CreateExportInventoryAsync([FromBody] ExImportInventoryRequestDTO request)
         {
@@ -73,7 +73,7 @@ namespace SMAS_API.Controllers
             return Ok(new { MsgCode = "MSG_040", Message = "Xuất kho nguyên liệu thành công." });
         }
 
-        [Authorize(Roles = " Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost("create-import")]
         public async Task<ActionResult> CreateImportInventoryAsync([FromBody] ExImportInventoryRequestDTO request)
         {

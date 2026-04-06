@@ -1,4 +1,5 @@
-﻿using SMAS_BusinessObject.DTOs.StaffDTO;
+﻿using SMAS_BusinessObject.DTOs.CustomerDTO;
+using SMAS_BusinessObject.DTOs.StaffDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.StaffRepository;
 using System;
@@ -29,6 +30,8 @@ namespace SMAS_Services.StaffService
         Task<StaffDetailresponseDTO> GetStaffDetailToUpdateAsync(int userId);
 
         Task<bool> AdminUpdateStaffDetail(StaffDetailRequestDTO request);
+
+        Task<CustomerDetailResponseDTO?> GetCustomerDetailAsync(int userId);
     }
 
 }
