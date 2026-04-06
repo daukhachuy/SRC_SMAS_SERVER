@@ -53,26 +53,26 @@ namespace SMAS_Repositories.ComboRepositories
         {
             return await _comboDAO.UpdateStatusByComboId(comboId);
         }
-        public async Task<IEnumerable<ComboResponseDto>> GetAllAsync()
+        public async Task<IEnumerable<ComboListResponse>> GetAllAsync()
         {
             var combos = await _comboDAO.GetAllAsync();
             return combos.Select(MapToResponseDto);
         }
 
-        public async Task<ComboResponseDto?> GetByIdAsync(int id)
+        public async Task<ComboListResponse?> GetByIdAsync(int id)
         {
             var combo = await _comboDAO.GetByIdAsync(id);
             return combo == null ? null : MapToResponseDto(combo);
         }
 
-        public async Task<ComboResponseDto> CreateAsync(ComboCreateDto dto)
+        public async Task<ComboListResponse> CreateAsync(ComboCreateDto dto)
         {
             var combo = MapFromCreateDto(dto);
             var created = await _comboDAO.CreateAsync(combo);
             return MapToResponseDto(created);
         }
 
-        public async Task<ComboResponseDto?> UpdateAsync(int id, ComboUpdateDto dto)
+        public async Task<ComboListResponse?> UpdateAsync(int id, ComboUpdateDto dto)
         {
             var combo = await _comboDAO.GetByIdAsync(id);
             if (combo == null) return null;
@@ -92,7 +92,7 @@ namespace SMAS_Repositories.ComboRepositories
         // Mapping helpers
         // -------------------------------------------------------
 
-        private static ComboResponseDto MapToResponseDto(Combo c) => new ComboResponseDto
+        private static ComboListResponse MapToResponseDto(Combo c) => new ComboListResponse
         {
             ComboId = c.ComboId,
             Name = c.Name,

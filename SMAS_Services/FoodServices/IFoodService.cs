@@ -26,6 +26,7 @@ namespace SMAS_Services.FoodServices
         Task<FoodListResponse?> GetByIdAsync(int id);
         Task<FoodListResponse> CreateAsync(FoodCreateDto dto);
         Task<FoodListResponse?> UpdateAsync(int id, FoodUpdateDto dto);
-        Task<bool> SoftDeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isAvailable);
     }
 }

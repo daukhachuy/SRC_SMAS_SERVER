@@ -29,8 +29,11 @@ namespace SMAS_Services.FoodServices
         public Task<FoodListResponse?> UpdateAsync(int id, FoodUpdateDto dto)
             => _foodRepository.UpdateAsync(id, dto);
 
-        public Task<bool> SoftDeleteAsync(int id)
-            => _foodRepository.SoftDeleteAsync(id);
+        public Task<bool> DeleteAsync(int id)
+             => _foodRepository.DeleteAsync(id);
+
+        public Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+            => _foodRepository.UpdateStatusAsync(id, isAvailable);
         public async Task<IEnumerable<FoodListResponse>> GetAllFoodsCategoryAsync()
         {
             return await _foodRepository.GetAllFoodsCategoryAsync();

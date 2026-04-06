@@ -28,7 +28,8 @@ namespace SMAS_API.Controllers
         //}
 
         // GET: api/service?id=5  hoặc  api/service (all)
-        //[Authorize(Roles = "Manager/Admin")]
+
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
