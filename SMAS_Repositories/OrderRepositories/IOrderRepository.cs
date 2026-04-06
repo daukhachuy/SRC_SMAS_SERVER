@@ -41,5 +41,8 @@ namespace SMAS_Repositories.OrderRepositories
         Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId);
         Task<List<OrderListResponseDTO>> GetAllOrderDeliveryByWaiterIdAsync(int userId);
         Task<List<OrderListResponseDTO>> GetAllOrderHistoryByWaiterIdInSevenDayAsync(int userId);
+
+
+        Task<Order?> GetOrderByIdNoTrackingAsync(string ordercode);
     }
 }

@@ -13,7 +13,8 @@ namespace SMAS_Repositories.ServiceRepositories
         Task<ServiceListResponse?> GetServiceByIdAsync(int serviceId);
         Task<ServiceListResponse> CreateAsync(ServiceCreateDto dto);
         Task<ServiceListResponse> UpdateAsync(int id, ServiceUpdateDto dto);
-        Task DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isAvailable);
     }
 
 }

@@ -33,37 +33,38 @@ namespace SMAS_BusinessObject.DTOs.BlogDTo
     }
     public class BlogCreateDto
     {
-        [Required(ErrorMessage = "Title is required")]
-        [StringLength(200, ErrorMessage = "Title must not exceed 200 characters")]
+        [Required(ErrorMessage = "Tiêu đề không được để trống.")]
+        [MaxLength(500)]
         public string Title { get; set; } = null!;
 
-        [Required(ErrorMessage = "Content is required")]
+        [Required(ErrorMessage = "Nội dung không được để trống.")]
         public string Content { get; set; } = null!;
 
         public string? Image { get; set; }
 
-        public int? ViewCount { get; set; }
+        [MaxLength(50)]
+        public string? Status { get; set; } = "Draft";
 
-        public string? Status { get; set; }
+        [Required(ErrorMessage = "AuthorId không được để trống.")]
+        public int AuthorId { get; set; }
 
         public DateTime? PublishedAt { get; set; }
-
-        [Required(ErrorMessage = "AuthorId is required")]
-        public int AuthorId { get; set; }
     }
 
     public class BlogUpdateDto
     {
-        [Required(ErrorMessage = "Title is required")]
-        [StringLength(200, ErrorMessage = "Title must not exceed 200 characters")]
+        [Required(ErrorMessage = "Tiêu đề không được để trống.")]
+        [MaxLength(500)]
         public string Title { get; set; } = null!;
 
-        [Required(ErrorMessage = "Content is required")]
+        [Required(ErrorMessage = "Nội dung không được để trống.")]
         public string Content { get; set; } = null!;
 
         public string? Image { get; set; }
-        public int? ViewCount { get; set; }
+
+        [MaxLength(50)]
         public string? Status { get; set; }
+
         public DateTime? PublishedAt { get; set; }
     }
 }

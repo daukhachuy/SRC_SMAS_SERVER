@@ -67,13 +67,10 @@ namespace SMAS_Repositories.ServiceRepositories
             return MapToDto(updated);
         }
 
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _serviceDAO.GetServiceByIdAsync(id)
-                ?? throw new KeyNotFoundException($"Service with id {id} not found.");
+        public Task<bool> DeleteAsync(int id) => _serviceDAO.DeleteAsync(id);
 
-            await _serviceDAO.UpdateStatusAsync(id);
-        }
+        public Task<bool> UpdateStatusAsync(int id, bool isAvailable) => _serviceDAO.UpdateStatusAsync(id, isAvailable);
+
 
         // ==================== MAPPERS ====================
         private static ServiceListResponse MapToDto(Service e) => new()
@@ -107,7 +104,7 @@ namespace SMAS_Repositories.ServiceRepositories
             entity.Unit = dto.Unit;
             entity.Image = dto.Image;
             entity.IsAvailable = dto.IsAvailable;
-            // CreatedAt gi? nguyên (không update)
+            // CreatedAt gi? nguyÃªn (khÃ´ng update)
         }
     }
 

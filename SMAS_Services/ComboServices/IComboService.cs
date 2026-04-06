@@ -14,5 +14,11 @@ namespace SMAS_Services.ComboServices
         Task<IEnumerable<ComboListResponse>> GetCombosFilterAsync(CombosFilterRequest request);
 
         Task<bool> UpdateStatusByComboId(int comboId);
+        Task<IEnumerable<ComboListResponse>> GetAllAsync();
+        Task<ComboListResponse?> GetByIdAsync(int id);
+        Task<ComboListResponse> CreateAsync(ComboCreateDto dto);
+        Task<ComboListResponse?> UpdateAsync(int id, ComboUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isAvailable);
     }
 }

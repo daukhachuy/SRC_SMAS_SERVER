@@ -6,7 +6,6 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/blogs")]
-    
     public class BlogController : Controller
     {
         private readonly IBlogServices _blogServices;
@@ -16,96 +15,73 @@ namespace SMAS_API.Controllers
             _blogServices = blogServices;
         }
 
-        [HttpGet("lists")]
-        public async Task<ActionResult<BlogResponse>> GetAllBlogAsync()
-        {
-            var result = await _blogServices.GetAllBlogsAsync();
-            if(result == null || !result.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_029", Message = "Không có bài viết nào !" });
-            }
-            return Ok(result);
-        }
-        // GET: api/blog?id=5  hoặc  api/blog (all)
+        // GET: api/blogs        -> lấy tất cả
+        // GET: api/blogs?id=2   -> lấy theo id
         [HttpGet]
-        public async Task<IActionResult> GetBlogAsync([FromQuery] int? id)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
             {
                 var blog = await _blogServices.GetByIdAsync(id.Value);
                 if (blog == null)
-                {
-                    return NotFound(new { MsgCode = "MSG_013", Message = "Blog không tồn tại !" });
-                }
-                return Ok(new { Message = "Lấy blog thành công", Data = blog });
+                    return NotFound(new { message = $"Không tìm thấy blog với Id = {id}." });
+                return Ok(blog);
             }
 
-            var list = await _blogServices.GetAllBlogsAsync();
-            if (!list.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_014", Message = "Không có blog nào !" });
-            }
-            return Ok(new { Message = "Lấy danh sách blog thành công", Data = list });
+            return Ok(await _blogServices.GetAllAsync());
         }
 
-        // POST
-        [Authorize(Roles = "Manager,Admin")]
+        // POST: api/blogs
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> CreateBlogAsync([FromBody] BlogCreateDto dto)
+        public async Task<ActionResult<BlogResponse>> CreateAsync([FromBody] BlogCreateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var result = await _blogServices.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetBlogAsync), new { id = result.BlogId },
-                    new { Message = "Tạo blog thành công", Data = result });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
+            var created = await _blogServices.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetAsync), new { id = created.BlogId }, created);
         }
 
-        // PUT
-        [Authorize(Roles = "Manager,Admin")]
+        // PUT: api/blogs/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateBlogAsync(int id, [FromBody] BlogUpdateDto dto)
+        public async Task<ActionResult<BlogResponse>> UpdateAsync(int id, [FromBody] BlogUpdateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            
+            var updated = await _blogServices.UpdateAsync(id, dto);
+            if (updated == null)
+                return NotFound(new { message = $"Không tìm thấy blog với Id = {id}." });
 
-            try
-            {
-                var result = await _blogServices.UpdateAsync(id, dto);
-                return Ok(new { Message = "Cập nhật blog thành công", Data = result });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
+            return Ok(updated);
         }
 
-
-
-        [Authorize(Roles = "Manager,Admin")]
-        [HttpPatch("{id:int}")]
-        public async Task<IActionResult> DeleteBlogAsync(int id)
+        // DELETE: api/blogs/{id} 
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteAsync(int id)
         {
-            try
-            {
-                await _blogServices.DeleteAsync(id);
-                return Ok(new { Message = "Thay đổi trạng thái blog thành công" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            var success = await _blogServices.DeleteAsync(id);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy blog với Id = {id}." });
+
+            return Ok(new { message = $"Đã xóa blog Id = {id}." });
+        }
+
+        // PATCH: api/blogs/{id}/status?status=Published
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                return BadRequest(new { message = "Status không được để trống." });
+
+            var success = await _blogServices.UpdateStatusAsync(id, status);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy blog với Id = {id}." });
+
+            return Ok(new { message = $"Đã cập nhật trạng thái blog Id = {id} thành '{status}'." });
         }
     }
 }

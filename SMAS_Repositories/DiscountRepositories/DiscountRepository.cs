@@ -89,20 +89,10 @@ namespace SMAS_Repositories.DiscountRepositories
             return MapToDto(updated);
         }
 
-        // ─── SOFT DELETE (Status → Disabled) ───────────────────────────────────────
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _context.GetByIdAsync(id)
-                ?? throw new KeyNotFoundException($"Discount with id {id} not found.");
+        public Task<bool> DeleteAsync(int id) => _context.DeleteAsync(id);
 
+        public Task<bool> UpdateStatusAsync(int id, string status) => _context.UpdateStatusAsync(id, status);
 
-            await _context.UpdateStatusAsync(id);
-        }
-
-        // ─── EXISTS CODE ───────────────────────────────────────────────────────
-        public async Task<bool> ExistsCodeAsync(string code, int? excludeId = null)
-            => await _context.ExistsCodeAsync(code, excludeId);
-        
         // ==================== MAPPERS ====================
 
         /// <summary>Entity → ResponseDto</summary>
@@ -157,7 +147,6 @@ namespace SMAS_Repositories.DiscountRepositories
             entity.UsageLimit = dto.UsageLimit;
             entity.ApplicableFor = dto.ApplicableFor;
             entity.Status = dto.Status;
-            entity.UsedCount = dto.UsedCount ?? entity.UsedCount;
         }
     }
 }

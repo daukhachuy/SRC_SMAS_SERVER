@@ -25,7 +25,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Lấy thông báo theo UserId (từ token đăng nhập)
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Admin,Customer,Waiter,Kitchen,Manager")]
         [HttpGet]
         public async Task<IActionResult> GetNotificationByUserId()
         {
@@ -57,7 +57,7 @@ namespace SMAS_API.Controllers
         }
 
 
-        // Controller
+        [Authorize(Roles = "Admin,Customer,Waiter,Kitchen,Manager")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllNotification()
         {

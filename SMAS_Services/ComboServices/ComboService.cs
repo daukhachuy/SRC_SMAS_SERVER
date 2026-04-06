@@ -37,5 +37,22 @@ namespace SMAS_Services.ComboServices
         {
             return await _comboRepository.UpdateStatusByComboId(comboId);
         }
+        public Task<IEnumerable<ComboListResponse>> GetAllAsync()
+           => _comboRepository.GetAllAsync();
+
+        public Task<ComboListResponse?> GetByIdAsync(int id)
+            => _comboRepository.GetByIdAsync(id);
+
+        public Task<ComboListResponse> CreateAsync(ComboCreateDto dto)
+            => _comboRepository.CreateAsync(dto);
+
+        public Task<ComboListResponse?> UpdateAsync(int id, ComboUpdateDto dto)
+            => _comboRepository.UpdateAsync(id, dto);
+
+        public Task<bool> DeleteAsync(int id)
+            => _comboRepository.DeleteAsync(id);
+
+        public Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+            => _comboRepository.UpdateStatusAsync(id, isAvailable);
     }
 }

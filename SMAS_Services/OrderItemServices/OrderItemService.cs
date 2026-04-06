@@ -12,9 +12,12 @@ namespace SMAS_Services.OrderItemServices
     {
         private readonly IOrderItemRepository _orderItemRepository;
 
-        public OrderItemService(IOrderItemRepository orderItemRepository)
+        private readonly IOrderRepository _orderRepository;
+
+        public OrderItemService(IOrderItemRepository orderItemRepository, IOrderRepository orderRepository)
         {
             _orderItemRepository = orderItemRepository;
+            _orderRepository = orderRepository;
         }
 
         // 1) ValidateOrderActive(int orderId)
@@ -364,6 +367,26 @@ namespace SMAS_Services.OrderItemServices
                 TotalItems = mappedItems.Count,
                 Items = mappedItems
             };
+        }
+
+        public async Task<(bool status, string message)> AddOrderItemByOrderCodeAsync(string orderCode, List<AddOrderItemRequest> request)
+        {
+            var order = await _orderRepository.GetOrderByIdNoTrackingAsync(orderCode);
+            if (order == null)
+                return (false, "Không tìm thấy dơn hàng");
+            if (order.OrderStatus == "Cancelled" || order.OrderStatus == "Closed")
+                return (false, "Không thể thêm món khi đơn hàng đã hoàn thành hoặc đã hủy ");
+            foreach (var item in request)
+            {
+                if (item.BuffetId != null)
+                {
+                    var currentBuffer = item.Quantity + item.QuantityBufferChildent;
+                    if (currentBuffer != order.NumberOfGuests)
+                        return (false, "Số lượng bufer đang khác với số lượng khách cho mỗi hóa đơn !");
+                }
+
+            }              
+            return await _orderItemRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
         }
     }
 }
