@@ -22,7 +22,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay)
         /// </summary>
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("upcoming-events")]
         public async Task<IActionResult> GetAllUpcomingEvent()  
         {
