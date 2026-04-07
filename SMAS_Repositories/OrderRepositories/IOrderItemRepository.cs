@@ -31,11 +31,15 @@ namespace SMAS_Repositories.OrderRepositories
 
         Task<List<OrderItem>> GetReadyOrderItemsHistoryTodayAsync(DateTime startOfDayUtc, DateTime endOfDayUtc, int? orderId);
 
-        
+
 
         Task<(bool status, string message)> AddOrderItemByOrderCodeAsync(string orderCode, List<AddOrderItemRequest> request);
+<<<<<<< feature/admin
+        Task<AddOrderItemResponse> AddOrderItemAsync(string orderCode, AddOrderItemRequest request);
+=======
 
         Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode);
+>>>>>>> main
     }
 }
 

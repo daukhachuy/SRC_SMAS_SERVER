@@ -1,27 +1,44 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SMAS_BusinessObject.DTOs.TableDTO;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-
+using Microsoft.Extensions.Configuration;
 namespace SMAS_DataAccess.DAO
 {
     public class TableDAO
     {
         private readonly RestaurantDbContext _context;
+        private readonly IConfiguration _config;
 
-        public TableDAO(RestaurantDbContext context)
+        public TableDAO(RestaurantDbContext context, IConfiguration config)
         {
             _context = context;
+            _config = config;
         }
 
         public async Task<Table?> GetTableByCodeAsync(string tableCode)
         {
+            if (string.IsNullOrWhiteSpace(tableCode))
+                return null;
+
+            // Ưu tiên tìm theo TableId (đang dùng trong QR Code)
+            if (int.TryParse(tableCode, out int tableId))
+            {
+                return await _context.Tables
+                    .FirstOrDefaultAsync(t => t.TableId == tableId && t.IsActive != false);
+            }
+
+            // Fallback: tìm theo TableName
             return await _context.Tables
-                .FirstOrDefaultAsync(t => t.TableName == tableCode && t.IsActive == true);
+                .FirstOrDefaultAsync(t => 
+                    t.TableName.ToUpper() == tableCode.ToUpper() && 
+                    t.IsActive != false);
         }
 
         // Cập nhật Status của Table (OPEN / AVAILABLE...)
@@ -88,14 +105,21 @@ namespace SMAS_DataAccess.DAO
             }).ToList();
         }
 
+        private string GenerateQrCodeValue(int tableId)
+        {
+            var baseUrl = _config["App:FrontendBaseUrl"] ?? "http://localhost:3000";
+            return $"{baseUrl.TrimEnd('/')}/table/{tableId}/scan";
+        }
         public async Task<Table> CreateTableAsync(Table table)
         {
             _context.Tables.Add(table);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // lưu trước để có tableId
+            table.QrCode = GenerateQrCodeValue(table.TableId);
+            await _context.SaveChangesAsync(); // update QrCode
             return table;
         }
 
-       
+
         public async Task<Table?> GetTableByIdAsync(int tableId)
         {
             return await _context.Tables
