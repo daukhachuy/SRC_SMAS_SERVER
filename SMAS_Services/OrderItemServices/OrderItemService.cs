@@ -74,7 +74,8 @@ namespace SMAS_Services.OrderItemServices
                             ItemName = GetItemName(oi),
                             Quantity = oi.Quantity,
                             Note = oi.Note,
-                            OpeningTime = oi.OpeningTime
+                            OpeningTime = oi.OpeningTime,
+                            Status = oi.Status ?? string.Empty
                         })
                         .ToList();
 

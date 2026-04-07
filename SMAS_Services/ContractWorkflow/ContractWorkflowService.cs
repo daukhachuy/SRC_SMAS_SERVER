@@ -205,6 +205,9 @@ public class ContractWorkflowService : IContractWorkflowService
                     ContractCode = contract.ContractCode,
                     Status = contract.Status,
                     SignedAt = contract.SignedAt,
+                    DepositDueUtc = contract.Status == "Signed" && contract.SignedAt.HasValue
+                        ? contract.SignedAt.Value.AddHours(DepositDeadlineHours())
+                        : null,
                     ContractFileUrl = contract.ContractFileUrl,
                     TermsAndConditions = contract.TermsAndConditions
                 },
@@ -326,11 +329,13 @@ public class ContractWorkflowService : IContractWorkflowService
 
         await _repo.SignContractAndUpdateBookEventAsync(contract!);
 
+        var signedAt = contract.SignedAt!.Value;
         return (new ContractSignResponseDTO
         {
             ContractId = contract.ContractId,
             ContractCode = contract.ContractCode!,
-            SignedAt = contract.SignedAt!.Value,
+            SignedAt = signedAt,
+            DepositDueUtc = signedAt.AddHours(DepositDeadlineHours()),
             Message = "Ký hợp đồng thành công"
         }, 200, null);
     }
@@ -341,8 +346,15 @@ public class ContractWorkflowService : IContractWorkflowService
         if (contract == null)
             return (null, 404, "Không tìm thấy hợp đồng");
 
+        if (contract.Status == "Cancelled")
+            return (null, 400, "Hợp đồng đã bị hủy, không thể thanh toán cọc.");
+
         if (contract.Status != "Signed")
             return (null, 400, "Hợp đồng chưa được ký, không thể nhận cọc");
+
+        var now = DateTime.UtcNow;
+        if (!contract.SignedAt.HasValue || now >= contract.SignedAt.Value.AddHours(DepositDeadlineHours()))
+            return (null, 400, "Đã hết hạn thanh toán đặt cọc. Vui lòng liên hệ nhà hàng.");
 
         if (await _repo.ExistsPaidDepositForContractAsync(contractId))
             return (null, 400, "Hợp đồng này đã được thanh toán tiền cọc");
@@ -351,7 +363,8 @@ public class ContractWorkflowService : IContractWorkflowService
         if (deposit <= 0)
             return (null, 400, "Số tiền đặt cọc không hợp lệ.");
 
-        long orderCode = long.Parse(DateTime.UtcNow.ToString("yyMMddHHmm") + contractId);
+        // orderCode PayOS: dùng int như luồng Order — PayOS so khớp chữ ký với JSON (orderCode long trước đây dễ lệch code 201).
+        int orderCode = GeneratePayOsOrderCode(contractId);
         int amountVnd = (int)Math.Round(deposit, MidpointRounding.AwayFromZero);
         var desc = "Dat coc " + (contract.ContractCode ?? "");
         if (desc.Length > 25)
@@ -365,7 +378,7 @@ public class ContractWorkflowService : IContractWorkflowService
             orderCode, amountVnd, desc, returnUrl, cancelUrl);
 
         if (!payResult.Success || string.IsNullOrEmpty(payResult.CheckoutUrl))
-            return (null, 500, "Không thể kết nối PayOS, vui lòng thử lại");
+            return (null, 500, payResult.Message ?? "Không thể kết nối PayOS, vui lòng thử lại");
 
         return (new ContractDepositPayOSResponseDTO
         {
@@ -402,6 +415,14 @@ public class ContractWorkflowService : IContractWorkflowService
             if (await _repo.ExistsPaidDepositForContractAsync(contractId))
                 return $"{fe}/events/{bookEventId}?payment=success";
 
+            var nowCb = DateTime.UtcNow;
+            if (contract.Status == "Cancelled")
+                return $"{fe}/events/{bookEventId}?payment=contract_invalid";
+            if (contract.Status != "Signed")
+                return $"{fe}/events/{bookEventId}?payment=contract_invalid";
+            if (!contract.SignedAt.HasValue || nowCb >= contract.SignedAt.Value.AddHours(DepositDeadlineHours()))
+                return $"{fe}/events/{bookEventId}?payment=expired";
+
             decimal deposit = contract.DepositAmount ?? 0;
             decimal totalAmount = contract.TotalAmount;
 
@@ -420,7 +441,16 @@ public class ContractWorkflowService : IContractWorkflowService
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repo.AddDepositPaymentAndUpdateContractAsync(contract, payment, totalAmount, deposit);
+            try
+            {
+                await _repo.AddDepositPaymentAndUpdateContractAsync(
+                    contract, payment, totalAmount, deposit, DepositDeadlineHours());
+            }
+            catch (InvalidOperationException)
+            {
+                return $"{fe}/events/{bookEventId}?payment=expired";
+            }
+
             return $"{fe}/events/{bookEventId}?payment=success";
         }
         catch
@@ -451,7 +481,13 @@ public class ContractWorkflowService : IContractWorkflowService
         if (contract == null)
             return;
 
+        if (contract.Status == "Cancelled")
+            return;
+
+        var nowWh = DateTime.UtcNow;
         if (contract.Status != "Signed" || await _repo.ExistsPaidDepositForContractAsync(contractId))
+            return;
+        if (!contract.SignedAt.HasValue || nowWh >= contract.SignedAt.Value.AddHours(DepositDeadlineHours()))
             return;
 
         decimal deposit = contract.DepositAmount ?? 0;
@@ -474,11 +510,31 @@ public class ContractWorkflowService : IContractWorkflowService
 
         try
         {
-            await _repo.AddDepositPaymentAndUpdateContractAsync(contract, payment, totalAmount, deposit);
+            await _repo.AddDepositPaymentAndUpdateContractAsync(
+                contract, payment, totalAmount, deposit, DepositDeadlineHours());
         }
         catch
         {
             // Luôn 200 cho PayOS — bỏ qua lỗi nghiệp vụ
+        }
+    }
+
+    public Task<int> CancelExpiredSignedDepositContractsAsync() =>
+        _repo.CancelSignedContractsPastDepositWindowAsync(DepositDeadlineHours());
+
+    private int DepositDeadlineHours() =>
+        Math.Max(1, _appSettings.DepositDeadlineHoursAfterSign);
+
+    /// <summary>Mã đơn PayOS (int, duy nhất mỗi lần gọi — cùng kiểu với orderCode đơn hàng).</summary>
+    private static int GeneratePayOsOrderCode(int contractId)
+    {
+        unchecked
+        {
+            int r = Random.Shared.Next(1, int.MaxValue);
+            int n = (contractId * 100_007) ^ r ^ (int)(DateTime.UtcNow.Ticks % int.MaxValue);
+            if (n <= 0)
+                n = r;
+            return n;
         }
     }
 
@@ -489,8 +545,9 @@ public class ContractWorkflowService : IContractWorkflowService
         if (be == null)
             return (null, 404, "Không tìm thấy sự kiện");
 
-        if (be.Status != "Confirmed")
-            return (null, 400, "Sự kiện chưa đủ điều kiện xác nhận");
+        // Sau ký hợp đồng BookEvent vẫn Approved; bản ghi cũ có thể là Confirmed (legacy) — vẫn cho xác nhận cuối.
+        if (be.Status != "Approved" && be.Status != "Confirmed")
+            return (null, 400, "Sự kiện không ở trạng thái hợp lệ để xác nhận (cần đã duyệt / đã ký hợp đồng).");
 
         if (be.ContractId == null || be.Contract == null)
             return (null, 400, "Chưa có hợp đồng cho sự kiện này");
@@ -534,7 +591,7 @@ public class ContractWorkflowService : IContractWorkflowService
         {
             BookEventId = be.BookEventId,
             BookingCode = be.BookingCode!,
-            Status = "Active",
+            Status = be.Status!,
             ConfirmedBy = staffUserId,
             ConfirmedAt = be.ConfirmedAt!.Value,
             EmailSent = emailSent,

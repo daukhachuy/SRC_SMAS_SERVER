@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SMAS_API.BackgroundJobs;
 using SMAS_API.Helpers;
 using SMAS_BusinessObject.Configurations;
 using SMAS_BusinessObject.DTOs.AIDTO;
@@ -257,6 +258,7 @@ namespace SMAS_API
             builder.Services.AddScoped<INotificationService, NotificationService>();
 
             builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
+            builder.Services.AddHostedService<ContractDepositExpirationHostedService>();
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -271,7 +273,7 @@ namespace SMAS_API
             builder.Services.AddScoped<TableDAO>();
             builder.Services.AddScoped<ITableRepository, TableRepository>();
             builder.Services.AddScoped<ITableService, TableService>();
-            builder.Services.AddSingleton<ITableTokenHelper, TableTokenHelper>(); 
+            builder.Services.AddSingleton<ITableTokenHelper, TableTokenHelper>();
 
             builder.Services.AddScoped<IAIService, AIService>();
             builder.Services.AddScoped<IAIAnalysisServices, AIAnalysisServices>();

@@ -29,7 +29,7 @@ public partial class BookEvent
 
     public string? Note { get; set; }
 
-    public string? Status { get; set; }
+    public string? Status { get; set; } //Pending,Approve, Rejected, Confirmed, Completed, Cancelled
 
     public decimal? TotalAmount { get; set; }
 

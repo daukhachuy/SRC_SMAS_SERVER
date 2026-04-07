@@ -155,7 +155,7 @@ public class PaymentService : IPaymentService
     }
 
     public async Task<ContractDepositPayOSResult> CreateContractDepositPaymentLinkAsync(
-        long orderCode,
+        int orderCode,
         int amountVnd,
         string description,
         string returnUrl,
@@ -166,13 +166,15 @@ public class PaymentService : IPaymentService
 
         string desc = description.Length > 25 ? description[..25] : description;
 
-        string dataStr = $"amount={amountVnd}&cancelUrl={cancelUrl}&description={desc}&orderCode={orderCode}&returnUrl={returnUrl}";
+        // Cùng công thức chuỗi ký + kiểu amount long như CreatePaymentLinkAsync (đơn mang đi) — không đổi method đó.
+        long amountLong = amountVnd;
+        string dataStr = $"amount={amountLong}&cancelUrl={cancelUrl}&description={desc}&orderCode={orderCode}&returnUrl={returnUrl}";
         string signature = ComputeHmacSha256(dataStr, _payOsSettings.ChecksumKey);
 
         var body = new
         {
             orderCode,
-            amount = (long)amountVnd,
+            amount = amountLong,
             description = desc,
             cancelUrl,
             returnUrl,
@@ -202,18 +204,41 @@ public class PaymentService : IPaymentService
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
+
+        var code = root.TryGetProperty("code", out var codeEl) ? codeEl.GetString() : null;
+        if (!string.IsNullOrEmpty(code) && code != "00")
+        {
+            var failDesc = root.TryGetProperty("desc", out var failDescEl) ? failDescEl.GetString() : null;
+            return new ContractDepositPayOSResult
+            {
+                Success = false,
+                Message = $"PayOS code={code}. {failDesc ?? json}"
+            };
+        }
+
         if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object)
         {
             string? checkoutUrl = data.TryGetProperty("checkoutUrl", out var url) ? url.GetString() : null;
+            if (string.IsNullOrEmpty(checkoutUrl))
+            {
+                string? innerDesc = data.TryGetProperty("desc", out var d0) ? d0.GetString() : null;
+                return new ContractDepositPayOSResult
+                {
+                    Success = false,
+                    Message = innerDesc ?? "PayOS không trả về checkoutUrl (data có nhưng thiếu link)."
+                };
+            }
+
             return new ContractDepositPayOSResult
             {
                 Success = true,
-                CheckoutUrl = checkoutUrl,
-                Message = checkoutUrl == null ? "PayOS không trả về link thanh toán." : null
+                CheckoutUrl = checkoutUrl
             };
         }
 
         string? errMsg = root.TryGetProperty("desc", out var descEl) ? descEl.GetString() : null;
+        if (string.IsNullOrEmpty(errMsg) && root.TryGetProperty("message", out var msgEl))
+            errMsg = msgEl.GetString();
         return new ContractDepositPayOSResult
         {
             Success = false,

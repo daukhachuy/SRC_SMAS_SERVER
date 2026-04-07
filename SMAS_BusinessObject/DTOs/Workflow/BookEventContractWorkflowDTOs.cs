@@ -100,6 +100,8 @@ public class BookEventDetailContractDTO
     public string? ContractCode { get; set; }
     public string? Status { get; set; }
     public DateTime? SignedAt { get; set; }
+    /// <summary>Hạn cọc (UTC) = SignedAt + cấu hình giờ; chỉ có nghĩa khi đã ký.</summary>
+    public DateTime? DepositDueUtc { get; set; }
     public string? ContractFileUrl { get; set; }
     public string? TermsAndConditions { get; set; }
 }
@@ -143,6 +145,7 @@ public class ContractSignResponseDTO
     public int ContractId { get; set; }
     public string ContractCode { get; set; } = null!;
     public DateTime SignedAt { get; set; }
+    public DateTime DepositDueUtc { get; set; }
     public string Message { get; set; } = null!;
 }
 

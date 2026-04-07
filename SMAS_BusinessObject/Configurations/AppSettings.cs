@@ -10,4 +10,10 @@ public class AppSettings
 
     /// <summary>URL frontend — redirect sau PayOS callback.</summary>
     public string FrontendBaseUrl { get; set; } = "http://localhost:3000";
+
+    /// <summary>Số giờ kể từ thời điểm ký (SignedAt) để khách phải hoàn tất cọc (UTC).</summary>
+    public int DepositDeadlineHoursAfterSign { get; set; } = 24;
+
+    /// <summary>Chu kỳ chạy job hủy hợp đồng Signed quá hạn cọc (phút).</summary>
+    public int ContractExpirationSweepIntervalMinutes { get; set; } = 5;
 }

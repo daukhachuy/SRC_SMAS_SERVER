@@ -17,7 +17,7 @@ namespace SMAS_DataAccess.DAO
             _context = context;
         }
         /// Lấy Contract theo BookingCode của BookEvent
-      
+
         public async Task<Contract?> GetContractByBookEventCodeAsync(string bookingCode)
         {
             return await _context.Contracts
@@ -86,16 +86,27 @@ namespace SMAS_DataAccess.DAO
             Contract contract,
             Payment payment,
             decimal totalAmount,
-            decimal depositAmount)
+            decimal depositAmount,
+            int depositDeadlineHoursAfterSign)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var now = DateTime.UtcNow;
+                var fresh = await _context.Contracts
+                    .FirstOrDefaultAsync(c => c.ContractId == contract.ContractId);
+                if (fresh == null || fresh.Status != "Signed")
+                    throw new InvalidOperationException("CONTRACT_NOT_ELIGIBLE_FOR_DEPOSIT");
+                if (!fresh.SignedAt.HasValue)
+                    throw new InvalidOperationException("CONTRACT_NOT_ELIGIBLE_FOR_DEPOSIT");
+                if (now >= fresh.SignedAt.Value.AddHours(depositDeadlineHoursAfterSign))
+                    throw new InvalidOperationException("DEPOSIT_DEADLINE_PASSED");
+
                 _context.Payments.Add(payment);
-                contract.Status = "Deposited";
-                contract.RemainingAmount = totalAmount - depositAmount;
-                contract.UpdatedAt = DateTime.UtcNow;
-                _context.Contracts.Update(contract);
+                fresh.Status = "Deposited";
+                fresh.RemainingAmount = totalAmount - depositAmount;
+                fresh.UpdatedAt = now;
+                _context.Contracts.Update(fresh);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return payment;
@@ -105,6 +116,34 @@ namespace SMAS_DataAccess.DAO
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Hủy hợp đồng Signed đã quá hạn cọc (SignedAt + hours). Chỉ cập nhật hàng khớp điều kiện.
+        /// </summary>
+        public async Task<int> CancelSignedContractsPastDepositWindowAsync(int depositDeadlineHoursAfterSign)
+        {
+            var threshold = DateTime.UtcNow.AddHours(-depositDeadlineHoursAfterSign);
+            var now = DateTime.UtcNow;
+
+            await _context.BookEvents
+                .Where(be => be.ContractId != null &&
+                    _context.Contracts.Any(c =>
+                        c.ContractId == be.ContractId &&
+                        c.Status == "Signed" &&
+                        c.SignedAt != null &&
+                        c.SignedAt < threshold))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(be => be.Status, "Cancelled")
+                    .SetProperty(be => be.UpdatedAt, now));
+
+            return await _context.Contracts
+                .Where(c => c.Status == "Signed"
+                    && c.SignedAt != null
+                    && c.SignedAt < threshold)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.Status, "Cancelled")
+                    .SetProperty(c => c.UpdatedAt, now));
         }
 
         public async Task SignContractAndUpdateBookEventAsync(Contract contract)
@@ -124,7 +163,7 @@ namespace SMAS_DataAccess.DAO
                 contract.UpdatedAt = DateTime.UtcNow;
                 _context.Contracts.Update(contract);
 
-                be.Status = "Confirmed";
+                // Giữ trạng thái BookEvent (thường là Approved); xác nhận cuối → Active trong ConfirmBookEventAsync.
                 be.UpdatedAt = DateTime.UtcNow;
                 _context.BookEvents.Update(be);
 

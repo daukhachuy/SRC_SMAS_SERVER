@@ -183,12 +183,13 @@ namespace SMAS_DataAccess.DAO
         }
 
         /// <summary>
-        /// Số lượng contract cần được ký (Status = Pending)
+        /// Số hợp đồng chưa ký: Draft (đã tạo, chưa gửi / chưa ký) hoặc Sent (đã gửi mail, chờ khách ký).
+        /// Luồng BookEvent không dùng Status Pending — trước đây đếm Pending nên luôn 0.
         /// </summary>
         public async Task<int> GetNumberContractNeedSignedAsync()
         {
             return await _context.Contracts
-                .CountAsync(c => c.Status == "Pending");
+                .CountAsync(c => c.Status == "Draft" || c.Status == "Sent");
         }
 
         /// <summary>
