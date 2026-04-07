@@ -14,5 +14,6 @@ namespace SMAS_Services.NotificationServices
         Task<bool> CreateNotificationAsync(ChangeWorkstaffRequestDTO notification, int userid);
         Task<IEnumerable<NotificationDto>> GetAllNotificationAsync(int userId);
         Task<IEnumerable<NotificationDto>> GetNotificationsByUserIdAsync(int userId);
+        Task<bool> MarkNotificationAsReadAsync(int notificationId, int userId);
     }
 }

@@ -17,7 +17,7 @@ namespace SMAS_Services.NotificationServices
         {
             _notificationREPO = notificationREPO;
         }
-        public async Task<bool> CreateNotificationAsync(ChangeWorkstaffRequestDTO notification , int userid)
+        public async Task<bool> CreateNotificationAsync(ChangeWorkstaffRequestDTO notification, int userid)
         {
             var request = new Notification
             {
@@ -53,7 +53,7 @@ namespace SMAS_Services.NotificationServices
                 CreatedAt = n.CreatedAt,
                 ReadAt = n.ReadAt
             });
-            return  notifications.Where(n => n.UserId == userId).ToList();
+            return notifications.Where(n => n.UserId == userId).ToList();
 
         }
 
@@ -78,6 +78,30 @@ namespace SMAS_Services.NotificationServices
             });
 
             return notifications.Where(n => n.UserId == userId && n.IsRead == false).ToList();
+        }
+
+        public async Task<bool> MarkNotificationAsReadAsync(int notificationId, int userId)
+        {
+            var notifications = await GetAllNotificationAsync(userId);
+            var  notification = notifications.FirstOrDefault(n => n.NotificationId == notificationId);
+            if (notification == null || notification.UserId != userId)
+                return false;
+            notification.IsRead = true;
+            notification.ReadAt = DateTime.UtcNow;
+            var requets = new Notification
+            {
+                NotificationId = notification.NotificationId,
+                UserId = notification.UserId,
+                SenderId = notification.SenderId,
+                Title = notification.Title,
+                Content = notification.Content,
+                Type = notification.Type,
+                Severity = notification.Severity,
+                IsRead = notification.IsRead,
+                CreatedAt = notification.CreatedAt,
+                ReadAt = notification.ReadAt
+            };
+            return await _notificationREPO.UpdateNotificationAsync(requets);
         }
     }
 }

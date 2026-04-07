@@ -81,5 +81,23 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
             }
         }
+
+        [Authorize(Roles = "Admin,Customer,Waiter,Kitchen,Manager")]
+        [HttpPatch("mark-as-read/{notificationId}")]
+        public async Task<IActionResult> UpdateNotificationIsReadAsync(int notificationId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized();
+            }
+            var result = await _notificationService.MarkNotificationAsReadAsync(notificationId, userId);
+            if (!result)
+            {
+                return BadRequest(new { MsgCode = "MSG_028", Message = "Không thể yêu cầu đổi lịch vui lòng thử lại !" });
+            }
+            return Ok("Thông báo đã được đọc");
+        }
+
     }
 }
