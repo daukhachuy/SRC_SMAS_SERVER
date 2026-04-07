@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
@@ -130,6 +131,39 @@ namespace SMAS_Repositories.OrderRepositories
             }
             return (true, "Thêm món ăn thành công ");
 
+        }
+
+        public async Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode)
+        {
+            var order = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
+
+            if (order == null)
+                return new List<FoodFilterResponseDTO>();
+
+            var currentBuffer = order.OrderItems
+                                     .FirstOrDefault(oi => oi.BuffetId.HasValue)
+                                     ?.BuffetId;
+
+            if (currentBuffer == null)
+                return new List<FoodFilterResponseDTO>();
+
+            var bufferFoods = await _orderItemDAO.GetFoodByBuffetIdAsync(currentBuffer);
+
+            if (bufferFoods == null || !bufferFoods.Any())
+                return new List<FoodFilterResponseDTO>();
+
+            return bufferFoods.Select(f => new FoodFilterResponseDTO
+            {
+                FoodId = f.FoodId,
+                Name = f.Name,
+                Description = f.Description,
+                Price = f.Price ,
+                PromotionalPrice = f.PromotionalPrice,
+                Image = f.Image,
+                Unit = f.Unit,
+                Rating = f.Rating,
+                Note = f.Note
+            }).ToList();
         }
     }
 }

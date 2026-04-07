@@ -1,3 +1,4 @@
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
@@ -387,6 +388,11 @@ namespace SMAS_Services.OrderItemServices
 
             }              
             return await _orderItemRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
+        }
+
+        public async Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode)
+        {
+            return await _orderItemRepository.GetFoodForBufferAsync(orderCode);
         }
     }
 }

@@ -192,6 +192,27 @@ namespace SMAS_API.Controllers
         }
 
         //[Authorize(Roles = "Manager,Waiter,Admin")]
+        [HttpGet("getfoods-buffer-{orderCode}")]
+        public async Task<IActionResult> GetFoodBufferByOrderCodeAsync([FromRoute] string orderCode)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            try
+            {
+                var result = await _orderItemService.GetFoodForBufferAsync(orderCode);
+
+                if (result == null)
+                    return NotFound("Không tìm thấy bufer nào đã mua ");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        //[Authorize(Roles = "Manager,Waiter,Admin")]
         [HttpPost("add-{orderCode}-items")]
         public async Task<IActionResult> PostAddOrderItemByOrderCodeAsync([FromRoute] string orderCode, [FromBody] List<AddOrderItemRequest> request)
         {
