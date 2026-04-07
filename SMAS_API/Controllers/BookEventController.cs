@@ -121,6 +121,32 @@ namespace SMAS_API.Controllers
             };
         }
 
+        /// <summary>
+        /// Lịch sử đặt sự kiện của khách đang đăng nhập (CustomerId từ JWT).
+        /// </summary>
+        [Authorize(Roles = "Customer")]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyBookEventHistory()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int customerId))
+                    return Unauthorized();
+
+                var bookEvents = await _bookEventService.GetMyBookEventHistoryAsync(customerId);
+
+                if (bookEvents == null || bookEvents.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Bạn chưa có lịch sử đặt sự kiện." });
+
+                return Ok(new { data = bookEvents, message = "Lấy lịch sử đặt sự kiện thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("history")]
         public async Task<IActionResult> GetAllBookEventCompleteAndCancel()
