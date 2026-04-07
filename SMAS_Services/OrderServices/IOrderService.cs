@@ -1,3 +1,4 @@
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using System;
@@ -29,6 +30,12 @@ namespace SMAS_Services.OrderServices
         Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int waiterUserId);
 
         Task<OrderLookupResponseDto> LookupOrderAsync(OrderLookupRequestDto request);
+
+        Task<(bool status , string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request);
+
+        Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request);
+
+        Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto);
 
     }
 }
