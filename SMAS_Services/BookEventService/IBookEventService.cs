@@ -12,6 +12,7 @@ namespace SMAS_Services.BookEventService
         Task<List<BookEventListResponseDTO>> GetAllActiveBookEventAsync();
         Task<BookEventListResponseDTO?> GetBookEventByIdAsync(int bookEventId);
         Task<List<BookEventListResponseDTO>> GetAllBookEventCompleteAndCancelAsync();
+        Task<List<BookEventListResponseDTO>> GetMyBookEventHistoryAsync(int customerId);
         Task<CreateBookEventResponseDTO> CreateBookEventWithDetailsAsync(CreateBookEventRequestDTO request);
     }
 }

@@ -134,7 +134,7 @@ namespace SMAS_Repositories.EventRepositories
             entity.BasePrice = dto.BasePrice;
             entity.IsActive = dto.IsActive;
             entity.UpdatedAt = DateTime.UtcNow;
-            // CreatedBy gi? nguyên
+            // CreatedBy gi? nguyï¿½n
         }
     }
 

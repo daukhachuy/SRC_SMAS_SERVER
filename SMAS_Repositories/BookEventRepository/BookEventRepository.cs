@@ -36,6 +36,12 @@ namespace SMAS_Repositories.BookEventRepository
             return MapToDTO(bookEvents);
         }
 
+        public async Task<List<BookEventListResponseDTO>> GetBookEventsByCustomerIdAsync(int customerId)
+        {
+            var bookEvents = await _bookEventDAO.GetBookEventsByCustomerIdAsync(customerId);
+            return MapToDTO(bookEvents);
+        }
+
         public async Task<BookEvent> CreateBookEventWithDetailsAsync(
             BookEvent bookEvent,
             List<SMAS_BusinessObject.Models.BookEventService> bookEventServices,

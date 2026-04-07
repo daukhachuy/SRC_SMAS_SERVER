@@ -23,7 +23,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Danh sách sự kiện sắp tới (ReservationDate >= hôm nay)
         /// </summary>
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("upcoming-events")]
         public async Task<IActionResult> GetAllUpcomingEvent()
         {
@@ -65,7 +65,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateEventAsync([FromBody] EventCreateDto dto)
         {
@@ -85,7 +85,7 @@ namespace SMAS_API.Controllers
         }
 
 
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateEventAsync(int id, [FromBody] EventUpdateDto dto)
         {
@@ -125,7 +125,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager/Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteEventAsync(int id)
         {
