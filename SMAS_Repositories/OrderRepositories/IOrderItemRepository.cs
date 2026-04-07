@@ -30,9 +30,10 @@ namespace SMAS_Repositories.OrderRepositories
 
         Task<List<OrderItem>> GetReadyOrderItemsHistoryTodayAsync(DateTime startOfDayUtc, DateTime endOfDayUtc, int? orderId);
 
-        
+
 
         Task<(bool status, string message)> AddOrderItemByOrderCodeAsync(string orderCode, List<AddOrderItemRequest> request);
+        Task<AddOrderItemResponse> AddOrderItemAsync(string orderCode, AddOrderItemRequest request);
     }
 }
 

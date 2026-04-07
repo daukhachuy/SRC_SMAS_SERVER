@@ -134,6 +134,7 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Orders
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet).ThenInclude(b => b.BuffetFoods).ThenInclude(bf => bf.Food) // Include chi tiết món buffet
+                .Include(o => o.TableOrders)
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
 
@@ -241,23 +242,30 @@ namespace SMAS_DataAccess.DAO
                 {
                     table.Status = "OPEN";
                     table.UpdatedAt = now;
-                    // Tự động kích hoạt session để khách quét QR được
-                    var session = new TableSessionCache
-                    {
-                        TableCode = table.TableName.ToUpper(),
-                        TableId = table.TableId,
-                        SessionNonce = Guid.NewGuid().ToString("N"),
-                        Status = "ACTIVE",
-                        OpenedBy = order.ServedBy ?? 0,
-                        OpenedAt = now,
-                        ExpiresAt = now.AddHours(12)
-                    };
-                    _cache.Set(
-                        CacheKey(table.TableName),
-                        session,
-                        session.ExpiresAt - now);
-                }
+                    var cacheKey = $"table_session_{table.TableId}";
 
+                    // GUARD: Chỉ tạo session mới nếu chưa có session ACTIVE.
+                    // Tránh overwrite session + vô hiệu hoá token khách đang giữ.
+                    if (!_cache.TryGetValue(cacheKey, out TableSessionCache? existing)
+                        || existing?.Status != "ACTIVE")
+                    {
+                        // Tự động kích hoạt session để khách quét QR được
+                        var session = new TableSessionCache
+                        {
+                            TableCode = table.TableId.ToString(),
+                            TableId = table.TableId,
+                            SessionNonce = Guid.NewGuid().ToString("N"),
+                            Status = "ACTIVE",
+                            OpenedBy = order.ServedBy ?? 0,
+                            OpenedAt = now,
+                            ExpiresAt = now.AddHours(12)
+                        };
+                        _cache.Set(
+                            CacheKey(table.TableName),
+                            session,
+                            session.ExpiresAt - now);
+                    }
+                }
 
                 if (reservationToUpdate != null)
                 {

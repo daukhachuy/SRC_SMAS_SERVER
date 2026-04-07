@@ -5,7 +5,7 @@ using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using SMAS_Services.TableService;
 namespace SMAS_Repositories.OrderRepositories
 {
     public class OrderItemRepository : IOrderItemRepository
@@ -13,12 +13,14 @@ namespace SMAS_Repositories.OrderRepositories
         private readonly OrderItemDAO _orderItemDAO;
 
         private readonly OrderDAO _orderDAO;
-
+     
         public OrderItemRepository(OrderItemDAO orderItemDAO, OrderDAO orderDAO)
         {
             _orderItemDAO = orderItemDAO;
             _orderDAO = orderDAO;
         }
+
+   
 
         public Task<List<Order>> GetActiveOrdersWithPendingItemsAsync()
             => _orderItemDAO.GetActiveOrdersWithPendingItemsAsync();
@@ -130,6 +132,18 @@ namespace SMAS_Repositories.OrderRepositories
             }
             return (true, "Thêm món ăn thành công ");
 
+        }
+
+        public async Task<AddOrderItemResponse> AddOrderItemAsync(string orderCode, AddOrderItemRequest request)
+        {
+            var requestList = new List<AddOrderItemRequest> { request };
+            var (status, message) = await AddOrderItemByOrderCodeAsync(orderCode, requestList);
+
+            return new AddOrderItemResponse
+            {
+                Success = status,
+                Message = message
+            };
         }
     }
 }
