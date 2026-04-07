@@ -65,6 +65,27 @@ namespace SMAS_DataAccess.DAO
         }
 
         /// <summary>
+        /// Lịch sử đặt sự kiện của một khách hàng (mọi trạng thái), mới nhất trước.
+        /// </summary>
+        public async Task<List<BookEvent>> GetBookEventsByCustomerIdAsync(int customerId)
+        {
+            return await _context.BookEvents
+                .Include(be => be.Customer)
+                .Include(be => be.Event)
+                .Include(be => be.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(be => be.Contract)
+                .Include(be => be.BookEventServices)
+                    .ThenInclude(s => s.Service)
+                .Include(be => be.EventFoods)
+                    .ThenInclude(ef => ef.Food)
+                .Where(be => be.CustomerId == customerId)
+                .OrderByDescending(be => be.CreatedAt)
+                .ThenByDescending(be => be.BookEventId)
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Tạo đặt sự kiện kèm dịch vụ và món ăn trong một transaction.
         /// Chỉ lưu DB khi tất cả thành công; nếu lỗi thì rollback.
         /// </summary>

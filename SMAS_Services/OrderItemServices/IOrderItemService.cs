@@ -1,3 +1,4 @@
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,6 +24,8 @@ namespace SMAS_Services.OrderItemServices
         Task<KitchenTodayHistoryResponseDTO> GetAllOrderItemsHistoryTodayAsync(int? orderId);
 
         Task<(bool status, string message)> AddOrderItemByOrderCodeAsync(string orderCode, List<AddOrderItemRequest> request);
+
+        Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode);
     }
 }
 
