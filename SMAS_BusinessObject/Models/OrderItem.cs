@@ -21,7 +21,7 @@ public partial class OrderItem
 
     public decimal? Subtotal { get; set; }
 
-    public string? Status { get; set; }  // Pending/Preparing/Ready/Served/Cancelled
+    public string? Status { get; set; }  //  /Preparing/Ready/Served/Cancelled
 
     public string? Note { get; set; }
 

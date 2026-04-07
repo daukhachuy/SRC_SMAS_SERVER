@@ -35,6 +35,9 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 
         [JsonPropertyName("openingTime")]
         public DateTime? OpeningTime { get; set; }
+
+        [JsonPropertyName("status")]
+        public string Status { get; set; } = string.Empty;
     }
 
     public class KitchenPendingOrderDTO

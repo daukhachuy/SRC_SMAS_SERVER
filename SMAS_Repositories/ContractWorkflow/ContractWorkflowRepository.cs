@@ -59,9 +59,14 @@ public class ContractWorkflowRepository : IContractWorkflowRepository
         Contract contract,
         Payment payment,
         decimal totalAmount,
-        decimal depositAmount) =>
-        _contractDAO.AddDepositPaymentAndUpdateContractAsync(contract, payment, totalAmount, depositAmount);
+        decimal depositAmount,
+        int depositDeadlineHoursAfterSign) =>
+        _contractDAO.AddDepositPaymentAndUpdateContractAsync(
+            contract, payment, totalAmount, depositAmount, depositDeadlineHoursAfterSign);
 
     public Task<bool> ExistsPaidDepositForContractAsync(int contractId) =>
         _paymentDAO.ExistsPaidDepositForContractAsync(contractId);
+
+    public Task<int> CancelSignedContractsPastDepositWindowAsync(int depositDeadlineHoursAfterSign) =>
+        _contractDAO.CancelSignedContractsPastDepositWindowAsync(depositDeadlineHoursAfterSign);
 }
