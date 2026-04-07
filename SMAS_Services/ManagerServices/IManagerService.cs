@@ -12,7 +12,7 @@ namespace SMAS_Services.ManagerServices
         Task<RevenueWeekResponseDTO> GetRevenuePreviousSevenDaysAsync();
         Task<IEnumerable<OrderTodayResponseDTO>> GetFourNewestOrdersAsync();
         Task<IEnumerable<StaffWorkTodayResponseDTO>> GetStaffWorkTodayAsync();
-        Task<IEnumerable<NotificationResponseDTO>> GetNotificationsByUserIdAsync(int userId);
+        
         Task<SumReservationTodayResponseDTO> GetSumReservationTodayAsync();
         Task<IEnumerable<ReservationListResponse>> GetReservationsWaitConfirmAsync();
         Task<IEnumerable<ReservationListResponse>> GetAllReservationsDescCreatedAtAsync();
