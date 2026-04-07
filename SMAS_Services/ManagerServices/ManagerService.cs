@@ -39,11 +39,7 @@ namespace SMAS_Services.ManagerServices
         {
             return await _managerRepository.GetStaffWorkTodayAsync();
         }
-
-        public async Task<IEnumerable<NotificationResponseDTO>> GetNotificationsByUserIdAsync(int userId)
-        {
-            return await _managerRepository.GetNotificationsByUserIdAsync(userId);
-        }
+  
 
         public async Task<SumReservationTodayResponseDTO> GetSumReservationTodayAsync()
         {

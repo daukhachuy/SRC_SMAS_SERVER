@@ -13,5 +13,6 @@ namespace SMAS_Repositories.Notificationrepositories
         Task<bool> CreateNotificationAsync(Notification notification);
         Task<IEnumerable<Notification>> GetAllAsync();
 
+        Task<bool> UpdateNotificationAsync(Notification request);
     }
 }
