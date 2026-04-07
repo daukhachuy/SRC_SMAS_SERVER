@@ -315,11 +315,13 @@ namespace SMAS_Repositories.OrderRepositories
             {
                 if (request.Items == null || !request.Items.Any())
                     return new OrderDeliveryResponse { Success = false, Message = "Giỏ hàng trống." };
-
+                var random = Random.Shared.Next(1000, 10000);
+                var now = DateTime.UtcNow;
+                var code = $"ORD-{now:yyyyMMddHHmmss}-{random}";
                 var order = new Order
                 {
                     UserId = userid,
-                    OrderCode = "ORD-" + DateTime.Now.Ticks.ToString().Substring(10),
+                    OrderCode = code,
                     OrderType = "Delivery",
                     Note = request.Note,
                     OrderStatus = "Pending",
@@ -409,7 +411,7 @@ namespace SMAS_Repositories.OrderRepositories
                         RecipientPhone = request.DeliveryInfo.RecipientPhone,
                         Address = request.DeliveryInfo.Address,
                         DeliveryStatus = "Pending",
-                        DeliveryCode = "ORD-" + DateTime.Now.Ticks.ToString().Substring(10),
+                        DeliveryCode = code,
                         Note = request.DeliveryInfo.Note
 
                     };

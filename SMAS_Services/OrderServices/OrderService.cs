@@ -196,7 +196,7 @@ namespace SMAS_Services.OrderServices
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now),
+                OrderCode = GenerateOrderCode(now , "ORR"),
                 UserId = reservation.UserId,
                 ReservationId = reservation.ReservationId,
                 BookEventId = null,
@@ -260,7 +260,7 @@ namespace SMAS_Services.OrderServices
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now),
+                OrderCode = GenerateOrderCode(now, "ORC"),
                 UserId = user.UserId,
                 ReservationId = null,
                 BookEventId = null,
@@ -299,7 +299,7 @@ namespace SMAS_Services.OrderServices
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now),
+                OrderCode = GenerateOrderCode(now, "ORG"),
                 UserId = waiterUserId,
                 ReservationId = null,
                 BookEventId = null,
@@ -433,10 +433,10 @@ namespace SMAS_Services.OrderServices
             return built;
         }
 
-        private static string GenerateOrderCode(DateTime now)
+        private static string GenerateOrderCode(DateTime now , string code)
         {
             var random = Random.Shared.Next(1000, 10000);
-            return $"ORD-{now:yyyyMMddHHmmss}-{random}";
+            return $"{code}-{now:yyyyMMddHHmmss}-{random}";
         }
 
         private static CreateInHouseOrderResponse MapCreateInHouseOrderResponse(
