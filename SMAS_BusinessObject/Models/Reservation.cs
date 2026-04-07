@@ -19,7 +19,7 @@ public partial class Reservation
 
     public string? SpecialRequests { get; set; }
 
-    public string? Status { get; set; }
+    public string? Status { get; set; }    // Pending = 1,Confirmed = 2,Cancelled = 3,Seated = 4 
 
     public int? ConfirmedBy { get; set; }
 

@@ -44,5 +44,11 @@ namespace SMAS_Repositories.OrderRepositories
 
 
         Task<Order?> GetOrderByIdNoTrackingAsync(string ordercode);
+
+        Task<(bool status, string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request);
+
+        Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request);
+
+        Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request, string dto);
     }
 }

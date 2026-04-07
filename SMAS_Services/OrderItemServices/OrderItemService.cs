@@ -1,3 +1,4 @@
+using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
@@ -56,7 +57,7 @@ namespace SMAS_Services.OrderItemServices
 
             // Lọc ra chỉ những Order có ít nhất 1 OrderItem Pending
             orders = orders
-                .Where(o => o.OrderItems != null && o.OrderItems.Any(oi => oi.Status == "Pending"))
+                .Where(o => o.OrderItems != null && o.OrderItems.Any(oi => oi.Status == "Pending" || oi.Status == "Preparing" || oi.Status == "Ready"))
                 .ToList();
 
             var result = orders
@@ -73,7 +74,8 @@ namespace SMAS_Services.OrderItemServices
                             ItemName = GetItemName(oi),
                             Quantity = oi.Quantity,
                             Note = oi.Note,
-                            OpeningTime = oi.OpeningTime
+                            OpeningTime = oi.OpeningTime,
+                            Status = oi.Status ?? string.Empty
                         })
                         .ToList();
 
@@ -387,6 +389,11 @@ namespace SMAS_Services.OrderItemServices
 
             }              
             return await _orderItemRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
+        }
+
+        public async Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode)
+        {
+            return await _orderItemRepository.GetFoodForBufferAsync(orderCode);
         }
     }
 }

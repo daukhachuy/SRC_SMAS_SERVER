@@ -20,7 +20,7 @@ namespace SMAS_Repositories.OrderRepositories
         private readonly FoodDAO _foodDAO;
         private readonly DiscountDao _discountDAO;
         private readonly RestaurantDbContext _context;
-        public OrderRepository(OrderDAO orderDAO,ComboDAO comboDAO, FoodDAO foodDAO, DiscountDao discountDAO, RestaurantDbContext context)
+        public OrderRepository(OrderDAO orderDAO, ComboDAO comboDAO, FoodDAO foodDAO, DiscountDao discountDAO, RestaurantDbContext context)
         {
             _orderDAO = orderDAO;
             _comboDAO = comboDAO;
@@ -320,7 +320,7 @@ namespace SMAS_Repositories.OrderRepositories
                 {
                     UserId = userid,
                     OrderCode = "ORD-" + DateTime.Now.Ticks.ToString().Substring(10),
-                    OrderType =  "Delivery",
+                    OrderType = "Delivery",
                     Note = request.Note,
                     OrderStatus = "Pending",
                     CreatedAt = DateTime.Now
@@ -343,7 +343,7 @@ namespace SMAS_Repositories.OrderRepositories
                         unitPrice = await _comboDAO.GetComboPriceAsync(item.ComboId.Value);
                         itemType = "Combo";
                         if (unitPrice == 0) return new OrderDeliveryResponse { Success = false, Message = $"Combo ID {item.ComboId} không tồn tại hoặc đã ngừng bán." };
-                    }           
+                    }
 
                     var orderItem = new OrderItem
                     {
@@ -578,6 +578,39 @@ namespace SMAS_Repositories.OrderRepositories
         public async Task<Order?> GetOrderByIdNoTrackingAsync(string orderCode)
         {
             return await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
+        }
+
+        public async Task<(bool status, string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request)
+        {
+            return await _orderDAO.ChooseAssignedStaffbyOrderAsync(request);
+        }
+
+        public async Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request)
+        {
+            var order = await _orderDAO.GetOrderDeliveryByCodeAsync(request);
+            if (order == null)
+                return (false, "Không tìm thấy đơn hàng với mã: " + request);
+            if (order.OrderStatus == "Completed")
+                return (false, "Đơn hàng của bạn đã hoàn thành không thể huỷ.");
+            if (order.Delivery == null)
+                return (false, $"Đơn hàng {request} không có thông tin giao hàng.");
+            if (order.Delivery.AssignedStaffId == null)
+                return (false, $"Không tìm thấy nhân viên giao hàng");
+            return await _orderDAO.UpdateStatusOrderDelivery(request);
+        }
+
+        public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request, string dto)
+        {
+            var order = await _orderDAO.GetOrderDeliveryByCodeAsync(request);
+            if (order == null)
+                return (false, "Không tìm thấy đơn hàng với mã: " + request);
+            if (order.OrderStatus == "Completed")
+                return (false, "Đơn hàng của bạn đã hoàn thành không thể huỷ.");
+            if (order.Delivery == null)
+                return (false, $"Đơn hàng {request} không có thông tin giao hàng.");
+            if (order.Delivery.AssignedStaffId == null)
+                return (false, $"Không tìm thấy nhân viên giao hàng");
+            return await _orderDAO.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
     }
 }

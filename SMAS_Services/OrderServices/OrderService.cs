@@ -523,5 +523,20 @@ namespace SMAS_Services.OrderServices
     }).ToList()
             };
         }
+
+        public async Task<(bool status, string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request)
+        {                    
+            return await _orderRepository.ChooseAssignedStaffbyOrderAsync(request);
+        }
+
+        public async  Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request)
+        {
+            return await _orderRepository.ChangeStatusDeliveryAsync(request);
+        }
+
+        public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto)
+        {
+            return await _orderRepository.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
+        }
     }
 }
