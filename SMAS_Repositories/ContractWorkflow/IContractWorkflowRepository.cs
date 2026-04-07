@@ -17,7 +17,14 @@ public interface IContractWorkflowRepository
     Task<Contract> CreateContractAndLinkBookEventAsync(Contract contract, BookEvent bookEvent);
     Task SignContractAndUpdateBookEventAsync(Contract contract);
     Task UpdateContractAfterSendSignAsync(Contract contract, string token, DateTime utcNow);
-    Task<Payment> AddDepositPaymentAndUpdateContractAsync(Contract contract, Payment payment, decimal totalAmount, decimal depositAmount);
+    Task<Payment> AddDepositPaymentAndUpdateContractAsync(
+        Contract contract,
+        Payment payment,
+        decimal totalAmount,
+        decimal depositAmount,
+        int depositDeadlineHoursAfterSign);
 
     Task<bool> ExistsPaidDepositForContractAsync(int contractId);
+
+    Task<int> CancelSignedContractsPastDepositWindowAsync(int depositDeadlineHoursAfterSign);
 }

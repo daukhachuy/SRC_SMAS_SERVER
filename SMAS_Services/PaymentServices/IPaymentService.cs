@@ -15,9 +15,9 @@ public interface IPaymentService
     /// <param name="rawBody">Raw JSON body từ request (để build đúng chuỗi ký).</param>
     Task<bool> HandleWebhookAsync(string rawBody);
 
-    /// <summary>PayOS — tạo link thanh toán tiền cọc hợp đồng (không qua Order).</summary>
+    /// <summary>PayOS — tạo link thanh toán tiền cọc hợp đồng (không qua Order). orderCode int giống luồng Order để chữ ký khớp PayOS.</summary>
     Task<ContractDepositPayOSResult> CreateContractDepositPaymentLinkAsync(
-        long orderCode,
+        int orderCode,
         int amountVnd,
         string description,
         string returnUrl,

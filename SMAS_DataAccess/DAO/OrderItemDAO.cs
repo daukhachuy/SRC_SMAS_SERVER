@@ -22,11 +22,9 @@ namespace SMAS_DataAccess.DAO
             return await _context.Orders
                 .Where(o => o.OrderStatus == "Pending" || o.OrderStatus == "Processing")
                 .Include(o => o.TableOrders.Where(to => to.IsMainTable == true))
-                .Include(o => o.OrderItems.Where(oi => oi.Status == "Pending"))
+                .Include(o => o.OrderItems.Where(oi => oi.Status == "Pending" || oi.Status == "Preparing" || oi.Status == "Ready"))
                     .ThenInclude(oi => oi.Food)
-                .Include(o => o.OrderItems.Where(oi => oi.Status == "Pending"))
-                    .ThenInclude(oi => oi.Buffet)
-                .Include(o => o.OrderItems.Where(oi => oi.Status == "Pending"))
+                .Include(o => o.OrderItems.Where(oi => oi.Status == "Pending" || oi.Status == "Preparing" || oi.Status == "Ready"))
                     .ThenInclude(oi => oi.Combo)
                 .AsNoTracking()
                 .ToListAsync();
