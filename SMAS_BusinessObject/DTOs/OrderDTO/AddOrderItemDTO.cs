@@ -17,7 +17,7 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
         public int? BuffetId { get; set; }
 
         [Required(ErrorMessage = "Số lượng là bắt buộc.")]
-        [Range(1, 30, ErrorMessage = "Số lượng phải từ 1 đến 30.")]
+        [Range(1, 15, ErrorMessage = "Số lượng phải từ 1 đến 15.")]
         public int Quantity { get; set; }
 
         public int? QuantityBufferChildent { get; set; }
