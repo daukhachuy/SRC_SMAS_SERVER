@@ -136,7 +136,6 @@ namespace SMAS_Repositories.OrderRepositories
 
         }
 
-<<<<<<< feature/admin
         public async Task<AddOrderItemResponse> AddOrderItemAsync(string orderCode, AddOrderItemRequest request)
         {
             var requestList = new List<AddOrderItemRequest> { request };
@@ -147,7 +146,7 @@ namespace SMAS_Repositories.OrderRepositories
                 Success = status,
                 Message = message
             };
-=======
+        }
         public async Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode)
         {
             var order = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
@@ -179,7 +178,6 @@ namespace SMAS_Repositories.OrderRepositories
                 Rating = f.Rating,
                 Note = f.Note
             }).ToList();
->>>>>>> main
         }
     }
 }

@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< feature/admin
 using Microsoft.Extensions.Logging;
-=======
 using SMAS_BusinessObject.DTOs.ManagerDTO;
->>>>>>> main
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
@@ -13,10 +10,6 @@ using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
-<<<<<<< feature/admin
-=======
-    //[Authorize]
->>>>>>> main
     [ApiController]
     [Route("api/order")]
     public class OrderController : Controller
@@ -250,17 +243,6 @@ namespace SMAS_API.Controllers
             }
         }
 
-<<<<<<< feature/admin
-=======
-        [Authorize(Roles = "Admin,Manager,Waiter")]
-        [HttpPost("{orderCode}/items")]
-        public async Task<IActionResult> PostAddOrderItemByOrderCode(
-        [FromRoute] string orderCode,
-        [FromBody] AddOrderItemRequest request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
->>>>>>> main
 
         [HttpPost("{orderCode}/items")]
         [AllowAnonymous]
