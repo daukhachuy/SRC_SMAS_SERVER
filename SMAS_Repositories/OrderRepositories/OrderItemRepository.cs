@@ -6,7 +6,7 @@ using SMAS_DataAccess.DAO;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using SMAS_Services.TableService;
 namespace SMAS_Repositories.OrderRepositories
 {
     public class OrderItemRepository : IOrderItemRepository
@@ -14,12 +14,14 @@ namespace SMAS_Repositories.OrderRepositories
         private readonly OrderItemDAO _orderItemDAO;
 
         private readonly OrderDAO _orderDAO;
-
+     
         public OrderItemRepository(OrderItemDAO orderItemDAO, OrderDAO orderDAO)
         {
             _orderItemDAO = orderItemDAO;
             _orderDAO = orderDAO;
         }
+
+   
 
         public Task<List<Order>> GetActiveOrdersWithPendingItemsAsync()
             => _orderItemDAO.GetActiveOrdersWithPendingItemsAsync();
@@ -114,6 +116,7 @@ namespace SMAS_Repositories.OrderRepositories
                         newItem.Quantity = newItem.Quantity + (item.QuantityBufferChildent ?? 0);
                         newItem.UnitPrice = unitPrice;
                         newItem.Subtotal = unitPrice * item.Quantity + buffet.ChildrenPrice * item.QuantityBufferChildent;
+                        newItem.Status = "Served";
                     //if (item.QuantityBufferChildent.HasValue)
                     //{
                     //    unitPrice = buffet.ChildrenPrice ?? buffet.MainPrice;
@@ -122,7 +125,7 @@ namespace SMAS_Repositories.OrderRepositories
                     //    newItem.Subtotal = unitPrice * item.Quantity;
                     //    await _orderDAO.AddOrderItemToOrderAsync(newItem);
                     //}
-                        
+
                 }
 
                 await _orderDAO.AddOrderItemToOrderAsync(newItem);
@@ -133,6 +136,18 @@ namespace SMAS_Repositories.OrderRepositories
 
         }
 
+<<<<<<< feature/admin
+        public async Task<AddOrderItemResponse> AddOrderItemAsync(string orderCode, AddOrderItemRequest request)
+        {
+            var requestList = new List<AddOrderItemRequest> { request };
+            var (status, message) = await AddOrderItemByOrderCodeAsync(orderCode, requestList);
+
+            return new AddOrderItemResponse
+            {
+                Success = status,
+                Message = message
+            };
+=======
         public async Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode)
         {
             var order = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
@@ -164,6 +179,7 @@ namespace SMAS_Repositories.OrderRepositories
                 Rating = f.Rating,
                 Note = f.Note
             }).ToList();
+>>>>>>> main
         }
     }
 }

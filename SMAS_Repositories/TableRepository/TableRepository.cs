@@ -1,6 +1,7 @@
-﻿  using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using SMAS_BusinessObject.Cache;
 using SMAS_BusinessObject.DTOs.TableDTO;
+using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using SMAS_Services.TableService;
 using System;
@@ -8,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SMAS_BusinessObject.Models;
 
 namespace SMAS_Repositories.TableRepository
 {
@@ -19,8 +19,7 @@ namespace SMAS_Repositories.TableRepository
         private readonly ITableTokenHelper _tokenHelper; 
 
         private const int SESSION_TTL_HOURS = 12;
-        private static string CacheKey(string tableCode) => $"table_session_{tableCode.ToUpper()}";
-
+        private static string CacheKey(int tableId) => $"table_session_{tableId}";
         public TableRepository(TableDAO dao, IMemoryCache cache, ITableTokenHelper tokenHelper) 
         {
             _dao = dao;
@@ -28,21 +27,34 @@ namespace SMAS_Repositories.TableRepository
             _tokenHelper = tokenHelper;
         }
 
-        public async Task<(bool Success, string? ErrorCode, OpenTableResponseDto? Data)> OpenTableAsync(
-            string tableCode, int openedBy)
+        public async Task<(bool Success, string? ErrorCode, OpenTableResponseDto? Data)> OpenTableAsync(string tableCode, int openedBy)
         {
-            var table = await _dao.GetTableByCodeAsync(tableCode);
+            if (!int.TryParse(tableCode, out int tableId))
+                return (false, "TABLE_NOT_FOUND", null);
+
+            var table = await _dao.GetTableByCodeAsync(tableCode); // đã hỗ trợ TableId
             if (table == null)
                 return (false, "TABLE_NOT_FOUND", null);
 
-            if (_cache.TryGetValue(CacheKey(tableCode), out TableSessionCache? existing) && existing?.Status == "ACTIVE")
-                return (false, "TABLE_ALREADY_ACTIVE", null);
+            var cacheKey = CacheKey(tableId);
+
+            // Nếu đã có session ACTIVE thì trả về
+            if (_cache.TryGetValue(cacheKey, out TableSessionCache? existing) && existing?.Status == "ACTIVE")
+            {
+                return (true, null, new OpenTableResponseDto
+                {
+                    TableCode = tableId.ToString(),
+                    Status = existing.Status,
+                    OpenedAt = existing.OpenedAt,
+                    ExpiresAt = existing.ExpiresAt
+                });
+            }
 
             var now = DateTime.UtcNow;
             var session = new TableSessionCache
             {
-                TableCode = tableCode.ToUpper(),
-                TableId = table.TableId,
+                TableCode = tableId.ToString(),
+                TableId = tableId,
                 SessionNonce = Guid.NewGuid().ToString("N"),
                 Status = "ACTIVE",
                 OpenedBy = openedBy,
@@ -50,34 +62,37 @@ namespace SMAS_Repositories.TableRepository
                 ExpiresAt = now.AddHours(SESSION_TTL_HOURS)
             };
 
-            _cache.Set(CacheKey(tableCode), session, session.ExpiresAt - now);
-            await _dao.UpdateTableStatusAsync(table.TableId, "OPEN");
+            _cache.Set(cacheKey, session, session.ExpiresAt - now);
+            await _dao.UpdateTableStatusAsync(tableId, "OPEN");
 
             return (true, null, new OpenTableResponseDto
             {
-                TableCode = session.TableCode,
-                Status = session.Status,
+                TableCode = tableId.ToString(),
+                Status = "ACTIVE",
                 OpenedAt = session.OpenedAt,
                 ExpiresAt = session.ExpiresAt
             });
         }
-
-        public async Task<(bool Success, string? ErrorCode, CloseTableResponseDto? Data)> CloseTableAsync(
-            string tableCode, int closedBy)
+        public async Task<(bool Success, string? ErrorCode, CloseTableResponseDto? Data)> CloseTableAsync(string tableCode, int closedBy)
         {
+            if (!int.TryParse(tableCode, out int tableId))
+                return (false, "TABLE_NOT_FOUND", null);
+
             var table = await _dao.GetTableByCodeAsync(tableCode);
             if (table == null)
                 return (false, "TABLE_NOT_FOUND", null);
 
-            if (!_cache.TryGetValue(CacheKey(tableCode), out TableSessionCache? session) || session?.Status != "ACTIVE")
+            var cacheKey = CacheKey(tableId);
+
+            if (!_cache.TryGetValue(cacheKey, out TableSessionCache? session) || session?.Status != "ACTIVE")
                 return (false, "SESSION_NOT_ACTIVE", null);
 
-            _cache.Remove(CacheKey(tableCode));
-            await _dao.UpdateTableStatusAsync(table.TableId, "AVAILABLE");
+            _cache.Remove(cacheKey);
+            await _dao.UpdateTableStatusAsync(tableId, "AVAILABLE");
 
             return (true, null, new CloseTableResponseDto
             {
-                TableCode = tableCode.ToUpper(),
+                TableCode = tableId.ToString(),
                 Status = "CLOSED",
                 ClosedAt = DateTime.UtcNow
             });
@@ -85,30 +100,49 @@ namespace SMAS_Repositories.TableRepository
 
         public async Task<(bool Success, string? ErrorCode, TableInitResponseDto? Data)> InitSessionAsync(string tableCode)
         {
+            // Chuyển tableCode thành TableId
+            if (!int.TryParse(tableCode, out int tableId))
+                return (false, "TABLE_NOT_FOUND", null);
+
             var table = await _dao.GetTableByCodeAsync(tableCode);
             if (table == null)
                 return (false, "TABLE_NOT_FOUND", null);
 
-            if (!_cache.TryGetValue(CacheKey(tableCode), out TableSessionCache? session))
-                return (false, "SESSION_NOT_ACTIVE", null);
+            var cacheKey = $"table_session_{tableId}";
 
-            if (session!.Status != "ACTIVE")
-                return (false, "SESSION_NOT_ACTIVE", null);
-
-            if (DateTime.UtcNow > session.ExpiresAt)
+            // Nếu chưa có session nhưng bàn đang OPEN → tự động tạo (rất hữu ích cho bàn cũ)
+            if (!_cache.TryGetValue(cacheKey, out TableSessionCache? session) ||
+                session?.Status != "ACTIVE" ||
+                DateTime.UtcNow > session.ExpiresAt)
             {
-                _cache.Remove(CacheKey(tableCode));
-                return (false, "SESSION_EXPIRED", null);
+                if (table.Status != "OPEN")
+                    return (false, "SESSION_NOT_ACTIVE", null);
+
+                // Tự động tạo session mới
+                session = new TableSessionCache
+                {
+                    TableCode = tableId.ToString(),
+                    TableId = tableId,
+                    SessionNonce = Guid.NewGuid().ToString("N"),
+                    Status = "ACTIVE",
+                    OpenedBy = 0,                    // Có thể lấy từ Order sau nếu cần
+                    OpenedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddHours(12)
+                };
+
+                _cache.Set(cacheKey, session, session.ExpiresAt - DateTime.UtcNow);
+
+                Console.WriteLine($"[AutoCreateSession] Đã tự tạo session cho bàn {tableId}");
             }
 
-            var accessToken = _tokenHelper.GenerateAccessToken(tableCode, session.SessionNonce);
-            var refreshToken = _tokenHelper.GenerateRefreshToken(tableCode, session.SessionNonce);
+            var accessToken = _tokenHelper.GenerateAccessToken(tableId.ToString(), session!.SessionNonce);
+            var refreshToken = _tokenHelper.GenerateRefreshToken(tableId.ToString(), session.SessionNonce);
 
             return (true, null, new TableInitResponseDto
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                TableCode = tableCode.ToUpper(),
+                TableCode = tableId.ToString(),
                 TableName = table.TableName,
                 ExpiresInSeconds = _tokenHelper.AccessTokenExpiresInSeconds
             });
@@ -120,14 +154,16 @@ namespace SMAS_Repositories.TableRepository
             if (principal == null)
                 return (false, "INVALID_QR_TOKEN", null);
 
-            var tableCode = principal.FindFirst("tableCode")?.Value;
+            var tableCodeStr = principal.FindFirst("tableCode")?.Value;
             var sessionNonce = principal.FindFirst("sessionNonce")?.Value;
             var tokenType = principal.FindFirst("tokenType")?.Value;
 
-            if (tokenType != "table_refresh" || tableCode == null || sessionNonce == null)
+            if (tokenType != "table_refresh" || !int.TryParse(tableCodeStr, out int tableId) || sessionNonce == null)
                 return (false, "INVALID_QR_TOKEN", null);
 
-            if (!_cache.TryGetValue(CacheKey(tableCode), out TableSessionCache? session))
+            var cacheKey = CacheKey(tableId);
+
+            if (!_cache.TryGetValue(cacheKey, out TableSessionCache? session))
                 return (false, "SESSION_NOT_ACTIVE", null);
 
             if (session!.Status != "ACTIVE" || session.SessionNonce != sessionNonce)
@@ -135,11 +171,11 @@ namespace SMAS_Repositories.TableRepository
 
             if (DateTime.UtcNow > session.ExpiresAt)
             {
-                _cache.Remove(CacheKey(tableCode));
+                _cache.Remove(cacheKey);
                 return (false, "SESSION_EXPIRED", null);
             }
 
-            var newAccessToken = _tokenHelper.GenerateAccessToken(tableCode, sessionNonce);
+            var newAccessToken = _tokenHelper.GenerateAccessToken(tableId.ToString(), sessionNonce);
 
             return (true, null, new RefreshTokenResponseDto
             {
@@ -150,7 +186,11 @@ namespace SMAS_Repositories.TableRepository
 
         public async Task<ActiveSessionResponseDto?> GetActiveSessionAsync(string tableCode)
         {
-            if (!_cache.TryGetValue(CacheKey(tableCode), out TableSessionCache? session))
+            if (!int.TryParse(tableCode, out int tableId))
+                return null;
+
+            var cacheKey = CacheKey(tableId);
+            if (!_cache.TryGetValue(cacheKey, out TableSessionCache? session))
                 return null;
 
             if (session?.Status != "ACTIVE" || DateTime.UtcNow > session.ExpiresAt)
@@ -158,27 +198,28 @@ namespace SMAS_Repositories.TableRepository
 
             return new ActiveSessionResponseDto
             {
-                TableCode = session.TableCode,
+                TableCode = tableId.ToString(),
                 Status = session.Status,
                 OpenedAt = session.OpenedAt,
                 ExpiresAt = session.ExpiresAt
             };
         }
-
         public (bool Valid, string? ErrorCode, string? TableCode) ValidateAccessToken(string accessToken)
         {
             var principal = _tokenHelper.ValidateToken(accessToken);
             if (principal == null)
                 return (false, "INVALID_QR_TOKEN", null);
 
-            var tableCode = principal.FindFirst("tableCode")?.Value;
+            var tableCodeStr = principal.FindFirst("tableCode")?.Value;
             var sessionNonce = principal.FindFirst("sessionNonce")?.Value;
             var tokenType = principal.FindFirst("tokenType")?.Value;
 
-            if (tokenType != "table_access" || tableCode == null || sessionNonce == null)
+            if (tokenType != "table_access" || !int.TryParse(tableCodeStr, out int tableId) || sessionNonce == null)
                 return (false, "INVALID_QR_TOKEN", null);
 
-            if (!_cache.TryGetValue(CacheKey(tableCode), out TableSessionCache? session))
+            var cacheKey = CacheKey(tableId);
+
+            if (!_cache.TryGetValue(cacheKey, out TableSessionCache? session))
                 return (false, "TABLE_CLOSED", null);
 
             if (session!.Status != "ACTIVE")
@@ -189,11 +230,11 @@ namespace SMAS_Repositories.TableRepository
 
             if (DateTime.UtcNow > session.ExpiresAt)
             {
-                _cache.Remove(CacheKey(tableCode));
+                _cache.Remove(cacheKey);
                 return (false, "SESSION_EXPIRED", null);
             }
 
-            return (true, null, tableCode);
+            return (true, null, tableId.ToString());
         }
         //public async Task<List<TableResponseDTO>> GetAllTableAsync()
         //{

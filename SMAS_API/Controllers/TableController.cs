@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using SMAS_BusinessObject.DTOs.TableDTO;
 using SMAS_BusinessObject.Enums;
 using SMAS_Services.ManagerServices;
@@ -239,6 +240,17 @@ namespace SMAS_API.Controllers
             {
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
             }
+        }
+        [HttpPost("/api/tables/{tableCode}/clear-cache")]
+        public IActionResult ClearTableCache(string tableCode)
+        {
+            if (int.TryParse(tableCode, out int tableId))
+            {
+                HttpContext.RequestServices.GetRequiredService<IMemoryCache>()
+                    .Remove($"table_session_{tableId}");
+                return Ok(new { message = $"Đã xóa cache của bàn {tableId}" });
+            }
+            return BadRequest();
         }
     }
 }

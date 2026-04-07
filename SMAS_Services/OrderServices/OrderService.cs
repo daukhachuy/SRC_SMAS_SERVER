@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.TableService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,15 @@ namespace SMAS_Services.OrderServices
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
-        public OrderService(IOrderRepository orderRepository)
+        private readonly ITableService _tableService;
+        private readonly IOrderItemRepository _orderItemRepository;
+
+        public OrderService(IOrderRepository orderRepository,IOrderItemRepository orderItemRepository, ITableService tableService)
         {
             _orderRepository = orderRepository;
+            _orderItemRepository = orderItemRepository;
+            _tableService = tableService;
         }
-
         public async Task<IEnumerable<OrderListResponseDTO>> GetOrdersByUserAndStatusAsync(OrderListStatusRequest request, int userid)
         {
             return await _orderRepository.GetOrdersByUserAndStatusAsync(request, userid);
@@ -66,6 +71,51 @@ namespace SMAS_Services.OrderServices
                 return new AddOrderItemResponse { Success = false, Message = "Order code không được để trống." };
 
             return await _orderRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
+        }
+        public async Task<AddOrderItemResponse> AddOrderItemByTableTokenAsync(
+       string orderCode,
+       AddOrderItemRequest request,
+       string accessToken)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode) || request == null)
+                return new AddOrderItemResponse { Success = false, Message = "Dữ liệu không hợp lệ." };
+
+            // Validate Token từ Table
+            var validateResult = _tableService.ValidateAccessToken(accessToken);
+            if (!validateResult.Valid)
+            {
+                string msg = validateResult.ErrorCode switch
+                {
+                    "INVALID_QR_TOKEN" => "Token bàn không hợp lệ. Vui lòng quét QR lại.",
+                    "SESSION_NOT_ACTIVE" or "TABLE_CLOSED" => "Phiên bàn đã đóng.",
+                    "SESSION_EXPIRED" => "Phiên bàn đã hết hạn.",
+                    _ => "Token không hợp lệ."
+                };
+                return new AddOrderItemResponse { Success = false, Message = msg };
+            }
+            string tableCodeFromToken = validateResult.TableCode ?? "";
+            // Kiểm tra bàn có khớp với order không
+            var order = await _orderRepository.GetOrderByIdNoTrackingAsync(orderCode); // hoặc GetOrderByCodeNoTrackingAsync
+            if (order == null)
+                return new AddOrderItemResponse { Success = false, Message = "Không tìm thấy đơn hàng." };
+
+            var activeTable = order.TableOrders?.FirstOrDefault(t => t.LeftAt == null);
+            //if (activeTable == null || activeTable.TableId.ToString() != validateResult.TableCode)
+            //    return new AddOrderItemResponse { Success = false, Message = "Bạn chỉ có thể đặt món tại bàn bạn đang ngồi." };
+           
+            // Debug log
+            Console.WriteLine($"[DEBUG] Token TableCode: {tableCodeFromToken} | Order Tables: {string.Join(",", order.TableOrders?.Select(t => t.TableId) ?? new List<int>())}");
+
+            if (activeTable == null || activeTable.TableId.ToString() != tableCodeFromToken)
+            {
+                return new AddOrderItemResponse
+                {
+                    Success = false,
+                    Message = $"Bạn chỉ có thể đặt món tại bàn bạn đang ngồi. (Token: bàn {tableCodeFromToken})"
+                };
+            }
+            // Gọi Repository để thêm món
+            return await _orderItemRepository.AddOrderItemAsync(orderCode, request);
         }
 
         public async Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request)
@@ -196,7 +246,7 @@ namespace SMAS_Services.OrderServices
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now),
+                OrderCode = GenerateOrderCode(now , "ORR"),
                 UserId = reservation.UserId,
                 ReservationId = reservation.ReservationId,
                 BookEventId = null,
@@ -260,7 +310,7 @@ namespace SMAS_Services.OrderServices
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now),
+                OrderCode = GenerateOrderCode(now, "ORC"),
                 UserId = user.UserId,
                 ReservationId = null,
                 BookEventId = null,
@@ -299,7 +349,7 @@ namespace SMAS_Services.OrderServices
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now),
+                OrderCode = GenerateOrderCode(now, "ORG"),
                 UserId = waiterUserId,
                 ReservationId = null,
                 BookEventId = null,
@@ -433,10 +483,10 @@ namespace SMAS_Services.OrderServices
             return built;
         }
 
-        private static string GenerateOrderCode(DateTime now)
+        private static string GenerateOrderCode(DateTime now , string code)
         {
             var random = Random.Shared.Next(1000, 10000);
-            return $"ORD-{now:yyyyMMddHHmmss}-{random}";
+            return $"{code}-{now:yyyyMMddHHmmss}-{random}";
         }
 
         private static CreateInHouseOrderResponse MapCreateInHouseOrderResponse(
