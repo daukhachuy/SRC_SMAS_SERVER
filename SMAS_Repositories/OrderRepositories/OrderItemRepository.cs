@@ -116,6 +116,7 @@ namespace SMAS_Repositories.OrderRepositories
                         newItem.Quantity = newItem.Quantity + (item.QuantityBufferChildent ?? 0);
                         newItem.UnitPrice = unitPrice;
                         newItem.Subtotal = unitPrice * item.Quantity + buffet.ChildrenPrice * item.QuantityBufferChildent;
+                        newItem.Status = "Served";
                     //if (item.QuantityBufferChildent.HasValue)
                     //{
                     //    unitPrice = buffet.ChildrenPrice ?? buffet.MainPrice;
@@ -124,7 +125,7 @@ namespace SMAS_Repositories.OrderRepositories
                     //    newItem.Subtotal = unitPrice * item.Quantity;
                     //    await _orderDAO.AddOrderItemToOrderAsync(newItem);
                     //}
-                        
+
                 }
 
                 await _orderDAO.AddOrderItemToOrderAsync(newItem);
