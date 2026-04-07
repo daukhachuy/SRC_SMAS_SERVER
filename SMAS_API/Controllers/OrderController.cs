@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
@@ -8,7 +9,7 @@ using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/order")]
     public class OrderController : Controller
@@ -240,11 +241,11 @@ namespace SMAS_API.Controllers
             }
         }
 
-    [Authorize(Roles = "Admin,Manager,Waiter")]
-    [HttpPost("{orderCode}/items")]
-     public async Task<IActionResult> PostAddOrderItemByOrderCode(
-    [FromRoute] string orderCode,
-    [FromBody] AddOrderItemRequest request)
+        [Authorize(Roles = "Admin,Manager,Waiter")]
+        [HttpPost("{orderCode}/items")]
+        public async Task<IActionResult> PostAddOrderItemByOrderCode(
+        [FromRoute] string orderCode,
+        [FromBody] AddOrderItemRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -280,12 +281,12 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> GetAllOrderPreparingByJwtWaiterIdAsync()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId)) 
+            if (!int.TryParse(userIdClaim, out int userId))
                 return Unauthorized();
 
             try
             {
-                var orders = await _orderService.GetAllOrderPreparingByWaiterIdAsync(userId);  
+                var orders = await _orderService.GetAllOrderPreparingByWaiterIdAsync(userId);
 
                 if (orders == null || !orders.Any())
                     return Ok(new { MsgCode = "MSG_021", Message = "Không có đơn hàng nào đang xử lý.", Data = orders });
@@ -426,5 +427,60 @@ namespace SMAS_API.Controllers
             }
         }
 
+
+        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [HttpPost("choose-staffid-delivery")]
+        public async Task<IActionResult> ChooseAssignedStaffbyOrderAsync([FromBody] ChooseAssignedStaffRequestDTO request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                var result = await _orderService.ChooseAssignedStaffbyOrderAsync(request);
+                if (!result.status)
+                {
+                    return BadRequest(result.message);
+                }
+                return Ok(result.message);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [HttpPatch("change-status/{OrderCode}")]
+        public async Task<IActionResult> ChangeStatusDeliveryAsync([FromRoute] string OrderCode)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                var result = await _orderService.ChangeStatusDeliveryAsync(OrderCode);
+                if (!result.status)
+                {
+                    return BadRequest(result.message);
+                }
+                return Ok(result.message);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [HttpPost("delete-orderdelivery/{OrderCode}")]
+        public async Task<IActionResult> DeleteOrderDeliveryByDeliveryCodeAsync(string OrderCode, [FromBody] CancelReservationRequestDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(OrderCode))
+                return BadRequest("DeliveryCode không hợp lệ.");
+            if (dto == null || string.IsNullOrWhiteSpace(dto.CancellationReason))
+                return BadRequest("Lý do hủy là bắt buộc.");
+            var result = await _orderService.DeleteOrderDeliveryByDeliveryCodeAsync(OrderCode, dto.CancellationReason);
+            if (!result.status) {
+                return BadRequest(result.message);
+            }
+            return Ok(result.message);
+        }
     }
 }

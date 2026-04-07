@@ -17,7 +17,7 @@ public partial class DeliveryDetail
 
     public string Address { get; set; } = null!;
 
-    public string? DeliveryStatus { get; set; } // Pending/InTransit/Delivered/Failed
+    public string? DeliveryStatus { get; set; } // Pending ,Assigned  ,PickingUp đang lấy món ,Delivering đang giao ,Completed hoàn thành ,Failed 
 
     public int? AssignedStaffId { get; set; }
 
