@@ -39,33 +39,26 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return entity;
         }
-
-        public async Task<bool> UpdateStatusAsync(int eventId)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var existingEvent = await _context.Events.FindAsync(eventId);
-            if (existingEvent == null)
-            {
-                return false;
-            }
-            existingEvent.IsActive = !existingEvent.IsActive;
-            _context.Events.Update(existingEvent);
+            var evt = await _context.Events.FindAsync(id);
+            if (evt == null) return false;
+
+            _context.Events.Remove(evt);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<Event?> PatchStatusAsync(int eventId, bool isActive)
+        // Patch status: ch? c?p nh?t IsActive
+        public async Task<bool> UpdateStatusAsync(int id, bool isActive)
         {
-            var existingEvent = await _context.Events.FindAsync(eventId);
-            if (existingEvent == null)
-            {
-                return null;
-            }
+            var evt = await _context.Events.FindAsync(id);
+            if (evt == null) return false;
 
-            existingEvent.IsActive = isActive;
-            existingEvent.UpdatedAt = DateTime.UtcNow;
-            _context.Events.Update(existingEvent);
+            evt.IsActive = isActive;
+            evt.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-            return existingEvent;
+            return true;
         }
     }
 

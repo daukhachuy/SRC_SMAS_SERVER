@@ -13,8 +13,8 @@ namespace SMAS_Repositories.EventRepositories
         Task<EventListResponse?> GetEventByIdAsync(int eventId);
         Task<EventListResponse> CreateAsync(EventCreateDto dto);
         Task<EventListResponse> UpdateAsync(int id, EventUpdateDto dto);
-        Task<EventListResponse> PatchStatusAsync(int id, EventStatusPatchDto dto);
-        Task DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isActive);
 
     }
 

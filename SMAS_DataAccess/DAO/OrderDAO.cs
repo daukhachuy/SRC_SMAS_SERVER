@@ -34,7 +34,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Combo)
                 .Include(o => o.Payments)
-                .Where(o => o.OrderStatus != "Closed" && o.OrderStatus != "Cancelled")
+                .Where(o => o.OrderStatus != "Completed" && o.OrderStatus != "Cancelled")
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
@@ -53,7 +53,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Combo)
                 .Include(o => o.Payments)
-                .Where(o => o.OrderStatus == "Closed" || o.OrderStatus == "Cancelled")
+                .Where(o => o.OrderStatus == "Completed" || o.OrderStatus == "Cancelled")
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
@@ -87,7 +87,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Combo)
                 .Include(o => o.Payments)
-                .Where(o => o.OrderStatus != "Closed"
+                .Where(o => o.OrderStatus != "Completed"
                          && o.OrderStatus != "Cancelled"
                          && o.OrderType == orderType)
                 .OrderByDescending(o => o.CreatedAt)
@@ -125,7 +125,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Combo)
                 .Include(o => o.Payments)
-                .Where(o => (o.OrderStatus == "Closed" || o.OrderStatus == "Cancelled")
+                .Where(o => (o.OrderStatus == "Completed" || o.OrderStatus == "Cancelled")
                          && o.OrderType == orderType)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
@@ -133,6 +133,7 @@ namespace SMAS_DataAccess.DAO
         public async Task<Order?> GetOrderByCodeNoTrackingAsync(string orderCode)
         {
             return await _context.Orders
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet).ThenInclude(b => b.BuffetFoods).ThenInclude(bf => bf.Food) // Include chi tiết món buffet
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
 
@@ -163,7 +164,7 @@ namespace SMAS_DataAccess.DAO
             return await _context.Orders.AnyAsync(o =>
                 o.ReservationId == reservationId &&
                 o.OrderStatus != "Cancelled" &&
-                o.OrderStatus != "Closed");
+                o.OrderStatus != "Completed");
         }
 
         public async Task<User?> GetUserByPhoneAsync(string phone)
@@ -187,7 +188,7 @@ namespace SMAS_DataAccess.DAO
                 to.TableId == tableId &&
                 to.LeftAt == null &&
                 to.Order.OrderStatus != "Cancelled" &&
-                to.Order.OrderStatus != "Closed");
+                to.Order.OrderStatus != "Completed");
         }
 
         public async Task<Food?> GetFoodByIdForOrderAsync(int foodId)
@@ -280,6 +281,21 @@ namespace SMAS_DataAccess.DAO
             return item;
         }
 
+        public async Task<bool> AddOrderItemToOrderAsync(OrderItem item)
+        {
+            try
+            {
+                _context.OrderItems.Add(item);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nếu cần
+                return false;
+            }
+        }
+
         public async Task UpdateOrderTotalAsync(int orderId, decimal subtotal)
         {
             var order = await _context.Orders.FindAsync(orderId);
@@ -341,7 +357,7 @@ namespace SMAS_DataAccess.DAO
                                        .FirstOrDefaultAsync(o => o.OrderId == orderId);
             if (order == null) return false;
             order.OrderStatus = orderStatus;
-            if (orderStatus == "Completed" )
+            if (orderStatus == "Completed")
             {
                 var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
                 var tables = await _context.Tables
@@ -350,7 +366,7 @@ namespace SMAS_DataAccess.DAO
                 foreach (var table in tables)
                 {
                     table.Status = "AVAILABLE";
-                    table.UpdatedAt = DateTime.UtcNow;             
+                    table.UpdatedAt = DateTime.UtcNow;
                     _cache.Remove($"table_session_{table.TableName.ToUpper()}");
                 }
                 foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
@@ -386,7 +402,7 @@ namespace SMAS_DataAccess.DAO
                 payment.OrderId = orderId;
                 _context.Payments.Add(payment);
                 order.OrderStatus = orderStatus;
-                if (orderStatus == "Completed" || orderStatus == "Closed")
+                if (orderStatus == "Completed" || orderStatus == "Completed")
                 {
                     var tableIds = order.TableOrders.Select(t => t.TableId).ToList();
                     var tables = await _context.Tables

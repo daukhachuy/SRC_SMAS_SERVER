@@ -49,16 +49,26 @@ namespace SMAS_DataAccess.DAO
             return food;
         }
 
-        // Soft delete: tắt IsAvailable thay vì xóa thật
-        public async Task SoftDeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var food = await _context.Foods.FindAsync(id);
-            if (food != null)
-            {
-                food.IsAvailable = false;
-                food.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
+            if (food == null) return false;
+
+            _context.Foods.Remove(food);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Patch status: chỉ cập nhật IsAvailable
+        public async Task<bool> UpdateStatusAsync(int id, bool isAvailable)
+        {
+            var food = await _context.Foods.FindAsync(id);
+            if (food == null) return false;
+
+            food.IsAvailable = isAvailable;
+            food.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
         public async Task<List<Food>> GetAllFoodsCategoryAsync()
         {

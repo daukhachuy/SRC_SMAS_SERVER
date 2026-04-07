@@ -9,7 +9,7 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
 {
     public class AddOrderItemRequest
     {
-        [Required(ErrorMessage = "Phải chọn ít nhất một loại item (FoodId, ComboId hoặc BuffetId).")]
+        //[Required(ErrorMessage = "Phải chọn ít nhất một loại item (FoodId, ComboId hoặc BuffetId).")]
         public int? FoodId { get; set; }
 
         public int? ComboId { get; set; }
@@ -19,6 +19,8 @@ namespace SMAS_BusinessObject.DTOs.OrderDTO
         [Required(ErrorMessage = "Số lượng là bắt buộc.")]
         [Range(1, 30, ErrorMessage = "Số lượng phải từ 1 đến 30.")]
         public int Quantity { get; set; }
+
+        public int? QuantityBufferChildent { get; set; }
 
         [MaxLength(500, ErrorMessage = "Ghi chú không quá 500 ký tự.")]
         public string? Note { get; set; }

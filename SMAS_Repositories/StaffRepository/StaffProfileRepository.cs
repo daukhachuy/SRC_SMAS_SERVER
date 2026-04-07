@@ -113,6 +113,8 @@ namespace SMAS_Repositories.StaffRepository
 
         public async Task<bool> CreateStaffAsync(CreateNewStaffByUseridResquestDTO request)
         {
+            if (request.Position != "Manager" && request.Position != "Kitchen" && request.Position != "Waiter" && request.Position != "Admin")
+                return false;
             var staff = new Staff
             {
                 UserId = request.UserId,
@@ -127,6 +129,8 @@ namespace SMAS_Repositories.StaffRepository
 
         public async Task<bool> CreateStaffWithUserAsync(CreateNewStaffRequestDTO request)
         {
+            if(request.Position != "Manager" && request.Position != "Kitchen" && request.Position != "Waiter" && request.Position != "Admin")
+                return false; 
             var datetime = DateTime.Now;
             var user = new User
             {
@@ -177,6 +181,8 @@ namespace SMAS_Repositories.StaffRepository
 
         public async Task<bool> AdminUpdateStaffDetail(StaffDetailRequestDTO request)
         {
+            if (request.Position != "Manager" && request.Position != "Kitchen" && request.Position != "Waiter" && request.Position != "Admin")
+                return false;
             var user = await _staffProfileDAO.GetForUpdateAsync(request.UserId);
             if(user == null || user.Role != "Staff")
                 return false;

@@ -178,7 +178,14 @@ namespace SMAS_DataAccess.DAO
                 .ToListAsync();
         }
 
-
+        public async Task<List<Food>> GetFoodByBuffetIdAsync(int? buffetId)
+        {
+            if (!buffetId.HasValue) return new List<Food>();
+            return await _context.Foods
+                .Where(f => f.BuffetFoods.Any(bf => bf.BuffetId == buffetId.Value))
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }
 

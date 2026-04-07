@@ -12,5 +12,10 @@ namespace SMAS_Repositories.BuffetRepositories
         Task<IEnumerable<BuffetListResponseDTO>> GetAllBuffetsAsync();
 
         Task<bool> UpdateStatusByBuffetId(int buffetId);
+        Task<BuffetListResponseDTO?> GetByIdAsync(int id);
+        Task<BuffetListResponseDTO> CreateAsync(BuffetCreateDto dto);
+        Task<BuffetListResponseDTO?> UpdateAsync(int id, BuffetUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateStatusAsync(int id, bool isAvailable);
     }
 }

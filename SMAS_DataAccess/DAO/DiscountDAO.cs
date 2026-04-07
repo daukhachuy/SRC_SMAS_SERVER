@@ -72,13 +72,25 @@ namespace SMAS_DataAccess.DAO
             return discount;
         }
 
-        public async Task UpdateStatusAsync(int discount)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var existing = await _context.Discounts.FindAsync(discount);
-            if (existing != null) return;
-            if (existing.Status == "Expired") return; // Không đổi trạng thái nếu đã hết hạn
-            existing.Status = existing.Status == "Active" ? "Inactive" : "Active";
+            var discount = await _context.Discounts.FindAsync(id);
+            if (discount == null) return false;
+
+            _context.Discounts.Remove(discount);
             await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Patch status: Active / Inactive / Expired...
+        public async Task<bool> UpdateStatusAsync(int id, string status)
+        {
+            var discount = await _context.Discounts.FindAsync(id);
+            if (discount == null) return false;
+
+            discount.Status = status;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> ExistsCodeAsync(string code, int? excludeId = null)

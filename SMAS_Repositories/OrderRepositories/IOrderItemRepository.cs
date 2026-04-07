@@ -1,3 +1,5 @@
+using SMAS_BusinessObject.DTOs.Food;
+using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -28,6 +30,12 @@ namespace SMAS_Repositories.OrderRepositories
         Task<decimal> CancelItemAndRecalculateOrderTotalsAsync(int orderItemId, string newNote);
 
         Task<List<OrderItem>> GetReadyOrderItemsHistoryTodayAsync(DateTime startOfDayUtc, DateTime endOfDayUtc, int? orderId);
+
+        
+
+        Task<(bool status, string message)> AddOrderItemByOrderCodeAsync(string orderCode, List<AddOrderItemRequest> request);
+
+        Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode);
     }
 }
 

@@ -16,16 +16,16 @@ namespace SMAS_API.Controllers
             _comboService = comboService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAvailableCombos()
-        {
-            var combos = await _comboService.GetAvailableCombosAsync();
-            if (combos == null || !combos.Any())
-            {
-                return NotFound(new { MsgCode = "MSG_025", Message = "Không có combo nào đang hoạt động !" });
-            }
-            return Ok(combos);
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAvailableCombos()
+        //{
+        //    var combos = await _comboService.GetAvailableCombosAsync();
+        //    if (combos == null || !combos.Any())
+        //    {
+        //        return NotFound(new { MsgCode = "MSG_025", Message = "Không có combo nào đang hoạt động !" });
+        //    }
+        //    return Ok(combos);
+        //}
 
         [HttpPost("filter")]
         public async Task<IActionResult> GetCombosFilter([FromQuery] CombosFilterRequest request)
@@ -62,6 +62,73 @@ namespace SMAS_API.Controllers
             if (!result)
                 return NotFound(new { MsgCode = "MSG_021", Message = "Không tìm thấy combo !" });
             return Ok(new { MsgCode = "MSG_022", Message = "Cập nhật trạng thái món ăn thành công !" });
+        }
+
+
+        // GET: api/combos        -> lấy tất cả
+        // GET: api/combos?id=2   -> lấy theo id
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAsync([FromQuery] int? id)
+        {
+            if (id.HasValue)
+            {
+                var combo = await _comboService.GetByIdAsync(id.Value);
+                if (combo == null)
+                    return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+                return Ok(combo);
+            }
+
+            return Ok(await _comboService.GetAllAsync());
+        }
+
+        // POST: api/combos
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<ActionResult<ComboListResponse>> CreateAsync([FromBody] ComboCreateDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var created = await _comboService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetAsync), new { id = created.ComboId }, created);
+        }
+
+        // PUT: api/combos/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ComboListResponse>> UpdateAsync(int id, [FromBody] ComboUpdateDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var updated = await _comboService.UpdateAsync(id, dto);
+            if (updated == null)
+                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+
+            return Ok(updated);
+        }
+
+        // DELETE: api/combos/{id}
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteAsync(int id)
+        {
+            var success = await _comboService.DeleteAsync(id);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+
+            return Ok(new { message = $"Đã xóa combo Id = {id}." });
+        }
+
+        // PATCH: api/combos/{id}/status?isAvailable=true|false
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> UpdateStatusAsync(int id, [FromQuery] bool isAvailable)
+        {
+            var success = await _comboService.UpdateStatusAsync(id, isAvailable);
+            if (!success)
+                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+
+            return Ok(new { message = $"Đã cập nhật trạng thái combo Id = {id} thành {isAvailable}." });
         }
 
     }

@@ -27,7 +27,7 @@ namespace SMAS_Repositories.OrderRepositories
             {
                 return (false, existingPayment.message);
             }
-            var transactionId = $"CASH-{payment.OrderId}-{DateTime.UtcNow.Ticks}";          
+            var transactionId = $"CASH-{payment.OrderId}-{DateTime.UtcNow.Ticks}";
             var dateTimeNow = DateTime.UtcNow;
             var paymentEntity = new Payment
             {
@@ -43,12 +43,12 @@ namespace SMAS_Repositories.OrderRepositories
                 PaidAt = dateTimeNow
 
             };
-             await _paymentDAO.CreatePaymentCashAsync(paymentEntity);
-             var result = await _paymentDAO.CheckPaymentAsync(payment.OrderId);
+            await _paymentDAO.CreatePaymentCashAsync(paymentEntity);
+            var result = await _paymentDAO.CheckPaymentAsync(payment.OrderId);
             if (!result.isEnough)
             {
                 await _orderDAO.UpdateOrderStatusAsync(payment.OrderId, "Completed");
-            }     
+            }
             var checkDelivery = await _paymentDAO.IsOrderDeliveryAsync(payment.OrderId);
             
             return (true, "Thanh toán tiền mặt thành công");
