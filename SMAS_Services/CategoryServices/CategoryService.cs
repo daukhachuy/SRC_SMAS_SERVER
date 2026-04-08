@@ -20,7 +20,9 @@ namespace SMAS_Services.CategoryServices
 
         public async Task<IEnumerable<CategoryResponse>> GetAllCategoryContainFoodAsync()
         {
-            return await _categoryRepository.GetAllCategoryContainFoodAsync();
+            var categories = await _categoryRepository.GetAllCategoryContainFoodAsync();
+            categories = categories.Where(c => c.IsAvailable == true);
+            return categories;
         }
 
         public async Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync()

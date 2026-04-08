@@ -70,7 +70,9 @@ namespace SMAS_API.Controllers
                 return BadRequest(ModelState);
 
             var created = await _categoryService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetAsync), new { id = created.CategoryId }, created);
+            if (created == null)
+                return BadRequest(new { message = "Không thể tạo danh mục mới." });
+            return Ok($"{created.Name} tạo thành công ");
         }
 
         // PUT: api/categories/{id}
