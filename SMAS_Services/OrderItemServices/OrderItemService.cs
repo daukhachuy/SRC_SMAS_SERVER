@@ -57,7 +57,7 @@ namespace SMAS_Services.OrderItemServices
 
             // Lọc ra chỉ những Order có ít nhất 1 OrderItem Pending
             orders = orders
-                .Where(o => o.OrderItems != null && o.OrderItems.Any(oi => oi.Status == "Pending" || oi.Status == "Preparing" || oi.Status == "Ready"))
+                .Where(o => o.OrderItems != null && o.OrderItems.Any(oi => oi.Status == "Pending" || oi.Status == "Preparing"))
                 .ToList();
 
             var result = orders
