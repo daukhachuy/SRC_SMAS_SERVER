@@ -118,7 +118,17 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync(); // update QrCode
             return table;
         }
-
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
+        {
+            return await _context.TableOrders
+                .Where(to => to.TableId == tableId
+                          && to.LeftAt == null
+                          && to.Order.OrderStatus != "Cancelled"
+                          && to.Order.OrderStatus != "Closed"
+                          && to.Order.OrderStatus != "Completed")
+                .Select(to => to.Order.OrderCode)
+                .FirstOrDefaultAsync();
+        }
 
         public async Task<Table?> GetTableByIdAsync(int tableId)
         {
