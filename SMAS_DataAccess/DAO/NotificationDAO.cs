@@ -38,5 +38,21 @@ namespace SMAS_DataAccess.DAO
           .AsNoTracking()
           .OrderByDescending(n => n.CreatedAt)
           .ToListAsync();
+
+
+        public async Task<bool> UpdateNotificationAsync(Notification notification)
+        {
+            try
+            {
+                _context.Notifications.Update(notification);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating notification: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

@@ -22,7 +22,12 @@ namespace SMAS_Repositories.Notificationrepositories
             return await _notificationDAO.CreateNotificationAsync(notification);
         }
 
-        public async Task<IEnumerable<Notification>> GetAllAsync()
-    => await _notificationDAO.GetAllAsync();
+        public async Task<IEnumerable<Notification>> GetAllAsync() => await _notificationDAO.GetAllAsync();
+
+        public async Task<bool> UpdateNotificationAsync(Notification request)
+        {
+            return await _notificationDAO.UpdateNotificationAsync(request);
+        }
     }
+
 }

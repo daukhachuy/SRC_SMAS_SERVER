@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_Services.ManagerServices;
 using SMAS_Services.OrderServices;
@@ -8,7 +10,6 @@ using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/order")]
     public class OrderController : Controller
@@ -16,12 +17,14 @@ namespace SMAS_API.Controllers
         private readonly IOrderService _orderService;
         private readonly ITableService _tableSessionService;
         private readonly IManagerService _managerService;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService, ITableService tableSessionService, IManagerService managerService)
+        public OrderController(IOrderService orderService, ITableService tableSessionService, IManagerService managerService, ILogger<OrderController> logger)
         {
             _orderService = orderService;
             _tableSessionService = tableSessionService;
             _managerService = managerService;
+            _logger = logger;
         }
 
         private IActionResult HandleOrderExceptions(Exception ex)
@@ -240,29 +243,49 @@ namespace SMAS_API.Controllers
             }
         }
 
-    [Authorize(Roles = "Admin,Manager,Waiter")]
-    [HttpPost("{orderCode}/items")]
-     public async Task<IActionResult> PostAddOrderItemByOrderCode(
-    [FromRoute] string orderCode,
-    [FromBody] AddOrderItemRequest request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
+        [HttpPost("{orderCode}/items")]
+        [AllowAnonymous]
+        public async Task<IActionResult> PostAddOrderItemByOrderCode(
+        [FromRoute] string orderCode,
+        [FromBody] AddOrderItemRequest request)
+        {
             try
             {
-                var result = await _orderService.AddOrderItemByOrderCodeAsync(orderCode, request);
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var authHeader = Request.Headers.Authorization.ToString();
+
+                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new
+                    {
+                        errorCode = "MISSING_TABLE_TOKEN",
+                        message = "Vui lòng quét mã QR bàn trước khi đặt món."
+                    });
+                }
+
+                var accessToken = authHeader.Substring("Bearer ".Length).Trim();
+
+                var result = await _orderService.AddOrderItemByTableTokenAsync(orderCode, request, accessToken);
 
                 if (!result.Success)
-                    return result.Message.Contains("Không tìm thấy")
-                        ? NotFound(new { message = result.Message })
-                        : BadRequest(new { message = result.Message });
+                {
+                    return BadRequest(new { message = result.Message });
+                }
 
-                return Ok(new { data = result, message = result.Message });
+                return Ok(new
+                {
+                    success = true,
+                    message = result.Message,
+                    data = new { newTotalAmount = result.NewTotalAmount }
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+                _logger.LogError(ex, "Lỗi thêm món vào order {OrderCode}", orderCode);   // Nếu _logger chưa có, inject nó
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
             }
         }
 
@@ -280,12 +303,12 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> GetAllOrderPreparingByJwtWaiterIdAsync()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId)) 
+            if (!int.TryParse(userIdClaim, out int userId))
                 return Unauthorized();
 
             try
             {
-                var orders = await _orderService.GetAllOrderPreparingByWaiterIdAsync(userId);  
+                var orders = await _orderService.GetAllOrderPreparingByWaiterIdAsync(userId);
 
                 if (orders == null || !orders.Any())
                     return Ok(new { MsgCode = "MSG_021", Message = "Không có đơn hàng nào đang xử lý.", Data = orders });
@@ -426,5 +449,60 @@ namespace SMAS_API.Controllers
             }
         }
 
+
+        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [HttpPost("choose-staffid-delivery")]
+        public async Task<IActionResult> ChooseAssignedStaffbyOrderAsync([FromBody] ChooseAssignedStaffRequestDTO request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                var result = await _orderService.ChooseAssignedStaffbyOrderAsync(request);
+                if (!result.status)
+                {
+                    return BadRequest(result.message);
+                }
+                return Ok(result.message);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [HttpPatch("change-status/{OrderCode}")]
+        public async Task<IActionResult> ChangeStatusDeliveryAsync([FromRoute] string OrderCode)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                var result = await _orderService.ChangeStatusDeliveryAsync(OrderCode);
+                if (!result.status)
+                {
+                    return BadRequest(result.message);
+                }
+                return Ok(result.message);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
+        }
+        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [HttpPost("delete-orderdelivery/{OrderCode}")]
+        public async Task<IActionResult> DeleteOrderDeliveryByDeliveryCodeAsync(string OrderCode, [FromBody] CancelReservationRequestDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(OrderCode))
+                return BadRequest("DeliveryCode không hợp lệ.");
+            if (dto == null || string.IsNullOrWhiteSpace(dto.CancellationReason))
+                return BadRequest("Lý do hủy là bắt buộc.");
+            var result = await _orderService.DeleteOrderDeliveryByDeliveryCodeAsync(OrderCode, dto.CancellationReason);
+            if (!result.status) {
+                return BadRequest(result.message);
+            }
+            return Ok(result.message);
+        }
     }
 }

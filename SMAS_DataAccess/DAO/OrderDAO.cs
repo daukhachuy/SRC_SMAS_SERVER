@@ -1,6 +1,8 @@
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using SMAS_BusinessObject.Cache;
+using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -134,6 +136,7 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Orders
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet).ThenInclude(b => b.BuffetFoods).ThenInclude(bf => bf.Food) // Include chi tiết món buffet
+                .Include(o => o.TableOrders)
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
 
@@ -241,23 +244,30 @@ namespace SMAS_DataAccess.DAO
                 {
                     table.Status = "OPEN";
                     table.UpdatedAt = now;
-                    // Tự động kích hoạt session để khách quét QR được
-                    var session = new TableSessionCache
-                    {
-                        TableCode = table.TableName.ToUpper(),
-                        TableId = table.TableId,
-                        SessionNonce = Guid.NewGuid().ToString("N"),
-                        Status = "ACTIVE",
-                        OpenedBy = order.ServedBy ?? 0,
-                        OpenedAt = now,
-                        ExpiresAt = now.AddHours(12)
-                    };
-                    _cache.Set(
-                        CacheKey(table.TableName),
-                        session,
-                        session.ExpiresAt - now);
-                }
+                    var cacheKey = $"table_session_{table.TableId}";
 
+                    // GUARD: Chỉ tạo session mới nếu chưa có session ACTIVE.
+                    // Tránh overwrite session + vô hiệu hoá token khách đang giữ.
+                    if (!_cache.TryGetValue(cacheKey, out TableSessionCache? existing)
+                        || existing?.Status != "ACTIVE")
+                    {
+                        // Tự động kích hoạt session để khách quét QR được
+                        var session = new TableSessionCache
+                        {
+                            TableCode = table.TableId.ToString(),
+                            TableId = table.TableId,
+                            SessionNonce = Guid.NewGuid().ToString("N"),
+                            Status = "ACTIVE",
+                            OpenedBy = order.ServedBy ?? 0,
+                            OpenedAt = now,
+                            ExpiresAt = now.AddHours(12)
+                        };
+                        _cache.Set(
+                            CacheKey(table.TableName),
+                            session,
+                            session.ExpiresAt - now);
+                    }
+                }
 
                 if (reservationToUpdate != null)
                 {
@@ -376,7 +386,7 @@ namespace SMAS_DataAccess.DAO
             {
                 if (orderStatus == "Completed")
                 {
-                    order.Delivery.DeliveryStatus = "Delivered";
+                    order.Delivery.DeliveryStatus = "Completed";
                     order.Delivery.UpdatedAt = DateTime.UtcNow;
                 }
                 else if (orderStatus == "Cancelled")
@@ -502,6 +512,106 @@ namespace SMAS_DataAccess.DAO
                 .ToListAsync();
         }
 
+        public async Task<(bool status, string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request)
+        {
+            var order = await GetOrderDeliveryByCodeAsync(request.OrderCode);
+            if (order == null)
+                return (false, $"Không tìm thấy đơn hàng với mã {request.OrderCode}.");
+            if (order.OrderStatus != "Pending")
+                return (false, "Chỉ đơn Pending mới được gán nhân viên.");
+            if (order.Delivery == null)
+                return (false, $"Đơn hàng {request.OrderCode} không có thông tin giao hàng.");
 
+            var staff = await _context.Staff
+                                      .FirstOrDefaultAsync(s => s.UserId == request.StaffId);
+            if (staff == null)
+                return (false, $"Không tìm thấy nhân viên với ID {request.StaffId}.");
+            if (staff.Position != "Waiter")
+                return (false, $"Nhân viên {staff.UserId} không có vai trò giao hàng.");
+            if (order.Delivery.AssignedStaffId != null)
+            {
+                order.Delivery.AssignedStaffId = request.StaffId;
+                await _context.SaveChangesAsync();
+                return (true, "Cập nhật nhân viên thành công.");
+            }
+            order.Delivery.AssignedStaffId = request.StaffId;
+            order.Delivery.DeliveryStatus = "Assigned";
+            order.OrderStatus = "Confirmed";
+            await _context.SaveChangesAsync();
+
+
+            return (true, "Gán nhân viên giao hàng thành công.");
+        }
+
+        public async Task<Order?> GetOrderDeliveryByCodeAsync(string orderCode)
+        {
+            return await _context.Orders
+                            .Include(o => o.Delivery)
+                            .FirstOrDefaultAsync(o => o.Delivery != null
+                                                   && o.OrderCode == orderCode);
+
+        }
+
+        public async Task<(bool status, string message)> UpdateStatusOrderDelivery(string orderCode)
+        {
+            var order = await GetOrderDeliveryByCodeAsync(orderCode);
+            if (order.Delivery.DeliveryStatus == "Pending")
+            {
+                order.Delivery.DeliveryStatus = "Assigned";
+            }
+            else if (order.Delivery.DeliveryStatus == "Assigned")
+            {
+                order.Delivery.DeliveryStatus = "PickingUp";
+            }
+            else if (order.Delivery.DeliveryStatus == "PickingUp")
+            {
+                order.Delivery.DeliveryStatus = "Delivering";
+            }
+            else if (order.Delivery.DeliveryStatus == "Delivering")
+            {
+                if (!await CheckPaymentAsync(order.OrderCode))
+                {
+                    return (false, $"Đơn hàng {order.OrderCode} chưa thanh toán, không thể cập nhật trạng thái giao hàng thành Completed.");
+                }
+                order.Delivery.DeliveryStatus = "Completed";
+                order.OrderStatus = "Completed";
+            }
+            else
+            {
+                return (false, $"Trạng thái giao hàng hiện tại là {order.Delivery.DeliveryStatus}, không thể cập nhật tiếp.");
+            }
+            await _context.SaveChangesAsync();
+            return (true, $"Cập nhật trạng thái giao hàng thành {order.Delivery.DeliveryStatus} thành công.");
+        }
+
+        public async Task<bool> CheckPaymentAsync(string orderCode)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Payments)
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
+            if (order == null)
+                return false;
+
+            var totalPaid = order.Payments
+                .Where(p => p.PaymentStatus == "Paid")
+                .Sum(p => p.Amount);
+
+            return totalPaid >= order.TotalAmount;
+        }
+
+        public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string orderCode, string note)
+        {
+            var order = await GetOrderDeliveryByCodeAsync(orderCode);
+            if (order.Delivery.DeliveryStatus != "Delivering" && order.Delivery.DeliveryStatus != "Pending")
+            {
+                return (false, $"Đơn hàng {orderCode} không thể hủy ở trạng thái hiện tại.");
+            }
+            order.Delivery.DeliveryStatus = "Failed";
+            order.Delivery.Note = note;
+            order.OrderStatus = "Cancelled";
+            await _context.SaveChangesAsync();
+            return (true, $"Hủy đơn hàng {orderCode} thành công.");
+        }
     }
 }

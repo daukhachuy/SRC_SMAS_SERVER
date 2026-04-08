@@ -1,3 +1,4 @@
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using System;
@@ -19,7 +20,7 @@ namespace SMAS_Services.OrderServices
         Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByOrderTypeAsync(string orderType);
         Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelByCustomerIdAsync(int customerId);
         Task<AddOrderItemResponse> AddOrderItemByOrderCodeAsync(string orderCode, AddOrderItemRequest request);
-
+        Task<AddOrderItemResponse> AddOrderItemByTableTokenAsync(string orderCode, AddOrderItemRequest request, string accessToken);
         Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request);
         Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId);
         Task<List<OrderListResponseDTO>> GetAllOrderDeliveryByWaiterIdAsync(int userId);
@@ -29,6 +30,12 @@ namespace SMAS_Services.OrderServices
         Task<CreateInHouseOrderResponse> CreateGuestOrderAsync(CreateGuestOrderRequest request, int waiterUserId);
 
         Task<OrderLookupResponseDto> LookupOrderAsync(OrderLookupRequestDto request);
+
+        Task<(bool status , string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request);
+
+        Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request);
+
+        Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto);
 
     }
 }
