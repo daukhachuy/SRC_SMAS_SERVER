@@ -137,6 +137,7 @@ namespace SMAS_Repositories.TableRepository
 
             var accessToken = _tokenHelper.GenerateAccessToken(tableId.ToString(), session!.SessionNonce);
             var refreshToken = _tokenHelper.GenerateRefreshToken(tableId.ToString(), session.SessionNonce);
+            var orderCode = await _dao.GetActiveOrderCodeByTableIdAsync(tableId);
 
             return (true, null, new TableInitResponseDto
             {
@@ -144,7 +145,8 @@ namespace SMAS_Repositories.TableRepository
                 RefreshToken = refreshToken,
                 TableCode = tableId.ToString(),
                 TableName = table.TableName,
-                ExpiresInSeconds = _tokenHelper.AccessTokenExpiresInSeconds
+                ExpiresInSeconds = _tokenHelper.AccessTokenExpiresInSeconds,
+                OrderCode = orderCode  // null nếu chưa có đơn
             });
         }
 

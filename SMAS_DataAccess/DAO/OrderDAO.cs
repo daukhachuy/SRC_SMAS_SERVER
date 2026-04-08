@@ -481,6 +481,7 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.Delivery)
                 .Include(o => o.Payments)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
+                .Include(o => o.TableOrders).ThenInclude(to => to.Table)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Combo)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet)
                 .Where(o => o.OrderType == "Delivery"
