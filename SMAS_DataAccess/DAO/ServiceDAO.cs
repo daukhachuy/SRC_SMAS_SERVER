@@ -54,7 +54,7 @@ namespace SMAS_DataAccess.DAO
             var service = await _context.Services.FindAsync(id);
             if (service == null) return false;
 
-            service.IsAvailable = isAvailable;
+            service.IsAvailable = !service.IsAvailable;
             await _context.SaveChangesAsync();
             return true;
         }

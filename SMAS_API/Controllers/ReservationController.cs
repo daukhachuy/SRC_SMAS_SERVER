@@ -41,7 +41,7 @@ namespace SMAS_API.Controllers
             var result = await _reservationservice.GetMyReservationsAsync(resolvedUserId.Value);
             return Ok(result);
         }
-
+        [Authorize(Roles = "Customer")]
         [HttpPost("create")]
         public async Task<ActionResult<ReservationListResponse>> PostReservation([FromBody] ReservationCreateRequestDTO dto)
         {
@@ -68,7 +68,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Tổng số lượng đặt bàn trong ngày hôm nay
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("sum-today")]
         public async Task<IActionResult> GetSumReservationToday()
         {
@@ -90,7 +90,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Tất cả đặt bàn sắp xếp theo thời gian tạo giảm dần (mới nhất trước)
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("desc-created-at")]
         public async Task<IActionResult> GetAllReservationDESCCreatedAt()
         {
@@ -101,7 +101,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Manager bấm Cancel đặt bàn theo ReservationCode
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpDelete("{reservationCode}")]
         public async Task<IActionResult> DeleteReservationByReservationCode(string reservationCode, [FromBody] CancelReservationRequestDTO dto)
         {
@@ -124,7 +124,7 @@ namespace SMAS_API.Controllers
         /// <summary>
         /// Manager bấm Confirm khi reservation đang Pending
         /// </summary>
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPatch("{reservationCode}/confirm")]
         public async Task<IActionResult> PatchConfirmReservation(string reservationCode)
         {

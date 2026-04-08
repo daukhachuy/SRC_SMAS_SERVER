@@ -31,6 +31,7 @@ namespace SMAS_BusinessObject.DTOs.TableDTO
         public string TableCode { get; set; } = null!;
         public string TableName { get; set; } = null!;
         public int ExpiresInSeconds { get; set; }
+        public string? OrderCode { get; set; }
     }
 
     // POST /api/tables/refresh  - Refresh access token
