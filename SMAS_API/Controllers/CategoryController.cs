@@ -62,7 +62,7 @@ namespace SMAS_API.Controllers
         }
 
         // POST: api/categories
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<CategoryResponse>> CreateAsync([FromBody] CategoryCreateDto dto)
         {
