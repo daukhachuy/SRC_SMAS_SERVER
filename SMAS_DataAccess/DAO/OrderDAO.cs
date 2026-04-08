@@ -479,6 +479,8 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.User)
                 .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
                 .Include(o => o.Delivery)
+                 .ThenInclude(d => d.AssignedStaff)
+                .ThenInclude(s => s.User)
                 .Include(o => o.Payments)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
                 .Include(o => o.TableOrders).ThenInclude(to => to.Table)
@@ -487,8 +489,9 @@ namespace SMAS_DataAccess.DAO
                 .Where(o => o.OrderType == "Delivery"
                          && o.OrderStatus != "Completed"
                          && o.OrderStatus != "Cancelled"
-                         && o.ServedByNavigation != null
-                         && o.ServedByNavigation.UserId == userId)
+                          && o.Delivery != null
+                 && o.Delivery.AssignedStaff != null
+                 && o.Delivery.AssignedStaff.UserId == userId)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
