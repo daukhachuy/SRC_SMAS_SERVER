@@ -137,6 +137,7 @@ namespace SMAS_DataAccess.DAO
             return await _context.Orders
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Buffet).ThenInclude(b => b.BuffetFoods).ThenInclude(bf => bf.Food) // Include chi tiết món buffet
                 .Include(o => o.TableOrders)
+                .Include(o => o.CustomerFeedbacks)
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
         }
 
