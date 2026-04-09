@@ -103,24 +103,6 @@ namespace SMAS_API.Controllers
             };
         }
 
-        [Authorize(Roles = "Manager")]
-        [HttpPost("{id:int}/confirm")]
-        public async Task<IActionResult> ConfirmBookEvent([FromRoute] int id)
-        {
-            var staffId = GetUserId();
-            if (staffId == null)
-                return Unauthorized();
-
-            var (dto, status, error) = await _contractWorkflowService.ConfirmBookEventAsync(id, staffId.Value);
-            return status switch
-            {
-                200 => Ok(dto),
-                400 => BadRequest(new { message = error }),
-                404 => NotFound(new { message = error }),
-                _ => StatusCode(status, new { message = error })
-            };
-        }
-
         /// <summary>
         /// Lịch sử đặt sự kiện của khách đang đăng nhập (CustomerId từ JWT).
         /// </summary>
