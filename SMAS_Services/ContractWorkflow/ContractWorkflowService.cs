@@ -451,6 +451,9 @@ public class ContractWorkflowService : IContractWorkflowService
                 return $"{fe}/events/{bookEventId}?payment=expired";
             }
 
+            // Gửi mail thông báo kích hoạt (best-effort, tránh làm fail luồng redirect).
+            try { await SendContractActivatedEmailAsync(contractId); } catch { /* ignore */ }
+
             return $"{fe}/events/{bookEventId}?payment=success";
         }
         catch
@@ -512,6 +515,9 @@ public class ContractWorkflowService : IContractWorkflowService
         {
             await _repo.AddDepositPaymentAndUpdateContractAsync(
                 contract, payment, totalAmount, deposit, DepositDeadlineHours());
+
+            // Gửi mail thông báo kích hoạt (best-effort). Idempotent vì lần gọi trùng sẽ fail do contract không còn Signed.
+            try { await SendContractActivatedEmailAsync(contractId); } catch { /* ignore */ }
         }
         catch
         {
@@ -538,65 +544,36 @@ public class ContractWorkflowService : IContractWorkflowService
         }
     }
 
-    public async Task<(ConfirmBookEventResponseDTO? dto, int statusCode, string? error)> ConfirmBookEventAsync(
-        int bookEventId, int staffUserId)
+    private async Task SendContractActivatedEmailAsync(int contractId)
     {
-        var be = await _repo.GetBookEventWithContractAndCustomerAsync(bookEventId);
-        if (be == null)
-            return (null, 404, "Không tìm thấy sự kiện");
+        var contract = await _repo.GetContractByIdWithCustomerAndBookEventAsync(contractId);
+        if (contract == null)
+            return;
 
-        // Sau ký hợp đồng BookEvent vẫn Approved; bản ghi cũ có thể là Confirmed (legacy) — vẫn cho xác nhận cuối.
-        if (be.Status != "Approved" && be.Status != "Confirmed")
-            return (null, 400, "Sự kiện không ở trạng thái hợp lệ để xác nhận (cần đã duyệt / đã ký hợp đồng).");
+        var email = contract.Customer?.Email;
+        if (string.IsNullOrWhiteSpace(email))
+            return;
 
-        if (be.ContractId == null || be.Contract == null)
-            return (null, 400, "Chưa có hợp đồng cho sự kiện này");
+        var bookingCode = contract.BookEvent?.BookingCode;
+        if (string.IsNullOrWhiteSpace(bookingCode))
+            return;
 
-        var c = be.Contract;
-        if (c.Status != "Deposited")
-            return (null, 400, "Khách hàng chưa thanh toán tiền cọc");
+        var fe = _appSettings.FrontendBaseUrl.TrimEnd('/');
+        var viewUrl = $"{fe}/contracts/{bookingCode}";
+        var customerName = contract.Customer?.Fullname ?? "Quý khách";
+        var contractCode = contract.ContractCode ?? $"#{contract.ContractId}";
 
-        be.Status = "Active";
-        be.ConfirmedBy = staffUserId;
-        be.ConfirmedAt = DateTime.UtcNow;
-        be.UpdatedAt = DateTime.UtcNow;
-        await _repo.UpdateBookEventAsync(be);
-
-        bool emailSent = false;
-        try
-        {
-            var email = be.Customer.Email;
-            if (!string.IsNullOrWhiteSpace(email))
-            {
-                var remaining = c.RemainingAmount ?? 0;
-                var html = $@"
-<p>Xin chào {be.Customer.Fullname},</p>
-<p>Sự kiện <strong>{be.BookingCode}</strong> đã được xác nhận.</p>
-<p>Ngày: {be.ReservationDate:yyyy-MM-dd}, Giờ: {be.ReservationTime:HH:mm}, Số khách: {be.NumberOfGuests}.</p>
-<p>Số tiền còn lại cần thanh toán: {remaining:N0} VND.</p>
+        var html = $@"
+<p>Xin chào {customerName},</p>
+<p>Hợp đồng <strong>{contractCode}</strong> đã được kích hoạt thành công sau khi nhận cọc.</p>
+<p>Bạn có thể xem chi tiết hợp đồng tại đây: <a href=""{viewUrl}"">{viewUrl}</a></p>
+<p>Nếu bạn chưa đăng nhập, hệ thống sẽ yêu cầu đăng nhập trước khi xem.</p>
 <p>Trân trọng,<br/>SMAS Restaurant</p>";
-                await _emailService.SendAsync(
-                    email,
-                    $"Xác nhận sự kiện {be.BookingCode}",
-                    html);
-                emailSent = true;
-            }
-        }
-        catch
-        {
-            emailSent = false;
-        }
 
-        return (new ConfirmBookEventResponseDTO
-        {
-            BookEventId = be.BookEventId,
-            BookingCode = be.BookingCode!,
-            Status = be.Status!,
-            ConfirmedBy = staffUserId,
-            ConfirmedAt = be.ConfirmedAt!.Value,
-            EmailSent = emailSent,
-            Message = "Sự kiện đã được xác nhận thành công"
-        }, 200, null);
+        await _emailService.SendAsync(
+            email,
+            $"Hợp đồng {contractCode} đã được kích hoạt",
+            html);
     }
 
     private static string MaskEmail(string email)

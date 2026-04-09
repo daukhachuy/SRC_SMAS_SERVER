@@ -27,7 +27,4 @@ public interface IContractWorkflowService
 
     /// <summary>Job nền: hủy Signed quá hạn cọc (theo SignedAt + cấu hình giờ).</summary>
     Task<int> CancelExpiredSignedDepositContractsAsync();
-
-    Task<(ConfirmBookEventResponseDTO? dto, int statusCode, string? error)> ConfirmBookEventAsync(
-        int bookEventId, int staffUserId);
 }
