@@ -617,5 +617,74 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return (true, $"Hủy đơn hàng {orderCode} thành công.");
         }
+        /// Lấy danh sách Food đang phục vụ cho khách order trong session bàn.
+        /// Filter theo CategoryId (many-to-many qua Food.Categories) và keyword tên.
+        public async Task<List<Food>> GetFoodsForSessionAsync(int? categoryId, string? keyword)
+        {
+            var query = _context.Foods
+                .Include(f => f.Categories)
+                .Where(f => f.IsAvailable == true)
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+                query = query.Where(f => f.Categories.Any(c => c.CategoryId == categoryId.Value));
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var kw = keyword.Trim();
+                query = query.Where(f => f.Name.Contains(kw));
+            }
+
+            return await query
+                .OrderByDescending(f => f.IsFeatured)
+                .ThenBy(f => f.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// Lấy danh sách Combo còn phục vụ cho session bàn.
+        public async Task<List<Combo>> GetCombosForSessionAsync()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            return await _context.Combos
+                .Where(c => c.IsAvailable == true
+                         && (c.StartDate == null || c.StartDate <= today)
+                         && (c.ExpiryDate == null || c.ExpiryDate >= today))
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// Lấy danh sách Buffet còn phục vụ cho session bàn.
+        public async Task<List<Buffet>> GetBuffetsForSessionAsync()
+        {
+            return await _context.Buffets
+                .Where(b => b.IsAvailable == true)
+                .OrderBy(b => b.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// Lấy danh sách Category đang active (để FE render tab filter).
+        public async Task<List<Category>> GetCategoriesForSessionAsync()
+        {
+            return await _context.Categories
+                .Where(c => c.IsAvailable == true)
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        /// Lấy OrderCode active của một bàn (dùng cho session QR khách order tại bàn).
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
+        {
+            return await _context.TableOrders
+                .Where(to => to.TableId == tableId
+                          && to.LeftAt == null
+                          && to.Order.OrderStatus != "Cancelled"
+                          && to.Order.OrderStatus != "Closed"
+                          && to.Order.OrderStatus != "Completed")
+                .Select(to => to.Order.OrderCode)
+                .FirstOrDefaultAsync();
+        }
     }
 }

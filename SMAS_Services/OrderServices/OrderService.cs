@@ -538,5 +538,46 @@ namespace SMAS_Services.OrderServices
         {
             return await _orderRepository.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
+        // ─── SESSION MENU ────────────────────────────────────────────────────────
+        /// Lấy menu cho khách order trong session bàn (sau khi quét QR).
+        /// Validate access token trước khi trả dữ liệu.
+
+        public async Task<(bool Success, string? ErrorCode, object? Data)> GetMenuForSessionAsync(
+     string accessToken, string? type, int? categoryId, string? keyword)
+        {
+            if (string.IsNullOrWhiteSpace(accessToken))
+                return (false, "MISSING_TABLE_TOKEN", null);
+
+            // Reuse logic validate token sẵn có trong TableService
+            var validateResult = _tableService.ValidateAccessToken(accessToken);
+            if (!validateResult.Valid)
+                return (false, validateResult.ErrorCode, null);
+
+            var data = await _orderRepository.GetMenuForSessionAsync(type, categoryId, keyword);
+            return (true, null, data);
+        }
+        /// Lấy order hiện tại của bàn trong session (giỏ hàng khách đang xem).
+        /// Reuse GetOrderDetailByOrderCodeAsync đã có.
+        public async Task<(bool Success, string? ErrorCode, object? Data)> GetCurrentOrderBySessionAsync(string accessToken)
+        {
+            if (string.IsNullOrWhiteSpace(accessToken))
+                return (false, "MISSING_TABLE_TOKEN", null);
+
+            var validateResult = _tableService.ValidateAccessToken(accessToken);
+            if (!validateResult.Valid)
+                return (false, validateResult.ErrorCode, null);
+
+            if (!int.TryParse(validateResult.TableCode, out int tableId))
+                return (false, "INVALID_QR_TOKEN", null);
+
+            // Reuse TableDAO.GetActiveOrderCodeByTableIdAsync qua repository
+            var orderCode = await _orderRepository.GetActiveOrderCodeByTableIdAsync(tableId);
+            if (string.IsNullOrEmpty(orderCode))
+                return (false, "NO_ACTIVE_ORDER", null);
+
+            // Reuse GetOrderDetailByOrderCodeAsync đã có
+            var order = await _orderRepository.GetOrderDetailByOrderCodeAsync(orderCode);
+            return (true, null, order);
+        }
     }
 }

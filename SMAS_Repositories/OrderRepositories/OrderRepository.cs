@@ -614,5 +614,77 @@ namespace SMAS_Repositories.OrderRepositories
                 return (false, $"Không tìm thấy nhân viên giao hàng");
             return await _orderDAO.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
+
+
+        // ─── SESSION MENU (khách quét QR order tại bàn) ──────────────────────────
+
+        public async Task<object> GetMenuForSessionAsync(string? type, int? categoryId, string? keyword)
+        {
+            // type: "food" | "combo" | "buffet" | "all" | null (default all)
+            type = string.IsNullOrWhiteSpace(type) ? "all" : type.ToLower();
+
+            object? foods = null, combos = null, buffets = null, categories = null;
+
+            if (type == "all" || type == "food")
+            {
+                var foodEntities = await _orderDAO.GetFoodsForSessionAsync(categoryId, keyword);
+                foods = foodEntities.Select(f => new
+                {
+                    f.FoodId,
+                    f.Name,
+                    f.Description,
+                    f.Price,
+                    f.PromotionalPrice,
+                    f.Image,
+                    f.Unit,
+                    f.Rating,
+                    f.IsFeatured,
+                    Categories = f.Categories.Select(c => new { c.CategoryId, c.Name }).ToList()
+                }).ToList();
+
+                // Trả luôn category list khi lấy food (để FE render tab)
+                var categoryEntities = await _orderDAO.GetCategoriesForSessionAsync();
+                categories = categoryEntities.Select(c => new { c.CategoryId, c.Name, c.Image }).ToList();
+            }
+
+            if (type == "all" || type == "combo")
+            {
+                var comboEntities = await _orderDAO.GetCombosForSessionAsync();
+                combos = comboEntities.Select(c => new
+                {
+                    c.ComboId,
+                    c.Name,
+                    c.Description,
+                    c.Price,
+                    c.DiscountPercent,
+                    c.Image
+                }).ToList();
+            }
+
+            if (type == "all" || type == "buffet")
+            {
+                var buffetEntities = await _orderDAO.GetBuffetsForSessionAsync();
+                buffets = buffetEntities.Select(b => new
+                {
+                    b.BuffetId,
+                    b.Name,
+                    b.Description,
+                    b.MainPrice,
+                    b.ChildrenPrice,
+                    b.SidePrice,
+                    b.Image
+                }).ToList();
+            }
+
+            return new
+            {
+                categories,
+                foods,
+                combos,
+                buffets
+            };
+        }
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
+    => await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
     }
 }
