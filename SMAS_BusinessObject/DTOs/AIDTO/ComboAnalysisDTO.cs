@@ -17,6 +17,10 @@ namespace SMAS_BusinessObject.DTOs.AIDTO
         public List<string> Foods { get; set; }
         public string Reason { get; set; }
         public string DetailAnalysis { get; set; }
+
+        public decimal OriginalPrice { get; set; }     
+        public decimal SuggestedPrice { get; set; }    
+        public int DiscountPercent { get; set; }
     }
 
 }

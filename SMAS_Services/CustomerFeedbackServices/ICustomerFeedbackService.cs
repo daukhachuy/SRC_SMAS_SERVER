@@ -11,5 +11,7 @@ namespace SMAS_Services.CustomerFeedbackServices
     public interface ICustomerFeedbackService
     {
         Task<IEnumerable<FeedbackListResponse>> GetAllFeedbacksAsync();
+
+        Task<(bool status , string message)> CreateFeedbackAsync(CreateFeedbackRequest dto ,int userid );
     }
 }

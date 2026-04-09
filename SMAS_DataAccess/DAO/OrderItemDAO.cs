@@ -20,7 +20,7 @@ namespace SMAS_DataAccess.DAO
         public async Task<List<Order>> GetActiveOrdersWithPendingItemsAsync()
         {
             return await _context.Orders
-                .Where(o => o.OrderStatus == "Pending" || o.OrderStatus == "Processing")
+                .Where(o => o.OrderStatus == "Pending" || o.OrderStatus == "Confirmed")
                 .Include(o => o.TableOrders.Where(to => to.IsMainTable == true))
                 .Include(o => o.OrderItems.Where(oi => oi.Status == "Pending" || oi.Status == "Preparing"))
                     .ThenInclude(oi => oi.Food)

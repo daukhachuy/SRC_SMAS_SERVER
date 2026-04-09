@@ -21,5 +21,10 @@ namespace SMAS_Services.CustomerFeedbackServices
         {
             return await _customerFeedbackRepository.GetAllFeedbacksAsync();
         }
+
+        public async Task<(bool status, string message)> CreateFeedbackAsync(CreateFeedbackRequest dto, int userid)
+        {
+            return await _customerFeedbackRepository.CreateFeedbackAsync(dto, userid);
+        }
     }
 }

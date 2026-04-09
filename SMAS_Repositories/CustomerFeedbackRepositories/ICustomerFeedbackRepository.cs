@@ -13,5 +13,7 @@ namespace SMAS_Repositories.CustomerFeedbackRepositories
         Task<IEnumerable<FeedbackListResponse>> GetAllFeedbacksAsync();
 
         Task<IEnumerable<CustomerFeedback>> GetFeedbackToAnalysisAsync();
+
+        Task<(bool status, string message)> CreateFeedbackAsync(CreateFeedbackRequest dto, int userid);
     }
 }
