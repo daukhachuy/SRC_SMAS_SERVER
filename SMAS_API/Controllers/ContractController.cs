@@ -143,6 +143,7 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet("{bookingCode}", Order = 10)]
+        [Authorize(Roles = "Customer,Manager")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -157,6 +158,19 @@ namespace SMAS_API.Controllers
 
                 if (contract == null)
                     return NotFound(new { message = $"Không tìm thấy hợp đồng với booking code: {bookingCode}" });
+
+                // Authorization rule:
+                // - Manager: xem mọi hợp đồng
+                // - Customer: chỉ xem hợp đồng thuộc chính mình (CustomerId trong JWT phải khớp CustomerId của contract)
+                if (!User.IsInRole("Manager"))
+                {
+                    var userId = GetUserId();
+                    if (userId == null)
+                        return Unauthorized();
+
+                    if (contract.CustomerId != userId.Value)
+                        return Forbid();
+                }
 
                 return Ok(contract);
             }
