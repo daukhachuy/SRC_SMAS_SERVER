@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SMAS_BusinessObject.DTOs.Combo;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,7 +21,16 @@ namespace SMAS_BusinessObject.DTOs.BuffetDTO
         public int? CreatedBy { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<BuffetFoodItemDto> Foods { get; set; } = new List<BuffetFoodItemDto>();
 
+    }
+    public class BuffetFoodItemDto
+    {
+        public int FoodId { get; set; }
+        public string FoodName { get; set; } = null!;
+        public string? FoodImage { get; set; }
+        public int Quantity { get; set; }
+        public decimal? FoodPrice { get; set; }
     }
     public class BuffetCreateDto
     {

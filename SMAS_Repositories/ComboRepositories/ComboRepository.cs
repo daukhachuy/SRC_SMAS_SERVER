@@ -107,7 +107,15 @@ namespace SMAS_Repositories.ComboRepositories
             IsAvailable = c.IsAvailable,
             CreatedBy = c.CreatedBy,
             CreatedAt = c.CreatedAt,
-            UpdatedAt = c.UpdatedAt
+            UpdatedAt = c.UpdatedAt,
+             Foods = c.ComboFoods?.Select(cf => new ComboFoodItemDto
+             {
+                 FoodId = cf.FoodId,
+                 FoodName = cf.Food?.Name,
+                 FoodImage = cf.Food?.Image,
+                 Quantity = cf.Quantity,
+                 FoodPrice = cf.Food?.Price ?? 0
+             }).ToList() ?? new List<ComboFoodItemDto>()
         };
 
         private static Combo MapFromCreateDto(ComboCreateDto dto) => new Combo

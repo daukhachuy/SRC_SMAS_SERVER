@@ -22,6 +22,8 @@ namespace SMAS_DataAccess.DAO
             return await _context.Buffets
                 //.Where(b => b.IsAvailable == true)
                 .OrderByDescending(b => b.CreatedAt)
+                 .Include(b => b.BuffetFoods)
+            .ThenInclude(bf => bf.Food)
                 .ToListAsync();
         }
 
@@ -41,6 +43,8 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Buffets
                 .AsNoTracking()
+                 .Include(b => b.BuffetFoods)
+            .ThenInclude(bf => bf.Food)
                 .FirstOrDefaultAsync(b => b.BuffetId == id);
         }
 
