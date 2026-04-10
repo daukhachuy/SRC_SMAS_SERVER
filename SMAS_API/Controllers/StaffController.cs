@@ -46,6 +46,7 @@ namespace SMAS_API.Controllers
             {
                 _logger.LogError(ex, "Lỗi khi lấy danh sách nhân viên làm việc hôm nay.");
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+
             }
         }
 

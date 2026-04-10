@@ -1,4 +1,5 @@
 ﻿using SMAS_BusinessObject.DTOs.BuffetDTO;
+using SMAS_BusinessObject.DTOs.Combo;
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using System;
@@ -20,18 +21,7 @@ namespace SMAS_Repositories.BuffetRepositories
         public async Task<IEnumerable<BuffetListResponseDTO>> GetAllBuffetsAsync()
         {
             var buffets = await _buffetDAO.GetAllBuffetsAsync();
-
-            return buffets.Select(b => new BuffetListResponseDTO
-            {
-                BuffetId = b.BuffetId,
-                Name = b.Name,
-                Description = b.Description,
-                MainPrice = b.MainPrice,
-                ChildrenPrice = b.ChildrenPrice,
-                SidePrice = b.SidePrice,
-                Image = b.Image,
-                IsAvailable = b.IsAvailable
-            }).ToList();
+            return buffets.Select(MapToResponseDto).ToList();
         }
 
 
@@ -84,7 +74,15 @@ namespace SMAS_Repositories.BuffetRepositories
             IsAvailable = b.IsAvailable,
             CreatedBy = b.CreatedBy,
             CreatedAt = b.CreatedAt,
-            UpdatedAt = b.UpdatedAt
+            UpdatedAt = b.UpdatedAt,
+            Foods = b.BuffetFoods?.Select(bf => new BuffetFoodItemDto
+            {
+                FoodId = bf.FoodId,
+                FoodName = bf.Food?.Name,
+                FoodImage = bf.Food?.Image,
+                Quantity = bf.Quantity ?? 0,
+                FoodPrice = bf.Food?.Price ?? 0
+            }).ToList() ?? new List<BuffetFoodItemDto>()
         };
 
         private static Buffet MapFromCreateDto(BuffetCreateDto dto) => new Buffet

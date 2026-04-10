@@ -22,6 +22,8 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Combos
                 .AsNoTracking()
+                 .Include(c => c.ComboFoods)
+            .ThenInclude(cf => cf.Food)
                 .ToListAsync();
         }
 
@@ -29,6 +31,8 @@ namespace SMAS_DataAccess.DAO
         {
             return await _context.Combos
                 .AsNoTracking()
+                 .Include(c => c.ComboFoods)
+            .ThenInclude(cf => cf.Food)
                 .FirstOrDefaultAsync(c => c.ComboId == id);
         }
 
