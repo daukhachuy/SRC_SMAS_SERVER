@@ -14,11 +14,15 @@ public interface IContractWorkflowService
 
     Task<(SendContractSignResponseDTO? dto, int statusCode, string? error)> SendContractSignEmailAsync(int contractId, string publicBaseUrl);
 
-    Task<(ContractDetailByTokenDTO? dto, int statusCode, string? error)> GetContractByTokenAsync(string? token);
+    Task<(ContractDetailByTokenDTO? dto, int statusCode, string? error)> GetContractByTokenAsync(string? token, int currentUserId);
 
-    Task<(ContractSignResponseDTO? dto, int statusCode, string? error)> SignContractByTokenAsync(ContractSignRequestDTO request);
+    Task<(ContractSignResponseDTO? dto, int statusCode, string? error)> SignContractByTokenAsync(ContractSignRequestDTO request, int currentUserId);
 
-    Task<(object? dto, int statusCode, string? error)> DepositAsync(int contractId, string apiBaseUrl);
+    Task<(object? dto, int statusCode, string? error)> DepositAsync(
+        int contractId,
+        string apiBaseUrl,
+        int currentUserId,
+        bool isPrivilegedRole);
 
     Task<string> DepositCallbackRedirectAsync(
         int contractId, string status, long orderCode, string frontendBaseUrl);

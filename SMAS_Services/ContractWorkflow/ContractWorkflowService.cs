@@ -257,8 +257,9 @@ public class ContractWorkflowService : IContractWorkflowService
 
         var token = Guid.NewGuid().ToString("N");
         var deadline = DateTime.UtcNow.AddHours(72);
-        var baseUrl = string.IsNullOrWhiteSpace(publicBaseUrl) ? _appSettings.PublicBaseUrl.TrimEnd('/') : publicBaseUrl.TrimEnd('/');
-        var signLink = $"{baseUrl}/api/contract/sign?token={token}";
+        // Link email trỏ về frontend để user ký trên UI, không gọi trực tiếp API.
+        var baseUrl = string.IsNullOrWhiteSpace(publicBaseUrl) ? _appSettings.FrontendBaseUrl.TrimEnd('/') : publicBaseUrl.TrimEnd('/');
+        var signLink = $"{baseUrl}/contract/sign?token={token}";
 
         var customerName = contract.Customer?.Fullname ?? "Quý khách";
         var html = $@"
@@ -292,7 +293,7 @@ public class ContractWorkflowService : IContractWorkflowService
         }, 200, null);
     }
 
-    public async Task<(ContractDetailByTokenDTO? dto, int statusCode, string? error)> GetContractByTokenAsync(string? token)
+    public async Task<(ContractDetailByTokenDTO? dto, int statusCode, string? error)> GetContractByTokenAsync(string? token, int currentUserId)
     {
         var t = token?.Trim();
         if (string.IsNullOrEmpty(t))
@@ -302,6 +303,10 @@ public class ContractWorkflowService : IContractWorkflowService
         var (status, error) = ValidateContractReadyToSign(contract);
         if (status != 0)
             return (null, status, error);
+
+        // Customer chỉ được xem hợp đồng của chính mình (theo CustomerId trong BookEvent).
+        if (contract!.BookEvent == null || contract.BookEvent.CustomerId != currentUserId)
+            return (null, 403, "Bạn không có quyền xem hợp đồng này.");
 
         return (new ContractDetailByTokenDTO
         {
@@ -316,7 +321,7 @@ public class ContractWorkflowService : IContractWorkflowService
         }, 200, null);
     }
 
-    public async Task<(ContractSignResponseDTO? dto, int statusCode, string? error)> SignContractByTokenAsync(ContractSignRequestDTO request)
+    public async Task<(ContractSignResponseDTO? dto, int statusCode, string? error)> SignContractByTokenAsync(ContractSignRequestDTO request, int currentUserId)
     {
         var token = request.Token?.Trim();
         if (string.IsNullOrEmpty(token))
@@ -327,7 +332,14 @@ public class ContractWorkflowService : IContractWorkflowService
         if (status != 0)
             return (null, status, error);
 
+        // Customer chỉ được ký hợp đồng của chính mình (theo CustomerId trong BookEvent).
+        if (contract!.BookEvent == null || contract.BookEvent.CustomerId != currentUserId)
+            return (null, 403, "Bạn không có quyền ký hợp đồng này.");
+
         await _repo.SignContractAndUpdateBookEventAsync(contract!);
+
+        // Sau khi ký thành công, gửi mail nhắc customer thanh toán cọc (best-effort).
+        try { await SendDepositRequiredEmailAsync(contract.ContractId); } catch { /* ignore */ }
 
         var signedAt = contract.SignedAt!.Value;
         return (new ContractSignResponseDTO
@@ -340,11 +352,19 @@ public class ContractWorkflowService : IContractWorkflowService
         }, 200, null);
     }
 
-    public async Task<(object? dto, int statusCode, string? error)> DepositAsync(int contractId, string apiBaseUrl)
+    public async Task<(object? dto, int statusCode, string? error)> DepositAsync(
+        int contractId,
+        string apiBaseUrl,
+        int currentUserId,
+        bool isPrivilegedRole)
     {
         var contract = await _repo.GetContractByIdForDepositAsync(contractId);
         if (contract == null)
             return (null, 404, "Không tìm thấy hợp đồng");
+
+        // Customer chỉ được tạo link cọc cho chính hợp đồng của mình.
+        if (!isPrivilegedRole && contract.CustomerId != currentUserId)
+            return (null, 403, "Bạn không có quyền thanh toán cọc cho hợp đồng này.");
 
         if (contract.Status == "Cancelled")
             return (null, 400, "Hợp đồng đã bị hủy, không thể thanh toán cọc.");
@@ -573,6 +593,41 @@ public class ContractWorkflowService : IContractWorkflowService
         await _emailService.SendAsync(
             email,
             $"Hợp đồng {contractCode} đã được kích hoạt",
+            html);
+    }
+
+    private async Task SendDepositRequiredEmailAsync(int contractId)
+    {
+        var contract = await _repo.GetContractByIdWithCustomerAndBookEventAsync(contractId);
+        if (contract == null)
+            return;
+
+        var email = contract.Customer?.Email;
+        if (string.IsNullOrWhiteSpace(email))
+            return;
+
+        var bookingCode = contract.BookEvent?.BookingCode;
+        if (string.IsNullOrWhiteSpace(bookingCode))
+            return;
+
+        var fe = _appSettings.FrontendBaseUrl.TrimEnd('/');
+        var encodedBookingCode = Uri.EscapeDataString(bookingCode);
+        var viewUrl = $"{fe}/orders?tab=event&bookingCode={encodedBookingCode}";
+        var customerName = contract.Customer?.Fullname ?? "Quý khách";
+        var contractCode = contract.ContractCode ?? $"#{contract.ContractId}";
+        var depositAmount = contract.DepositAmount ?? 0;
+
+        var html = $@"
+<p>Xin chào {customerName},</p>
+<p>Hợp đồng <strong>{contractCode}</strong> đã được ký thành công.</p>
+<p>Vui lòng thanh toán đặt cọc: <strong>{depositAmount:N0} VND</strong>.</p>
+<p>Bạn có thể vào trang Đơn hàng của tôi (tab Sự kiện) để tiếp tục thanh toán tại đây: <a href=""{viewUrl}"">{viewUrl}</a></p>
+<p>Nếu bạn chưa đăng nhập, hệ thống sẽ yêu cầu đăng nhập trước khi xem và thanh toán.</p>
+<p>Trân trọng,<br/>SMAS Restaurant</p>";
+
+        await _emailService.SendAsync(
+            email,
+            $"Hợp đồng {contractCode} - Yêu cầu thanh toán đặt cọc",
             html);
     }
 
