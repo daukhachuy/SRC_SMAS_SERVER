@@ -7,16 +7,16 @@ Chuẩn bị: Swagger (`/swagger`), Postman, hoặc `curl`. Base URL ví dụ: `
 
 ## 1. Luồng nghiệp vụ (đúng với code)
 
-| Bước | Hành động                           | BookEvent (`Status`)                      | Contract (`Status`)     | Ghi chú                                                                                         |
-| ---- | ----------------------------------- | ----------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------- |
-| 1    | Khách tạo đặt chỗ                   | `Pending`                                 | —                       | JWT Customer                                                                                    |
-| 2    | Manager duyệt                       | `Approved`                                | —                       | `POST .../review`                                                                               |
-| 3    | Manager tạo HĐ từ sự kiện           | `Approved` (giữ)                          | `Draft`                 | `POST .../contract`                                                                             |
-| 4    | Manager gửi mail ký                 | `Approved`                                | `Sent`                  | `POST .../send-sign`                                                                            |
-| 5    | Khách xem HĐ (token)                | `Approved`                                | `Sent`                  | `GET /api/contract/sign?token=`                                                                 |
-| 6    | Khách ký                            | **`Approved`** (chỉ cập nhật `UpdatedAt`) | `Signed`, có `SignedAt` | **Không** còn set BookEvent → `Confirmed`                                                       |
-| 7    | Trong **N giờ** (UTC): tạo link cọc | `Approved`                                | `Signed`                | `DepositDueUtc` = `SignedAt + N` (DTO)                                                          |
-| 8    | PayOS callback / webhook            | **`Active`**                              | `Deposited`             | Sau khi ghi payment cọc thành công sẽ tự động kích hoạt BookEvent                               |
+| Bước | Hành động                           | BookEvent (`Status`)                      | Contract (`Status`)     | Ghi chú                                                           |
+| ---- | ----------------------------------- | ----------------------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| 1    | Khách tạo đặt chỗ                   | `Pending`                                 | —                       | JWT Customer                                                      |
+| 2    | Manager duyệt                       | `Approved`                                | —                       | `POST .../review`                                                 |
+| 3    | Manager tạo HĐ từ sự kiện           | `Approved` (giữ)                          | `Draft`                 | `POST .../contract`                                               |
+| 4    | Manager gửi mail ký                 | `Approved`                                | `Sent`                  | `POST .../send-sign`                                              |
+| 5    | Khách xem HĐ (token)                | `Approved`                                | `Sent`                  | `GET /api/contract/sign?token=`                                   |
+| 6    | Khách ký                            | **`Approved`** (chỉ cập nhật `UpdatedAt`) | `Signed`, có `SignedAt` | **Không** còn set BookEvent → `Confirmed`                         |
+| 7    | Trong **N giờ** (UTC): tạo link cọc | `Approved`                                | `Signed`                | `DepositDueUtc` = `SignedAt + N` (DTO)                            |
+| 8    | PayOS callback / webhook            | **`Active`**                              | `Deposited`             | Sau khi ghi payment cọc thành công sẽ tự động kích hoạt BookEvent |
 
 **Hết hạn cọc:** Job nền có thể đặt **Contract** và **BookEvent** liên quan → `Cancelled` nếu vẫn `Signed` và quá `SignedAt + DepositDeadlineHoursAfterSign` (cấu hình `App`).
 
@@ -137,7 +137,7 @@ hoặc `"Rejected"` + `note` khi từ chối.
 
 ### 5.1. Số HĐ “cần ký” — `GET /api/contract/number-need-signed`
 
-- **Auth:** `Manager` 
+- **Auth:** `Manager`
 - **Ý nghĩa (code):** đếm hợp đồng có **`Status` là `Draft` hoặc `Sent`** (chưa tới bước khách ký → `Signed`).
 - **Nếu `totalCount` = 0:** mọi HĐ của bạn đã qua bước ký (`Signed`, `Deposited`, …) hoặc đã `Cancelled`, hoặc **chưa tạo HĐ** từ BookEvent (`POST .../contract`).
 
@@ -172,8 +172,6 @@ hoặc `"Rejected"` + `note` khi từ chối.
 
 - **Kỳ vọng:** `200` — `signedAt`, **`depositDueUtc`** (hạn cọc).
 - **DB:** `Contract.Signed`, `SignedAt`; BookEvent **vẫn Approved** (chỉ `UpdatedAt`).
-
- 
 
 ### 6. Tự động kích hoạt BookEvent khi cọc thành công
 

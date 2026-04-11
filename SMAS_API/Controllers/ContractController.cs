@@ -49,8 +49,8 @@ namespace SMAS_API.Controllers
         [HttpPost("{id:int}/send-sign")]
         public async Task<IActionResult> SendSign([FromRoute] int id)
         {
-            var publicBase = _configuration["App:PublicBaseUrl"] ?? _appSettings.PublicBaseUrl;
-            var (dto, status, error) = await _contractWorkflowService.SendContractSignEmailAsync(id, publicBase);
+            var frontendBase = _configuration["App:FrontendBaseUrl"] ?? _appSettings.FrontendBaseUrl;
+            var (dto, status, error) = await _contractWorkflowService.SendContractSignEmailAsync(id, frontendBase);
             return status switch
             {
                 200 => Ok(dto),
@@ -62,48 +62,62 @@ namespace SMAS_API.Controllers
         }
 
         /// <summary>Bước 1: xem nội dung hợp đồng (chưa ký). Query: token.</summary>
-        [AllowAnonymous]
+        [Authorize(Roles = "Customer")]
         [HttpGet("sign", Order = 0)]
         public async Task<IActionResult> GetContractForSign([FromQuery] string? token)
         {
-            var (dto, status, error) = await _contractWorkflowService.GetContractByTokenAsync(token);
+            var userId = GetUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var (dto, status, error) = await _contractWorkflowService.GetContractByTokenAsync(token, userId.Value);
             return status switch
             {
                 200 => Ok(dto),
                 400 => BadRequest(new { message = error }),
+                403 => Forbid(),
                 404 => NotFound(new { message = error }),
                 _ => StatusCode(status, new { message = error })
             };
         }
 
         /// <summary>Bước 2: xác nhận ký hợp đồng.</summary>
-        [AllowAnonymous]
+        [Authorize(Roles = "Customer")]
         [HttpPost("sign", Order = 0)]
         public async Task<IActionResult> Sign([FromBody] ContractSignRequestDTO request)
         {
-            var (dto, status, error) = await _contractWorkflowService.SignContractByTokenAsync(request);
+            var userId = GetUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var (dto, status, error) = await _contractWorkflowService.SignContractByTokenAsync(request, userId.Value);
             return status switch
             {
                 200 => Ok(dto),
                 400 => BadRequest(new { message = error }),
+                403 => Forbid(),
                 404 => NotFound(new { message = error }),
                 _ => StatusCode(status, new { message = error })
             };
         }
 
-        [Authorize(Roles = "Manager,Cashier")]
+        [Authorize(Roles = "Manager,Cashier,Customer")]
         [HttpPost("{id:int}/deposit")]
         public async Task<IActionResult> Deposit([FromRoute] int id)
         {
-            if (GetUserId() == null)
+            var userId = GetUserId();
+            if (userId == null)
                 return Unauthorized();
 
             var apiBase = _configuration["App:PublicBaseUrl"] ?? _appSettings.PublicBaseUrl;
-            var (dto, status, error) = await _contractWorkflowService.DepositAsync(id, apiBase);
+            var isPrivilegedRole = User.IsInRole("Manager") || User.IsInRole("Cashier");
+            var (dto, status, error) = await _contractWorkflowService.DepositAsync(
+                id, apiBase, userId.Value, isPrivilegedRole);
             return status switch
             {
                 200 => Ok(dto),
                 400 => BadRequest(new { message = error }),
+                403 => Forbid(),
                 404 => NotFound(new { message = error }),
                 500 => StatusCode(500, new { message = error }),
                 _ => StatusCode(status, new { message = error })
