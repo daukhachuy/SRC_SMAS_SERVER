@@ -59,10 +59,6 @@ namespace SMAS_BusinessObject.DTOs.Food
         [Required(ErrorMessage = "Giá không được để trống.")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải >= 0.")]
         public decimal Price { get; set; }
-
-        [Range(0, double.MaxValue, ErrorMessage = "Giá khuyến mãi phải >= 0.")]
-        public decimal? PromotionalPrice { get; set; }
-
         public string? Image { get; set; }
         public string? Unit { get; set; }
         public bool? IsAvailable { get; set; } = true;

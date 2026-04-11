@@ -84,7 +84,6 @@ namespace SMAS_Repositories.FoodRepositories
             Name = dto.Name,
             Description = dto.Description,
             Price = dto.Price,
-            PromotionalPrice = dto.PromotionalPrice,
             Image = dto.Image,
             Unit = dto.Unit,
             IsAvailable = dto.IsAvailable ?? true,
