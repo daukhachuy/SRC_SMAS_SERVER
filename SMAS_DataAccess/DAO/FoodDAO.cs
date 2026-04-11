@@ -20,45 +20,75 @@ namespace SMAS_DataAccess.DAO
         public async Task<IEnumerable<Food>> GetAllAsync()
         {
             return await _context.Foods
+                .Include(f => f.Categories)
                 .Where(f => f.IsAvailable != false)
                 .AsNoTracking()
                 .ToListAsync();
         }
 
-        // Lấy Food theo Id
         public async Task<Food?> GetByIdAsync(int id)
         {
             return await _context.Foods
+                .Include(f => f.Categories)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.FoodId == id);
         }
 
         // Thêm mới Food
-        public async Task<Food> CreateAsync(Food food)
+        public async Task<Food> CreateAsync(Food food, List<int> categoryIds)
         {
+            if (categoryIds != null && categoryIds.Any())
+            {
+                var categories = await _context.Categories
+                    .Where(c => categoryIds.Contains(c.CategoryId))
+                    .ToListAsync();
+                foreach (var cat in categories)
+                    food.Categories.Add(cat);
+            }
+
             _context.Foods.Add(food);
             await _context.SaveChangesAsync();
             return food;
         }
+        public async Task<Food?> GetByIdTrackedAsync(int id)
+        {
+            return await _context.Foods
+                .Include(f => f.Categories)
+                .FirstOrDefaultAsync(f => f.FoodId == id);
+        }
+
 
         // Cập nhật Food
-        public async Task<Food> UpdateAsync(Food food)
+        public async Task<Food> UpdateAsync(Food food, List<int> categoryIds)
         {
-            _context.Foods.Update(food);
+            if (categoryIds != null)
+            {
+                food.Categories.Clear();
+                var categories = await _context.Categories
+                    .Where(c => categoryIds.Contains(c.CategoryId))
+                    .ToListAsync();
+                foreach (var cat in categories)
+                    food.Categories.Add(cat);
+            }
+
             await _context.SaveChangesAsync();
             return food;
         }
-
         public async Task<bool> DeleteAsync(int id)
         {
-            var food = await _context.Foods.FindAsync(id);
+            var food = await _context.Foods
+                .Include(f => f.Categories)
+                .FirstOrDefaultAsync(f => f.FoodId == id);
+
             if (food == null) return false;
+
+            // Xóa liên kết trong bảng FoodCategory trước
+            food.Categories.Clear();
 
             _context.Foods.Remove(food);
             await _context.SaveChangesAsync();
             return true;
         }
-
         // Patch status: chỉ cập nhật IsAvailable
         public async Task<bool> UpdateStatusAsync(int id, bool isAvailable)
         {

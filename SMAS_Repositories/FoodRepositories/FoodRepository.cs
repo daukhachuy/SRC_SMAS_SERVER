@@ -33,20 +33,23 @@ namespace SMAS_Repositories.FoodRepositories
         public async Task<FoodListResponse> CreateAsync(FoodCreateDto dto)
         {
             var food = MapFromCreateDto(dto);
-            var created = await _foodDAO.CreateAsync(food);
-            return MapToResponseDto(created);
+            var created = await _foodDAO.CreateAsync(food, dto.CategoryIds);
+            // Reload để lấy Categories đầy đủ
+            var reloaded = await _foodDAO.GetByIdAsync(created.FoodId);
+            return MapToResponseDto(reloaded!);
         }
-
         public async Task<FoodListResponse?> UpdateAsync(int id, FoodUpdateDto dto)
         {
-            var food = await _foodDAO.GetByIdAsync(id);
+            // Dùng tracked version để EF theo dõi thay đổi
+            var food = await _foodDAO.GetByIdTrackedAsync(id);
             if (food == null) return null;
 
             MapFromUpdateDto(dto, food);
-            var updated = await _foodDAO.UpdateAsync(food);
-            return MapToResponseDto(updated);
-        }
+            var updated = await _foodDAO.UpdateAsync(food, dto.CategoryIds);
 
+            var reloaded = await _foodDAO.GetByIdAsync(updated.FoodId);
+            return MapToResponseDto(reloaded!);
+        }
         public Task<bool> DeleteAsync(int id)
                    => _foodDAO.DeleteAsync(id);
 
@@ -76,7 +79,18 @@ namespace SMAS_Repositories.FoodRepositories
             Rating = food.Rating,
             Note = food.Note,
             CreatedAt = food.CreatedAt,
-            UpdatedAt = food.UpdatedAt
+            UpdatedAt = food.UpdatedAt,
+            Categories = food.Categories?.Select(c => new CategoryFoodListResponse
+            {
+                CategoryId = c.CategoryId,
+                Name = c.Name,
+                Description = c.Description,
+                IsProcessedGoods = c.IsProcessedGoods,
+                Image = c.Image,
+                IsAvailable = c.IsAvailable,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt
+            }).ToList() ?? new List<CategoryFoodListResponse>()
         };
 
         private static Food MapFromCreateDto(FoodCreateDto dto) => new Food
@@ -96,6 +110,7 @@ namespace SMAS_Repositories.FoodRepositories
             OrderCount = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
+
         };
 
         // Cập nhật trực tiếp vào entity đã có (tránh tạo object mới mất FoodId)

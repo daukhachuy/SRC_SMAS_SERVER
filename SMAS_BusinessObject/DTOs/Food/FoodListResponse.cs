@@ -67,6 +67,7 @@ namespace SMAS_BusinessObject.DTOs.Food
         public int? PreparationTime { get; set; }
         public int? Calories { get; set; }
         public string? Note { get; set; }
+        public List<int> CategoryIds { get; set; } = new();
     }
 
     // DTO dùng để cập nhật Food
@@ -93,6 +94,7 @@ namespace SMAS_BusinessObject.DTOs.Food
         public int? PreparationTime { get; set; }
         public int? Calories { get; set; }
         public string? Note { get; set; }
+        public List<int> CategoryIds { get; set; } = new();
     }
     public class CategoryFoodListResponse
     {
