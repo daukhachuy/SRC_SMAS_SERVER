@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.BlogDTo;
 using SMAS_BusinessObject.DTOs.BuffetDTO;
 using SMAS_Services.BufferServices;
+using System.Security.Claims;
+using static SMAS_BusinessObject.DTOs.BuffetDTO.PriceLessThanMainPriceAttribute;
 
 namespace SMAS_API.Controllers
 {
@@ -66,8 +68,15 @@ namespace SMAS_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var created = await _buffetService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetAsync), new { id = created.BuffetId }, created);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int createdBy))
+                return Unauthorized();
+
+            var (data, msgCode, message) = await _buffetService.CreateAsync(dto, createdBy);
+            if (data == null)
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+
+            return Ok(data);
         }
 
         // PUT: api/buffets/{id}
@@ -77,11 +86,14 @@ namespace SMAS_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var updated = await _buffetService.UpdateAsync(id, dto);
-            if (updated == null)
-                return NotFound(new { message = $"Không tìm thấy buffet với Id = {id}." });
-
-            return Ok(updated);
+            var (data, msgCode, message) = await _buffetService.UpdateAsync(id, dto);
+            if (data == null)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+            return Ok(data);
         }
 
         // DELETE: api/buffets/{id} 
@@ -106,6 +118,37 @@ namespace SMAS_API.Controllers
                 return NotFound(new { message = $"Không tìm thấy buffet với Id = {id}." });
 
             return Ok(new { message = $"Đã cập nhật trạng thái buffet Id = {id} thành {isAvailable}." });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{buffetId:int}/foods")]
+        public async Task<IActionResult> AddFoodToBuffet(int buffetId, [FromBody] BuffetFoodInputDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var (success, msgCode, message) = await _buffetService.AddFoodToBuffetAsync(buffetId, dto);
+            if (!success)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+            return Ok(new { MsgCode = "MSG_034", Message = "Thêm món vào buffet thành công." });
+        }
+
+        // ⭐ DELETE: api/buffer/{buffetId}/foods/{foodId}
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{buffetId:int}/foods/{foodId:int}")]
+        public async Task<IActionResult> RemoveFoodFromBuffet(int buffetId, int foodId)
+        {
+            var (success, msgCode, message) = await _buffetService.RemoveFoodFromBuffetAsync(buffetId, foodId);
+            if (!success)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+            return Ok(new { MsgCode = "MSG_035", Message = "Xóa món khỏi buffet thành công." });
         }
     }
 }
