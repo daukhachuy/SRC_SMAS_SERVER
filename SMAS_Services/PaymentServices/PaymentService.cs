@@ -150,7 +150,7 @@ public class PaymentService : IPaymentService
             Note = data.Description
         };
 
-        await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Completed", payment);
+        await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Pending", payment);
         return true;
     }
 
