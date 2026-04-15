@@ -25,7 +25,7 @@ public interface IContractWorkflowService
         bool isPrivilegedRole);
 
     Task<string> DepositCallbackRedirectAsync(
-        int contractId, string status, long orderCode, string frontendBaseUrl);
+        int contractId, string status, long orderCode, string payosCode, string frontendBaseUrl);
 
     Task DepositWebhookAsync(int contractId, string rawBody, string? signatureHeader);
 

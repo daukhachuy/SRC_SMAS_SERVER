@@ -391,8 +391,8 @@ public class ContractWorkflowService : IContractWorkflowService
             desc = desc[..25];
 
         var baseApi = string.IsNullOrWhiteSpace(apiBaseUrl) ? _appSettings.PublicBaseUrl.TrimEnd('/') : apiBaseUrl.TrimEnd('/');
-        var returnUrl = $"{baseApi}/api/contract/{contractId}/deposit/callback?status=success";
-        var cancelUrl = $"{baseApi}/api/contract/{contractId}/deposit/callback?status=cancel";
+        var returnUrl = $"{baseApi}/api/contract/{contractId}/deposit/callback?depositResult=success";
+        var cancelUrl = $"{baseApi}/api/contract/{contractId}/deposit/callback?depositResult=cancel";
 
         var payResult = await _paymentService.CreateContractDepositPaymentLinkAsync(
             orderCode, amountVnd, desc, returnUrl, cancelUrl);
@@ -410,38 +410,42 @@ public class ContractWorkflowService : IContractWorkflowService
     }
 
     public async Task<string> DepositCallbackRedirectAsync(
-        int contractId, string status, long orderCode, string frontendBaseUrl)
+        int contractId, string status, long orderCode, string payosCode, string frontendBaseUrl)
     {
         var fe = string.IsNullOrWhiteSpace(frontendBaseUrl) ? _appSettings.FrontendBaseUrl.TrimEnd('/') : frontendBaseUrl.TrimEnd('/');
+        static string BuildMyOrdersUrl(string feBase, int bookEventId, string paymentStatus) =>
+            $"{feBase}/my-orders?tab=event&bookEventId={bookEventId}&payment={paymentStatus}";
 
         try
         {
             var contract = await _repo.GetContractByIdForDepositAsync(contractId);
             if (contract == null)
-                return $"{fe}/events/{contractId}?payment=error";
+                return BuildMyOrdersUrl(fe, contractId, "error");
 
             var bookEventId = contract.BookEventId ?? contractId;
 
             if (status == "cancel")
-                return $"{fe}/events/{bookEventId}?payment=cancel";
+                return BuildMyOrdersUrl(fe, bookEventId, "cancel");
 
             if (status != "success")
-                return $"{fe}/events/{bookEventId}?payment=error";
-
-            var ok = await _paymentService.VerifyPaymentAsync(orderCode);
-            if (!ok)
-                return $"{fe}/events/{bookEventId}?payment=error";
+                return BuildMyOrdersUrl(fe, bookEventId, "error");
 
             if (await _repo.ExistsPaidDepositForContractAsync(contractId))
-                return $"{fe}/events/{bookEventId}?payment=success";
+                return BuildMyOrdersUrl(fe, bookEventId, "success");
+
+            // Callback chỉ phục vụ UX redirect; xác nhận thành công dùng query code=00 từ PayOS.
+            // Webhook vẫn là safety-net cho trường hợp user đóng trình duyệt trước khi callback về.
+            var payosConfirmed = string.Equals(payosCode, "00", StringComparison.Ordinal);
+            if (!payosConfirmed)
+                return BuildMyOrdersUrl(fe, bookEventId, "pending_verify");
 
             var nowCb = DateTime.UtcNow;
             if (contract.Status == "Cancelled")
-                return $"{fe}/events/{bookEventId}?payment=contract_invalid";
+                return BuildMyOrdersUrl(fe, bookEventId, "contract_invalid");
             if (contract.Status != "Signed")
-                return $"{fe}/events/{bookEventId}?payment=contract_invalid";
+                return BuildMyOrdersUrl(fe, bookEventId, "contract_invalid");
             if (!contract.SignedAt.HasValue || nowCb >= contract.SignedAt.Value.AddHours(DepositDeadlineHours()))
-                return $"{fe}/events/{bookEventId}?payment=expired";
+                return BuildMyOrdersUrl(fe, bookEventId, "expired");
 
             decimal deposit = contract.DepositAmount ?? 0;
             decimal totalAmount = contract.TotalAmount;
@@ -468,17 +472,18 @@ public class ContractWorkflowService : IContractWorkflowService
             }
             catch (InvalidOperationException)
             {
-                return $"{fe}/events/{bookEventId}?payment=expired";
+                // Race condition: webhook/callback khác đã xử lý trước đó -> coi như thành công.
+                return BuildMyOrdersUrl(fe, bookEventId, "success");
             }
 
             // Gửi mail thông báo kích hoạt (best-effort, tránh làm fail luồng redirect).
             try { await SendContractActivatedEmailAsync(contractId); } catch { /* ignore */ }
 
-            return $"{fe}/events/{bookEventId}?payment=success";
+            return BuildMyOrdersUrl(fe, bookEventId, "success");
         }
         catch
         {
-            return $"{fe}/events/{contractId}?payment=error";
+            return BuildMyOrdersUrl(fe, contractId, "error");
         }
     }
 
