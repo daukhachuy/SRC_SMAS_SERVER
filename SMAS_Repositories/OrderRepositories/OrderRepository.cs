@@ -77,6 +77,9 @@ namespace SMAS_Repositories.OrderRepositories
             if (itemCount > 1)
                 return new AddOrderItemResponse { Success = false, Message = "Chỉ được chọn một loại item mỗi lần thêm." };
 
+            if (request.Quantity <= 0)
+                return new AddOrderItemResponse { Success = false, Message = "Số lượng phải lớn hơn 0." };
+
             // 2. Tìm order
             var order = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
             if (order == null)
@@ -85,7 +88,11 @@ namespace SMAS_Repositories.OrderRepositories
             if (order.OrderStatus == "Closed" || order.OrderStatus == "Cancelled")
                 return new AddOrderItemResponse { Success = false, Message = "Không thể thêm món vào đơn hàng đã đóng hoặc đã huỷ." };
 
-            // 3. Lấy thông tin item và tính giá
+            // 3. Phát hiện buffet hiện tại của order (nếu có)
+            var currentBuffetId = order.OrderItems
+                .FirstOrDefault(oi => oi.BuffetId.HasValue)?.BuffetId;
+
+            // 4. Tạo OrderItem và tính giá
             decimal unitPrice = 0;
             var newItem = new OrderItem
             {
@@ -102,10 +109,33 @@ namespace SMAS_Repositories.OrderRepositories
                 if (food == null)
                     return new AddOrderItemResponse { Success = false, Message = "Món ăn không tồn tại hoặc đã ngừng phục vụ." };
 
-                unitPrice = food.PromotionalPrice ?? food.Price;
                 newItem.FoodId = food.FoodId;
-                newItem.UnitPrice = unitPrice;
-                newItem.Subtotal = unitPrice * request.Quantity;
+
+                // Nếu order đang có buffet, kiểm tra món này có thuộc buffet không
+                if (currentBuffetId.HasValue)
+                {
+                    var buffetFoods = await _orderDAO.GetFoodByBuffetIdAsync(currentBuffetId.Value);
+                    var isInBuffet = buffetFoods != null && buffetFoods.Any(f => f.FoodId == food.FoodId);
+
+                    if (isInBuffet)
+                    {
+                        // Món thuộc buffet → miễn phí
+                        newItem.UnitPrice = 0;
+                        newItem.Subtotal = 0;
+                    }
+                    else
+                    {
+                        unitPrice = food.PromotionalPrice ?? food.Price;
+                        newItem.UnitPrice = unitPrice;
+                        newItem.Subtotal = unitPrice * request.Quantity;
+                    }
+                }
+                else
+                {
+                    unitPrice = food.PromotionalPrice ?? food.Price;
+                    newItem.UnitPrice = unitPrice;
+                    newItem.Subtotal = unitPrice * request.Quantity;
+                }
             }
             else if (request.ComboId.HasValue)
             {
@@ -120,23 +150,31 @@ namespace SMAS_Repositories.OrderRepositories
             }
             else if (request.BuffetId.HasValue)
             {
+                // Chặn thêm buffet khác nếu order đã có buffet
+                if (currentBuffetId.HasValue)
+                    return new AddOrderItemResponse { Success = false, Message = "Không thể thêm buffet khác vào đơn hàng đã có buffet." };
+
                 var buffet = await _orderDAO.GetBuffetByIdAsync(request.BuffetId.Value);
                 if (buffet == null)
                     return new AddOrderItemResponse { Success = false, Message = "Buffet không tồn tại hoặc đã ngừng phục vụ." };
 
-                unitPrice = buffet.MainPrice;
+                var childQty = request.QuantityBufferChildent ?? 0;
+
                 newItem.BuffetId = buffet.BuffetId;
-                newItem.UnitPrice = unitPrice;
-                newItem.Subtotal = unitPrice * request.Quantity;
+                newItem.Quantity = request.Quantity + childQty;
+                newItem.UnitPrice = buffet.MainPrice;
+                newItem.Subtotal = buffet.MainPrice * request.Quantity
+                                 + buffet.ChildrenPrice * childQty;
+                newItem.Status = "Served";
             }
 
-            // 4. Lưu OrderItem
+            // 5. Lưu OrderItem
             var saved = await _orderDAO.AddOrderItemAsync(newItem);
 
-            // 5. Cập nhật tổng tiền Order
+            // 6. Cập nhật tổng tiền Order
             await _orderDAO.UpdateOrderTotalAsync(order.OrderId, newItem.Subtotal ?? 0);
 
-            // 6. Lấy lại order để trả NewTotalAmount
+            // 7. Lấy lại order để trả NewTotalAmount
             var updatedOrder = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
 
             return new AddOrderItemResponse
@@ -614,5 +652,77 @@ namespace SMAS_Repositories.OrderRepositories
                 return (false, $"Không tìm thấy nhân viên giao hàng");
             return await _orderDAO.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
+
+
+        // ─── SESSION MENU (khách quét QR order tại bàn) ──────────────────────────
+
+        public async Task<object> GetMenuForSessionAsync(string? type, int? categoryId, string? keyword)
+        {
+            // type: "food" | "combo" | "buffet" | "all" | null (default all)
+            type = string.IsNullOrWhiteSpace(type) ? "all" : type.ToLower();
+
+            object? foods = null, combos = null, buffets = null, categories = null;
+
+            if (type == "all" || type == "food")
+            {
+                var foodEntities = await _orderDAO.GetFoodsForSessionAsync(categoryId, keyword);
+                foods = foodEntities.Select(f => new
+                {
+                    f.FoodId,
+                    f.Name,
+                    f.Description,
+                    f.Price,
+                    f.PromotionalPrice,
+                    f.Image,
+                    f.Unit,
+                    f.Rating,
+                    f.IsFeatured,
+                    Categories = f.Categories.Select(c => new { c.CategoryId, c.Name }).ToList()
+                }).ToList();
+
+                // Trả luôn category list khi lấy food (để FE render tab)
+                var categoryEntities = await _orderDAO.GetCategoriesForSessionAsync();
+                categories = categoryEntities.Select(c => new { c.CategoryId, c.Name, c.Image }).ToList();
+            }
+
+            if (type == "all" || type == "combo")
+            {
+                var comboEntities = await _orderDAO.GetCombosForSessionAsync();
+                combos = comboEntities.Select(c => new
+                {
+                    c.ComboId,
+                    c.Name,
+                    c.Description,
+                    c.Price,
+                    c.DiscountPercent,
+                    c.Image
+                }).ToList();
+            }
+
+            if (type == "all" || type == "buffet")
+            {
+                var buffetEntities = await _orderDAO.GetBuffetsForSessionAsync();
+                buffets = buffetEntities.Select(b => new
+                {
+                    b.BuffetId,
+                    b.Name,
+                    b.Description,
+                    b.MainPrice,
+                    b.ChildrenPrice,
+                    b.SidePrice,
+                    b.Image
+                }).ToList();
+            }
+
+            return new
+            {
+                categories,
+                foods,
+                combos,
+                buffets
+            };
+        }
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
+    => await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
     }
 }

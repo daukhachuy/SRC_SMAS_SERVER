@@ -20,6 +20,7 @@ using SMAS_Repositories.CategoryRepositories;
 using SMAS_Repositories.ComboRepositories;
 using SMAS_Repositories.ContractRepository;
 using SMAS_Repositories.ContractWorkflow;
+using SMAS_Repositories.ConversationRepositories;
 using SMAS_Repositories.CustomerFeedbackRepositories;
 using SMAS_Repositories.DiscountRepositories;
 using SMAS_Repositories.EventRepositories;
@@ -45,6 +46,7 @@ using SMAS_Services.CategoryServices;
 using SMAS_Services.ComboServices;
 using SMAS_Services.ContractService;
 using SMAS_Services.ContractWorkflow;
+using SMAS_Services.ConversationServices;
 using SMAS_Services.CustomerFeedbackServices;
 using SMAS_Services.DiscountServices;
 using SMAS_Services.EmailServices;
@@ -277,6 +279,10 @@ namespace SMAS_API
 
             builder.Services.AddScoped<IAIService, AIService>();
             builder.Services.AddScoped<IAIAnalysisServices, AIAnalysisServices>();
+
+            builder.Services.AddScoped<ConversationDAO>();
+            builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+            builder.Services.AddScoped<IConversationService, ConversationService>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 

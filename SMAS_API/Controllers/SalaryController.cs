@@ -30,11 +30,9 @@ namespace SMAS_API.Controllers
                     return Unauthorized("Không xác định được người dùng.");
 
                 var result = await _salaryRecordService.GetSalaryLastSixMonthsAsync(userId);
-
-                if (!result.Months.Any())
-                    return Ok(null);
-
                 return Ok(result);
+
+              
             }
             catch (Exception ex)
             {
@@ -42,7 +40,7 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             }
         }
-        
+
         [HttpGet("current-month-detail")]
         public async Task<IActionResult> GetCurrentMonthlySalaryDetail()
         {
@@ -53,8 +51,8 @@ namespace SMAS_API.Controllers
                     return Unauthorized("Không xác định được người dùng.");
 
                 var result = await _salaryRecordService.GetCurrentMonthlySalaryDetailAsync(userId);
-
-                if (result == null) return Ok(null);
+                if (result == null)
+                    return NotFound(new { message = "Chưa có dữ liệu lương tháng hiện tại." });
 
                 return Ok(result);
             }

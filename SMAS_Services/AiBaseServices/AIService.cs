@@ -23,8 +23,8 @@ namespace SMAS_Services.AiBaseServices
 
         public async Task<string> AskAI(string prompt)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
-
+            //var url = $"https://generativelanguage.googleapis.com/v1/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_settings.Model}:generateContent?key={_settings.ApiKey}";
             var requestBody = new
             {
                 contents = new[]

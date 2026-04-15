@@ -74,7 +74,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Kitchen,Waiter ,Manager")]
+        [Authorize(Roles = "Kitchen,Waiter")]
         [HttpPost("order-items/{orderItemId}/cancel")]
         public async Task<IActionResult> PostUpdateStatusOrderItemCancelledAsync(
             [FromRoute] int orderItemId,

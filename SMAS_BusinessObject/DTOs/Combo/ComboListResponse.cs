@@ -27,6 +27,15 @@ namespace SMAS_BusinessObject.DTOs.Combo
 
         public List<ComboFoodItemDto> Foods { get; set; } = new List<ComboFoodItemDto>();
     }
+
+    public class ComboFoodInputDto
+    {
+        [Required]
+        public int FoodId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Số lượng phải >= 1.")]
+        public int Quantity { get; set; }
+    }
     public class ComboCreateDto
     {
         [Required(ErrorMessage = "Tên combo không được để trống.")]
@@ -51,38 +60,40 @@ namespace SMAS_BusinessObject.DTOs.Combo
 
         [Range(0, int.MaxValue, ErrorMessage = "MaxUsage phải >= 0.")]
         public int? MaxUsage { get; set; }
-
-        public bool? IsAvailable { get; set; } = true;
-
-        public int? CreatedBy { get; set; }
+        [Required(ErrorMessage = "Combo phải có ít nhất 1 món.")]
+        [MinLength(1, ErrorMessage = "Combo phải có ít nhất 1 món.")]
+        public List<ComboFoodInputDto> Foods { get; set; } = new();
     }
 
     public class ComboUpdateDto
     {
-        [Required(ErrorMessage = "Tên combo không được để trống.")]
+        [Required]
         [MaxLength(200)]
         public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        [Required(ErrorMessage = "Giá không được để trống.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Giá phải lớn hơn 0.")]
+        [Required]
+        [Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
 
-        [Range(0, 100, ErrorMessage = "Phần trăm giảm giá phải từ 0 đến 100.")]
+        [Range(0, 100)]
         public decimal? DiscountPercent { get; set; }
 
         public string? Image { get; set; }
-
         public DateOnly? StartDate { get; set; }
 
         [ExpiryDateAfterStartDate]
         public DateOnly? ExpiryDate { get; set; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "MaxUsage phải >= 0.")]
+        [Range(0, int.MaxValue)]
         public int? MaxUsage { get; set; }
 
         public bool? IsAvailable { get; set; }
+
+        [Required]
+        [MinLength(1)]
+        public List<ComboFoodInputDto> Foods { get; set; } = new();
     }
     public class ExpiryDateAfterStartDateAttribute : ValidationAttribute
     {
