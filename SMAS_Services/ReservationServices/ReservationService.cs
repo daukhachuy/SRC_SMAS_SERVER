@@ -26,12 +26,12 @@ namespace SMAS_Services.ReservationServices
 
         public async Task<ReservationListResponse> CreatePendingReservation(ReservationCreateRequestDTO dto, int userid)
         {
-            bool isDuplicate = await _reservationRepository.CheckDuplicateReservation(userid, dto.ReservationDate, dto.ReservationTime);
+            //bool isDuplicate = await _reservationRepository.CheckDuplicateReservation(userid, dto.ReservationDate, dto.ReservationTime);
 
-            if (isDuplicate)
-            {
-                return null; 
-            }
+            //if (isDuplicate)
+            //{
+            //    return null; 
+            //}
             string uniqueCode = GenerateCode();
             while (_reservationRepository.CheckCodeExists(uniqueCode))
             {
