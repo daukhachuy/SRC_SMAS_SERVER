@@ -54,5 +54,27 @@ namespace SMAS_Repositories.OrderRepositories
             return (true, "Thanh toán tiền mặt thành công");
         }
 
+        public async Task<(bool success, string message, decimal remaining, int orderId)>
+            CreateRemainingPaymentLinkAsync(string orderCode, string returnUrl, string cancelUrl)
+        {
+            var order = await _paymentDAO.GetOrderWithPaymentsByCodeAsync(orderCode);
+            if (order == null)
+                return (false, "Không tìm thấy đơn hàng.", 0, 0);
+
+            var check = await _paymentDAO.CheckPaymentAsync(order.OrderId);
+            if (!check.isEnough)
+                return (false, "Đơn hàng đã thanh toán đủ.", 0, order.OrderId);
+
+            var paidAmount = order.Payments
+                .Where(p => p.PaymentStatus == "Paid")
+                .Sum(p => p.Amount);
+            var remaining = order.TotalAmount - paidAmount;
+
+            if (remaining <= 0)
+                return (false, "Đơn hàng đã thanh toán đủ.", 0, order.OrderId);
+
+            return (true, "OK", remaining, order.OrderId);
+        }
+
     }
 }

@@ -72,4 +72,11 @@ public class PaymentDAO
         }
         return true;
     }
+
+    public async Task<Order?> GetOrderWithPaymentsByCodeAsync(string orderCode)
+    {
+        return await _context.Orders
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+    }
 }
