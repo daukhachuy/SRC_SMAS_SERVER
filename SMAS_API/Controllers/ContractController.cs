@@ -128,14 +128,16 @@ namespace SMAS_API.Controllers
         [HttpGet("{id:int}/deposit/callback")]
         public async Task<IActionResult> DepositCallback(
             [FromRoute] int id,
-            [FromQuery] string? status,
-            [FromQuery] long? orderCode)
+            [FromQuery] string? depositResult,
+            [FromQuery] long? orderCode,
+            [FromQuery] string? code)
         {
             var fe = _configuration["App:FrontendBaseUrl"] ?? _appSettings.FrontendBaseUrl;
             var url = await _contractWorkflowService.DepositCallbackRedirectAsync(
                 id,
-                status ?? "",
+                depositResult ?? "",
                 orderCode ?? 0,
+                code ?? "",
                 fe);
             return Redirect(url);
         }
