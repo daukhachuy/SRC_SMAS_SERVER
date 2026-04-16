@@ -70,7 +70,7 @@ namespace SMAS_API.Controllers
             return Ok(result);
         }
 
-        //[Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager")]
         [HttpGet("manager-conversations-my")]
         public async Task<IActionResult> GetConversationsByManageridAsync()
         {
