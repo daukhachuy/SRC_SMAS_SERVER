@@ -18,6 +18,7 @@ namespace SMAS_Repositories.OrderRepositories
 
         Task<bool> UpdateOrderStatusAsync(int orderId, string orderStatus);
         Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment);
+        Task<bool> AddPaymentAndAutoCompleteAsync(int orderId, Payment payment);
         Task<List<OrderListResponseDTO>> GetAllActiveOrderAsync();
         Task<List<OrderListResponseDTO>> GetAllOrderCompleteAndCancelAsync();
         Task<List<OrderListResponseDTO>> GetAllActiveOrderByOrderTypeAsync(string orderType);
@@ -50,5 +51,7 @@ namespace SMAS_Repositories.OrderRepositories
         Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request);
 
         Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request, string dto);
+        Task<object> GetMenuForSessionAsync(string? type, int? categoryId, string? keyword);
+        Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId);
     }
 }

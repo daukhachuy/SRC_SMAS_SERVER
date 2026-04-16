@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.Combo;
 using SMAS_Services.ComboServices;
+using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
@@ -89,8 +90,12 @@ namespace SMAS_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var created = await _comboService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetAsync), new { id = created.ComboId }, created);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int createdBy))
+                return Unauthorized();
+
+            var created = await _comboService.CreateAsync(dto, createdBy);
+            return Ok(created);
         }
 
         // PUT: api/combos/{id}
@@ -100,11 +105,17 @@ namespace SMAS_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var updated = await _comboService.UpdateAsync(id, dto);
-            if (updated == null)
-                return NotFound(new { message = $"Không tìm thấy combo với Id = {id}." });
+            var (data, msgCode, message) = await _comboService.UpdateAsync(id, dto);
 
-            return Ok(updated);
+            if (data == null)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+
+            return Ok(data);
         }
 
         // DELETE: api/combos/{id}
@@ -130,6 +141,60 @@ namespace SMAS_API.Controllers
 
             return Ok(new { message = $"Đã cập nhật trạng thái combo Id = {id} thành {isAvailable}." });
         }
+        // POST: api/combo/{comboId}/foods
+        // Body: { "foodId": 5, "quantity": 2 }
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{comboId:int}/foods")]
+        public async Task<IActionResult> AddFoodToCombo(int comboId, [FromBody] ComboFoodInputDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            var (success, msgCode, message) = await _comboService.AddFoodToComboAsync(
+                comboId, dto.FoodId, dto.Quantity);
+
+            if (!success)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+
+            return Ok(new { MsgCode = "MSG_034", Message = "Thêm món vào combo thành công." });
+        }
+
+        // DELETE: api/combo/{comboId}/foods/{foodId}
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{comboId:int}/foods/{foodId:int}")]
+        public async Task<IActionResult> RemoveFoodFromCombo(int comboId, int foodId)
+        {
+            var (success, msgCode, message) = await _comboService.RemoveFoodFromComboAsync(comboId, foodId);
+
+            if (!success)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+
+            return Ok(new { MsgCode = "MSG_035", Message = "Xóa món khỏi combo thành công." });
+        }
+
+        // PATCH: api/combo/{comboId}/foods/{foodId}/quantity?quantity=3
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{comboId:int}/foods/{foodId:int}/quantity")]
+        public async Task<IActionResult> UpdateFoodQuantity(int comboId, int foodId, [FromQuery] int quantity)
+        {
+            var (success, msgCode, message) = await _comboService.UpdateFoodQuantityAsync(
+                comboId, foodId, quantity);
+
+            if (!success)
+            {
+                if (msgCode == "MSG_404")
+                    return NotFound(new { MsgCode = msgCode, Message = message });
+                return BadRequest(new { MsgCode = msgCode, Message = message });
+            }
+
+            return Ok(new { MsgCode = "MSG_036", Message = "Cập nhật số lượng món thành công." });
+        }
     }
 }

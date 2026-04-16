@@ -35,7 +35,17 @@ namespace SMAS_API.Controllers
             var foods = await _ifoodservice.GetAllAsync();
             return Ok(foods);
         }
+        // GET: api/foods/5  -> dùng cho CreatedAtAction
+        [AllowAnonymous]
+        [HttpGet("{id:int}", Name = "GetFoodById")]
+        public async Task<IActionResult> GetByIdAsync(int id)
+        {
+            var food = await _ifoodservice.GetByIdAsync(id);
+            if (food == null)
+                return NotFound(new { message = $"Không tìm thấy món ăn với Id = {id}." });
 
+            return Ok(food);
+        }
         // POST: api/foods
         [Authorize(Roles = "Admin")]
         [HttpPost]
@@ -45,7 +55,7 @@ namespace SMAS_API.Controllers
                 return BadRequest(ModelState);
 
             var created = await _ifoodservice.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetAsync), new { id = created.FoodId }, created);
+            return CreatedAtRoute("GetFoodById", new { id = created.FoodId }, created);
         }
 
         // PUT: api/foods/{id}
