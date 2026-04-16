@@ -496,6 +496,11 @@ namespace SMAS_Repositories.OrderRepositories
             return await _orderDAO.AddPaymentAndUpdateOrderStatusAsync(orderId, orderStatus, payment);
         }
 
+        public async Task<bool> AddPaymentAndAutoCompleteAsync(int orderId, Payment payment)
+        {
+            return await _orderDAO.AddPaymentAndAutoCompleteAsync(orderId, payment);
+        }
+
         public async Task<(double lat, double lon)> GetCoordinatesFromAddress(string address)
         {
             var fullAddress = address + ", Da Nang, Vietnam";

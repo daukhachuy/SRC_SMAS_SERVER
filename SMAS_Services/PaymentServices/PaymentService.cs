@@ -150,7 +150,7 @@ public class PaymentService : IPaymentService
             Note = data.Description
         };
 
-        await _orderRepository.AddPaymentAndUpdateOrderStatusAsync(orderId, "Pending", payment);
+        await _orderRepository.AddPaymentAndAutoCompleteAsync(orderId, payment);
         return true;
     }
 
@@ -341,5 +341,101 @@ public class PaymentService : IPaymentService
     public async Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid)
     {
         return await _paymentRepo.CreatePaymentOrderCashAsync(payment,userid);
+    }
+
+    public async Task<CreatePaymentLinkResponse> CreateRemainingPaymentLinkAsync(RemainingPaymentQrRequestDTO request)
+    {
+        var (success, message, remaining, orderId) = await _paymentRepo.CreateRemainingPaymentLinkAsync(
+            request.OrderCode, request.ReturnUrl, request.CancelUrl);
+
+        if (!success)
+            return new CreatePaymentLinkResponse { Success = false, Message = message };
+
+        long amountVnd = (long)Math.Round(remaining);
+        if (amountVnd <= 0)
+            return new CreatePaymentLinkResponse { Success = false, Message = "Số tiền thanh toán không hợp lệ." };
+
+        int orderCode = orderId;
+        string description = request.OrderCode.Length <= 9
+            ? request.OrderCode
+            : $"ORD{orderId}";
+
+        await CancelPaymentLinkAsync(orderCode);
+
+        string dataStr = $"amount={amountVnd}&cancelUrl={request.CancelUrl}&description={description}&orderCode={orderCode}&returnUrl={request.ReturnUrl}";
+        string signature = ComputeHmacSha256(dataStr, _payOsSettings.ChecksumKey);
+
+        var body = new
+        {
+            orderCode,
+            amount = amountVnd,
+            description,
+            cancelUrl = request.CancelUrl,
+            returnUrl = request.ReturnUrl,
+            signature
+        };
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/v2/payment-requests");
+        requestMessage.Headers.Add("x-client-id", _payOsSettings.ClientId);
+        requestMessage.Headers.Add("x-api-key", _payOsSettings.ApiKey);
+        requestMessage.Content = new StringContent(
+            JsonSerializer.Serialize(body),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await SharedHttpClient.SendAsync(requestMessage);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errBody = await response.Content.ReadAsStringAsync();
+            return new CreatePaymentLinkResponse
+            {
+                Success = false,
+                Message = $"PayOS trả lỗi: {response.StatusCode}. {errBody}"
+            };
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object)
+        {
+            string? checkoutUrl = data.TryGetProperty("checkoutUrl", out var url) ? url.GetString() : null;
+            string? qrCode = data.TryGetProperty("qrCode", out var qr) ? qr.GetString() : null;
+            string? paymentLinkId = data.TryGetProperty("paymentLinkId", out var id) ? id.GetString() : null;
+            return new CreatePaymentLinkResponse
+            {
+                Success = true,
+                CheckoutUrl = checkoutUrl,
+                QrCode = qrCode,
+                PaymentLinkId = paymentLinkId
+            };
+        }
+
+        string? errMsg = root.TryGetProperty("desc", out var desc) ? desc.GetString() : null;
+        return new CreatePaymentLinkResponse
+        {
+            Success = false,
+            Message = errMsg ?? "PayOS không trả về link thanh toán."
+        };
+    }
+
+    private async Task CancelPaymentLinkAsync(int orderCode)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"/v2/payment-requests/{orderCode}/cancel");
+            request.Headers.Add("x-client-id", _payOsSettings.ClientId);
+            request.Headers.Add("x-api-key", _payOsSettings.ApiKey);
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(new { cancellationReason = "Tạo lại link thanh toán còn lại" }),
+                Encoding.UTF8,
+                "application/json");
+            await SharedHttpClient.SendAsync(request);
+        }
+        catch
+        {
+            // Bỏ qua lỗi cancel — link cũ có thể không tồn tại hoặc đã hết hạn
+        }
     }
 }
