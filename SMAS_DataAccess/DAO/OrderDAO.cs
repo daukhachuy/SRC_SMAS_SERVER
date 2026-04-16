@@ -401,6 +401,58 @@ namespace SMAS_DataAccess.DAO
         }
 
         /// <summary>
+        /// Thêm Payment. DineIn/TakeAway: auto-complete nếu đủ tiền. Delivery: giữ nguyên status.
+        /// </summary>
+        public async Task<bool> AddPaymentAndAutoCompleteAsync(int orderId, Payment payment)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Payments)
+                .Include(o => o.TableOrders).ThenInclude(to => to.Table)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            if (order == null) return false;
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                payment.OrderId = orderId;
+                _context.Payments.Add(payment);
+
+                var isDineInOrTakeAway = order.OrderType == "DineIn" || order.OrderType == "TakeAway";
+
+                if (isDineInOrTakeAway)
+                {
+                    var paidAmount = order.Payments
+                        .Where(p => p.PaymentStatus == "Paid")
+                        .Sum(p => p.Amount) + payment.Amount;
+
+                    if (paidAmount >= order.TotalAmount)
+                    {
+                        order.OrderStatus = "Completed";
+                        order.ClosedAt = DateTime.UtcNow;
+
+                        foreach (var table in order.TableOrders.Select(to => to.Table).Where(t => t != null))
+                        {
+                            table!.Status = "AVAILABLE";
+                            table.UpdatedAt = DateTime.UtcNow;
+                            _cache.Remove($"table_session_{table.TableName.ToUpper()}");
+                        }
+                        foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
+                            to.LeftAt = DateTime.UtcNow;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Thêm bản ghi Payment và cập nhật Order status trong một transaction (khi PayOS webhook báo thanh toán thành công).
         /// </summary>
         public async Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment)

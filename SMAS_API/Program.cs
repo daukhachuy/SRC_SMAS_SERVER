@@ -66,6 +66,8 @@ using SMAS_Services.StaffService;
 using SMAS_Services.TableService;
 using System.Security.Claims;
 using System.Text;
+using SMAS_API.Hubs;
+using SMAS_Services.Realtime;
 using static SMAS_DataAccess.DAO.AdminDao;
 
 namespace SMAS_API
@@ -113,6 +115,19 @@ namespace SMAS_API
                     RoleClaimType = ClaimTypes.Role
                 };
 
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             builder.Services.AddAuthorization();
@@ -286,6 +301,10 @@ namespace SMAS_API
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 
+            builder.Services.AddSignalR();
+            builder.Services.AddScoped<IKitchenNotifier, KitchenNotifier>();
+            builder.Services.AddScoped<IChatNotifier, ChatNotifier>();
+
             builder.Services.AddScoped<TokenService>();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -316,6 +335,8 @@ namespace SMAS_API
 
 
             app.MapControllers();
+            app.MapHub<KitchenHub>("/hubs/kitchen");
+            app.MapHub<ChatHub>("/hubs/chat");
 
             app.Run();
         }

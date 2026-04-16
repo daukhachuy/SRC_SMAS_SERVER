@@ -71,4 +71,18 @@ public class PaymentController : ControllerBase
         return Ok(result.message);
     }
 
+    [Authorize(Roles = "Admin,Waiter,Kitchen,Manager")]
+    [HttpPost("payment-order-qr-remaining")]
+    public async Task<IActionResult> CreateRemainingPaymentQr([FromBody] RemainingPaymentQrRequestDTO request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _paymentService.CreateRemainingPaymentLinkAsync(request);
+        if (!result.Success)
+            return BadRequest(result.Message);
+
+        return Ok(new { checkoutUrl = result.CheckoutUrl, qrCode = result.QrCode });
+    }
+
 }

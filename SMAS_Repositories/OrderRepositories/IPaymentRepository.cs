@@ -12,6 +12,7 @@ namespace SMAS_Repositories.OrderRepositories
     {
         Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid);
 
-
+        Task<(bool success, string message, decimal remaining, int orderId)> CreateRemainingPaymentLinkAsync(
+            string orderCode, string returnUrl, string cancelUrl);
     }
 }
