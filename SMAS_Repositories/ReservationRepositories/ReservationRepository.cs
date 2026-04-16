@@ -20,7 +20,7 @@ namespace SMAS_Repositories.ReservationRepositories
 
         public async Task<IEnumerable<ReservationListResponse>> GetAllReservationsAsync()
         {
-           var reservations = await _reservation.GetAllReservationsAsync();
+            var reservations = await _reservation.GetAllReservationsAsync();
             return reservations.Select(r => new ReservationListResponse
             {
                 UserId = r.UserId,
@@ -47,7 +47,7 @@ namespace SMAS_Repositories.ReservationRepositories
         public async Task<IEnumerable<ReservationListResponse>> GetAllReservationsByStatusAsync(String status)
         {
             var reservations = await GetAllReservationsAsync();
-            return  reservations.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            return reservations.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public async Task<ReservationListResponse> CreatePendingReservation(Reservation request)
@@ -108,5 +108,19 @@ namespace SMAS_Repositories.ReservationRepositories
         public async Task<bool> CheckDuplicateReservation(int userId, DateOnly date, TimeOnly time) => await _reservation.CheckDuplicateReservation(userId, date, time);
         public bool CheckCodeExists(string code) => _reservation.CheckCodeExists(code);
 
+
+        public async Task<IEnumerable<SearchReservationResponseDTO>> GetAllReservationsByStatusAsync(string status, string request)
+        {
+            var reservations = await _reservation.GetReservationByEmailorPhoneAsync(status , request);
+            return reservations.Select(r => new SearchReservationResponseDTO
+                               {
+                                   ReservationCode = r.ReservationCode,
+                                   ReservationDate = r.ReservationDate,
+                                   ReservationTime = r.ReservationTime,
+                                   NumberOfGuests = r.NumberOfGuests,
+                                   SpecialRequests = r.SpecialRequests
+                               }).ToList();
+
+        }
     }
 }

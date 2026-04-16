@@ -20,5 +20,7 @@ namespace SMAS_Repositories.ReservationRepositories
 
         bool CheckCodeExists(string code);
         Task<IEnumerable<ReservationListResponse>> GetReservationsByUserIdAsync(int userId);
+
+        Task<IEnumerable<SearchReservationResponseDTO>> GetAllReservationsByStatusAsync(string status, string request);
     }
 }

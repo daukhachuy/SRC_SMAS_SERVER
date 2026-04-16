@@ -148,5 +148,14 @@ namespace SMAS_API.Controllers
                         ?? User.FindFirst("id")?.Value;
             return int.TryParse(claim, out var id) ? id : null;
         }
+
+        [Authorize(Roles = "Waiter")]
+        [HttpGet("check-availability-phoneoremail")]
+        public async Task<ActionResult<SearchReservationResponseDTO>> CheckTableAvailability(string request)
+        {
+            var reault = await _reservationservice.CheckAvailabilityAsync(request);
+            if (reault == null) return NotFound(new { Message = "Không tìm thấy đặt bàn nào với thông tin này." });
+            return Ok(reault);
+        }
     }
 }
