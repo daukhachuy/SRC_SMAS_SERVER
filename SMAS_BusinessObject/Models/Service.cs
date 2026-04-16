@@ -13,7 +13,7 @@ public partial class Service
 
     public string? Description { get; set; }
 
-    public string? Unit { get; set; }
+    public string? Unit { get; set; } //theo buổi hoặc theo giờ. sự kiện như pháo giấy thì tính theo buổi, còn mc hay band nhạc là phải tính theo giờ.
 
     public string? Image { get; set; }
 

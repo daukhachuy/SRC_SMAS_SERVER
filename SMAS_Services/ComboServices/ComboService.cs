@@ -43,16 +43,27 @@ namespace SMAS_Services.ComboServices
         public Task<ComboListResponse?> GetByIdAsync(int id)
             => _comboRepository.GetByIdAsync(id);
 
-        public Task<ComboListResponse> CreateAsync(ComboCreateDto dto)
-            => _comboRepository.CreateAsync(dto);
-
-        public Task<ComboListResponse?> UpdateAsync(int id, ComboUpdateDto dto)
-            => _comboRepository.UpdateAsync(id, dto);
-
+        public Task<ComboListResponse> CreateAsync(ComboCreateDto dto, int? createdBy)
+      => _comboRepository.CreateAsync(dto, createdBy);
+        public Task<(ComboListResponse? Data, string? MsgCode, string? Message)> UpdateAsync(
+    int id, ComboUpdateDto dto)
+    => _comboRepository.UpdateAsync(id, dto);
         public Task<bool> DeleteAsync(int id)
             => _comboRepository.DeleteAsync(id);
 
         public Task<bool> UpdateStatusAsync(int id, bool isAvailable)
             => _comboRepository.UpdateStatusAsync(id, isAvailable);
+
+        public Task<(bool Success, string? MsgCode, string? Message)> AddFoodToComboAsync(
+    int comboId, int foodId, int quantity)
+    => _comboRepository.AddFoodToComboAsync(comboId, foodId, quantity);
+
+        public Task<(bool Success, string? MsgCode, string? Message)> RemoveFoodFromComboAsync(
+            int comboId, int foodId)
+            => _comboRepository.RemoveFoodFromComboAsync(comboId, foodId);
+
+        public Task<(bool Success, string? MsgCode, string? Message)> UpdateFoodQuantityAsync(
+            int comboId, int foodId, int quantity)
+            => _comboRepository.UpdateFoodQuantityAsync(comboId, foodId, quantity);
     }
 }

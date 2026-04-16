@@ -107,6 +107,16 @@ namespace SMAS_DataAccess.DAO
                 fresh.RemainingAmount = totalAmount - depositAmount;
                 fresh.UpdatedAt = now;
                 _context.Contracts.Update(fresh);
+
+                // Nghiệp vụ mới: cọc thành công → BookEvent tự động Active (không cần manager confirm thủ công).
+                var be = await _context.BookEvents.FirstOrDefaultAsync(be => be.ContractId == fresh.ContractId);
+                if (be != null && (be.Status == "Approved" || be.Status == "Confirmed"))
+                {
+                    be.Status = "Active";
+                    be.UpdatedAt = now;
+                    _context.BookEvents.Update(be);
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return payment;
@@ -163,7 +173,7 @@ namespace SMAS_DataAccess.DAO
                 contract.UpdatedAt = DateTime.UtcNow;
                 _context.Contracts.Update(contract);
 
-                // Giữ trạng thái BookEvent (thường là Approved); xác nhận cuối → Active trong ConfirmBookEventAsync.
+                // Giữ trạng thái BookEvent (thường là Approved). Khi cọc thành công sẽ tự động chuyển Active.
                 be.UpdatedAt = DateTime.UtcNow;
                 _context.BookEvents.Update(be);
 

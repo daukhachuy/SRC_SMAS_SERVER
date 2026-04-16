@@ -30,4 +30,6 @@ public interface IPaymentService
     bool VerifyWebhookSignature(string rawBody, string? signatureHeader);
 
     Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid);
+
+    Task<CreatePaymentLinkResponse> CreateRemainingPaymentLinkAsync(RemainingPaymentQrRequestDTO request);
 }

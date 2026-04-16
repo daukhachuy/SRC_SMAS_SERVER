@@ -85,7 +85,7 @@ namespace SMAS_API.Controllers
                 return Unauthorized();
 
             var result = await _orderService
-                .GetOrdersByUserAndStatusAsync(request , userId);
+                .GetOrdersByUserAndStatusAsync(request, userId);
             if (result == null || !result.Any())
             {
                 return NotFound(new { MsgCode = "MSG_021", Message = "Không có đơn hàng nào !" });
@@ -499,10 +499,105 @@ namespace SMAS_API.Controllers
             if (dto == null || string.IsNullOrWhiteSpace(dto.CancellationReason))
                 return BadRequest("Lý do hủy là bắt buộc.");
             var result = await _orderService.DeleteOrderDeliveryByDeliveryCodeAsync(OrderCode, dto.CancellationReason);
-            if (!result.status) {
+            if (!result.status)
+            {
                 return BadRequest(result.message);
             }
             return Ok(result.message);
+        }
+
+
+        /// Khách quét QR → lấy menu (food/combo/buffet) trong session bàn.
+        /// Header yêu cầu: Authorization: Bearer {tableAccessToken}
+        /// Query: type=food|combo|buffet|all, categoryId, keyword
+        [HttpGet("session/menu")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSessionMenu(
+            [FromQuery] string? type,
+            [FromQuery] int? categoryId,
+            [FromQuery] string? keyword)
+        {
+            try
+            {
+                var authHeader = Request.Headers.Authorization.ToString();
+                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new
+                    {
+                        errorCode = "MISSING_TABLE_TOKEN",
+                        message = "Vui lòng quét mã QR bàn trước khi xem thực đơn."
+                    });
+                }
+
+                var accessToken = authHeader.Substring("Bearer ".Length).Trim();
+
+                var (success, errorCode, data) = await _orderService
+                    .GetMenuForSessionAsync(accessToken, type, categoryId, keyword);
+
+                if (!success)
+                {
+                    return errorCode switch
+                    {
+                        "INVALID_QR_TOKEN" => Unauthorized(new { errorCode, message = "Token bàn không hợp lệ." }),
+                        "SESSION_NOT_ACTIVE" => BadRequest(new { errorCode, message = "Phiên bàn không hoạt động." }),
+                        "SESSION_EXPIRED" => BadRequest(new { errorCode, message = "Phiên bàn đã hết hạn." }),
+                        "TABLE_CLOSED" => BadRequest(new { errorCode, message = "Bàn đã đóng." }),
+                        _ => BadRequest(new { errorCode })
+                    };
+                }
+
+                return Ok(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi lấy session menu.");
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
+            }
+        }
+        /// Khách quét QR → lấy chi tiết order hiện tại của bàn (giỏ hàng bên phải).
+        /// Header: Authorization: Bearer {tableAccessToken}
+        /// </summary>
+        [HttpGet("session/current")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSessionCurrentOrder()
+        {
+            try
+            {
+                var authHeader = Request.Headers.Authorization.ToString();
+                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new
+                    {
+                        errorCode = "MISSING_TABLE_TOKEN",
+                        message = "Vui lòng quét mã QR bàn trước."
+                    });
+                }
+
+                var accessToken = authHeader.Substring("Bearer ".Length).Trim();
+
+                var (success, errorCode, data) = await _orderService
+                    .GetCurrentOrderBySessionAsync(accessToken);
+
+                if (!success)
+                {
+                    return errorCode switch
+                    {
+                        "INVALID_QR_TOKEN" => Unauthorized(new { errorCode, message = "Token bàn không hợp lệ." }),
+                        "SESSION_NOT_ACTIVE" => BadRequest(new { errorCode, message = "Phiên bàn không hoạt động." }),
+                        "SESSION_EXPIRED" => BadRequest(new { errorCode, message = "Phiên bàn đã hết hạn." }),
+                        "TABLE_CLOSED" => BadRequest(new { errorCode, message = "Bàn đã đóng." }),
+                        "NO_ACTIVE_ORDER" => Ok(new { success = true, data = (object?)null, message = "Chưa có đơn hàng cho bàn này." }),
+                        _ => BadRequest(new { errorCode })
+                    };
+                }
+
+                return Ok(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi lấy session current order.");
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
+            }
         }
     }
 }

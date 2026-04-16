@@ -13,7 +13,7 @@ public partial class Payment
 
     public int? ContractId { get; set; }
 
-    public string PaymentMethod { get; set; } = null!;  // Cash/Banking/Momo/ZaloPay
+    public string PaymentMethod { get; set; } = null!;  // Cash/Banking
 
     public string? PaymentStatus { get; set; }   // Paid, Unpaid
 

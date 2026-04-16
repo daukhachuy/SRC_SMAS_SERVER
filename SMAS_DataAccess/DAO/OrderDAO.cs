@@ -401,6 +401,58 @@ namespace SMAS_DataAccess.DAO
         }
 
         /// <summary>
+        /// Thêm Payment. DineIn/TakeAway: auto-complete nếu đủ tiền. Delivery: giữ nguyên status.
+        /// </summary>
+        public async Task<bool> AddPaymentAndAutoCompleteAsync(int orderId, Payment payment)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Payments)
+                .Include(o => o.TableOrders).ThenInclude(to => to.Table)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            if (order == null) return false;
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                payment.OrderId = orderId;
+                _context.Payments.Add(payment);
+
+                var isDineInOrTakeAway = order.OrderType == "DineIn" || order.OrderType == "TakeAway";
+
+                if (isDineInOrTakeAway)
+                {
+                    var paidAmount = order.Payments
+                        .Where(p => p.PaymentStatus == "Paid")
+                        .Sum(p => p.Amount) + payment.Amount;
+
+                    if (paidAmount >= order.TotalAmount)
+                    {
+                        order.OrderStatus = "Completed";
+                        order.ClosedAt = DateTime.UtcNow;
+
+                        foreach (var table in order.TableOrders.Select(to => to.Table).Where(t => t != null))
+                        {
+                            table!.Status = "AVAILABLE";
+                            table.UpdatedAt = DateTime.UtcNow;
+                            _cache.Remove($"table_session_{table.TableName.ToUpper()}");
+                        }
+                        foreach (var to in order.TableOrders.Where(t => t.LeftAt == null))
+                            to.LeftAt = DateTime.UtcNow;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Thêm bản ghi Payment và cập nhật Order status trong một transaction (khi PayOS webhook báo thanh toán thành công).
         /// </summary>
         public async Task<bool> AddPaymentAndUpdateOrderStatusAsync(int orderId, string orderStatus, Payment payment)
@@ -480,6 +532,8 @@ namespace SMAS_DataAccess.DAO
                 .Include(o => o.User)
                 .Include(o => o.ServedByNavigation).ThenInclude(s => s.User)
                 .Include(o => o.Delivery)
+                 .ThenInclude(d => d.AssignedStaff)
+                .ThenInclude(s => s.User)
                 .Include(o => o.Payments)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.Food)
                 .Include(o => o.TableOrders).ThenInclude(to => to.Table)
@@ -488,8 +542,9 @@ namespace SMAS_DataAccess.DAO
                 .Where(o => o.OrderType == "Delivery"
                          && o.OrderStatus != "Completed"
                          && o.OrderStatus != "Cancelled"
-                         && o.ServedByNavigation != null
-                         && o.ServedByNavigation.UserId == userId)
+                          && o.Delivery != null
+                 && o.Delivery.AssignedStaff != null
+                 && o.Delivery.AssignedStaff.UserId == userId)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
@@ -614,6 +669,83 @@ namespace SMAS_DataAccess.DAO
             order.OrderStatus = "Cancelled";
             await _context.SaveChangesAsync();
             return (true, $"Hủy đơn hàng {orderCode} thành công.");
+        }
+        /// Lấy danh sách Food đang phục vụ cho khách order trong session bàn.
+        /// Filter theo CategoryId (many-to-many qua Food.Categories) và keyword tên.
+        public async Task<List<Food>> GetFoodsForSessionAsync(int? categoryId, string? keyword)
+        {
+            var query = _context.Foods
+                .Include(f => f.Categories)
+                .Where(f => f.IsAvailable == true)
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+                query = query.Where(f => f.Categories.Any(c => c.CategoryId == categoryId.Value));
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var kw = keyword.Trim();
+                query = query.Where(f => f.Name.Contains(kw));
+            }
+
+            return await query
+                .OrderByDescending(f => f.IsFeatured)
+                .ThenBy(f => f.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// Lấy danh sách Combo còn phục vụ cho session bàn.
+        public async Task<List<Combo>> GetCombosForSessionAsync()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            return await _context.Combos
+                .Where(c => c.IsAvailable == true
+                         && (c.StartDate == null || c.StartDate <= today)
+                         && (c.ExpiryDate == null || c.ExpiryDate >= today))
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// Lấy danh sách Buffet còn phục vụ cho session bàn.
+        public async Task<List<Buffet>> GetBuffetsForSessionAsync()
+        {
+            return await _context.Buffets
+                .Where(b => b.IsAvailable == true)
+                .OrderBy(b => b.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        /// Lấy danh sách Category đang active (để FE render tab filter).
+        public async Task<List<Category>> GetCategoriesForSessionAsync()
+        {
+            return await _context.Categories
+                .Where(c => c.IsAvailable == true)
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        /// Lấy OrderCode active của một bàn (dùng cho session QR khách order tại bàn).
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
+        {
+            return await _context.TableOrders
+                .Where(to => to.TableId == tableId
+                          && to.LeftAt == null
+                          && to.Order.OrderStatus != "Cancelled"
+                          && to.Order.OrderStatus != "Closed"
+                          && to.Order.OrderStatus != "Completed")
+                .Select(to => to.Order.OrderCode)
+                .FirstOrDefaultAsync();
+        }
+        public async Task<List<Food>> GetFoodByBuffetIdAsync(int buffetId)
+        {
+            return await _context.BuffetFoods
+                .Where(bf => bf.BuffetId == buffetId)
+                .Select(bf => bf.Food)
+                .AsNoTracking()
+                .ToListAsync();
         }
     }
 }
