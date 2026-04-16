@@ -2,6 +2,7 @@ using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.Realtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +16,13 @@ namespace SMAS_Services.OrderItemServices
 
         private readonly IOrderRepository _orderRepository;
 
-        public OrderItemService(IOrderItemRepository orderItemRepository, IOrderRepository orderRepository)
+        private readonly IKitchenNotifier _kitchenNotifier;
+
+        public OrderItemService(IOrderItemRepository orderItemRepository, IOrderRepository orderRepository, IKitchenNotifier kitchenNotifier)
         {
             _orderItemRepository = orderItemRepository;
             _orderRepository = orderRepository;
+            _kitchenNotifier = kitchenNotifier;
         }
 
         // 1) ValidateOrderActive(int orderId)
@@ -117,6 +121,8 @@ namespace SMAS_Services.OrderItemServices
                 var updatedAt = DateTime.UtcNow;
                 await _orderItemRepository.UpdatePreparingAsync(orderItemId);
 
+                await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Preparing");
+
                 return new KitchenOrderItemPreparingResponseDTO
                 {
                     OrderItemId = orderItem.OrderItemId,
@@ -150,6 +156,8 @@ namespace SMAS_Services.OrderItemServices
                 var servedTime = DateTime.UtcNow;
                 await _orderItemRepository.UpdateReadyAsync(orderItemId, servedTime);
 
+                await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Ready");
+
                 return new KitchenOrderItemReadyResponseDTO
                 {
                     OrderItemId = orderItem.OrderItemId,
@@ -182,6 +190,8 @@ namespace SMAS_Services.OrderItemServices
 
                 var servedTime = DateTime.UtcNow;
                 await _orderItemRepository.UpdateServedAsync(orderItemId, servedTime);
+
+                await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Served");
 
                 return new KitchenOrderItemReadyResponseDTO
                 {
@@ -231,6 +241,8 @@ namespace SMAS_Services.OrderItemServices
 
                 var newSubTotal = await _orderItemRepository.CancelItemAndRecalculateOrderTotalsAsync(orderItemId, newNote);
 
+                await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Cancelled");
+
                 return new KitchenOrderItemCancelledResponseDTO
                 {
                     OrderItemId = orderItem.OrderItemId,
@@ -271,6 +283,8 @@ namespace SMAS_Services.OrderItemServices
                 _ = pendingItems.Select(GetItemName).FirstOrDefault();
 
                 await _orderItemRepository.UpdateAllPendingToPreparingAsync(orderId);
+
+                await _kitchenNotifier.NotifyAllItemsStatusChanged(orderId, "Preparing", pendingItems.Select(i => i.OrderItemId).ToList());
 
                 return new KitchenUpdateAllPreparingResponseDTO
                 {
@@ -316,6 +330,8 @@ namespace SMAS_Services.OrderItemServices
                 _ = preparingItems.Select(GetItemName).FirstOrDefault();
 
                 await _orderItemRepository.UpdateAllPreparingToReadyAsync(orderId, servedTime);
+
+                await _kitchenNotifier.NotifyAllItemsStatusChanged(orderId, "Ready", preparingItems.Select(i => i.OrderItemId).ToList());
 
                 return new KitchenUpdateAllReadyResponseDTO
                 {
@@ -388,7 +404,12 @@ namespace SMAS_Services.OrderItemServices
                 }
 
             }              
-            return await _orderItemRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
+            var result = await _orderItemRepository.AddOrderItemByOrderCodeAsync(orderCode, request);
+            if (result.status)
+            {
+                await _kitchenNotifier.NotifyNewOrderItems(order.OrderId, orderCode);
+            }
+            return result;
         }
 
         public async Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode)

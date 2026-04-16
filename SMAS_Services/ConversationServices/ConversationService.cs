@@ -1,7 +1,8 @@
-﻿using Azure.Core;
+using Azure.Core;
 using SMAS_BusinessObject.DTOs.ConversationDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.ConversationRepositories;
+using SMAS_Services.Realtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace SMAS_Services.ConversationServices
     public class ConversationService : IConversationService
     {
         public readonly IConversationRepository _conversationRepo;
+        private readonly IChatNotifier _chatNotifier;
 
-        public ConversationService(IConversationRepository conversationRepo)
+        public ConversationService(IConversationRepository conversationRepo, IChatNotifier chatNotifier)
         {
             _conversationRepo = conversationRepo;
+            _chatNotifier = chatNotifier;
         }
         public async Task<List<ConversationDTO>> GetConversationsAsync()
         {
@@ -111,7 +114,7 @@ namespace SMAS_Services.ConversationServices
 
             await _conversationRepo.SaveAsync();
 
-            return new MessageDTO
+            var dto = new MessageDTO
             {
                 MessageId = message.MessageId,
                 ConversationId = message.ConversationId,
@@ -122,6 +125,10 @@ namespace SMAS_Services.ConversationServices
                 SentAt = message.SentAt,
                 IsRead = message.IsRead ?? false
             };
+
+            await _chatNotifier.NotifyNewMessage(request.ConversationId, dto);
+
+            return dto;
         }
 
         public async Task<bool> MarkAsReadAsync(int conversationId, int currentUserId)
@@ -134,6 +141,9 @@ namespace SMAS_Services.ConversationServices
                     msg.IsRead = true;
                 }
                 await _conversationRepo.SaveAsync();
+
+                await _chatNotifier.NotifyMessagesRead(conversationId, currentUserId);
+
                 return true;
             }
             catch (Exception ex)
@@ -170,7 +180,7 @@ namespace SMAS_Services.ConversationServices
 
             };
             await SendMessageAsync(message, userId);
-            return new ConversationDTO
+            var dto = new ConversationDTO
             {
                 ConversationId = conversation.ConversationId,
                 UserId = conversation.UserId,
@@ -180,6 +190,10 @@ namespace SMAS_Services.ConversationServices
                 LastMessageAt = conversation.LastMessageAt,
                 UnreadCount = 0
             };
+
+            await _chatNotifier.NotifyNewConversation(customerid, dto);
+
+            return dto;
         }
         public async Task<ConversationDTO> CreateConversationByCustomerAsync(int userId, int managerid)
         {
@@ -206,7 +220,7 @@ namespace SMAS_Services.ConversationServices
 
             };
             await SendMessageAsync(message, userId);
-            return new ConversationDTO
+            var dto = new ConversationDTO
             {
                 ConversationId = conversation.ConversationId,
                 UserId = conversation.UserId,
@@ -216,6 +230,10 @@ namespace SMAS_Services.ConversationServices
                 LastMessageAt = conversation.LastMessageAt,
                 UnreadCount = 0
             };
+
+            await _chatNotifier.NotifyNewConversation(managerid, dto);
+
+            return dto;
         }
 
         public async Task<List<GetManagerResponseDTO>> GetAllManagerToConversationAsync() => await _conversationRepo.GetAllManagerToConversationAsync();
