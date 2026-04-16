@@ -8,6 +8,7 @@ using SMAS_Repositories.ContractRepository;
 using SMAS_Repositories.PdfRepositories;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,6 +68,7 @@ namespace SMAS_Services.PdfServices
             return $@"
 <html>
 <head>
+    <meta charset=""utf-8"">
     <style>
         body {{ font-family: 'Segoe UI', Arial, sans-serif; color: #333; padding: 20px; line-height: 1.5; }}
         .header {{ text-align: center; margin-bottom: 10px; }}
@@ -239,6 +241,7 @@ namespace SMAS_Services.PdfServices
             return $@"
 <html>
 <head>
+    <meta charset=""utf-8"">
     <style>
         @page {{ size: A4; margin: 15mm; }}
         body {{ font-family: 'Times New Roman', Times, serif; line-height: 1.4; color: #111; font-size: 13px; }}
@@ -348,22 +351,68 @@ namespace SMAS_Services.PdfServices
 </html>";
         }
 
+        //private byte[] ConvertToPdf(string html)
+        //{
+        //    var doc = new HtmlToPdfDocument()
+        //    {
+        //        GlobalSettings = {
+        //        PaperSize = PaperKind.A4
+        //    },
+        //        Objects = {
+        //        new ObjectSettings() {
+        //            HtmlContent = html,
+        //            WebSettings = { DefaultEncoding = "utf-8" }
+        //        }
+        //    }
+        //    };
+
+        //    return _converter.Convert(doc);
+        //}
+
+
         private byte[] ConvertToPdf(string html)
         {
-            var doc = new HtmlToPdfDocument()
+            var exePath = Path.Combine(AppContext.BaseDirectory, "Libraries", "wkhtmltopdf.exe");
+
+            if (!File.Exists(exePath))
+                throw new Exception("wkhtmltopdf.exe NOT FOUND: " + exePath);
+
+            var tempHtml = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.html");
+            var tempPdf = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
+
+            File.WriteAllText(tempHtml, html);
+
+            var process = new Process
             {
-                GlobalSettings = {
-                PaperSize = PaperKind.A4
-            },
-                Objects = {
-                new ObjectSettings() {
-                    HtmlContent = html,
-                    WebSettings = { DefaultEncoding = "utf-8" }
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    Arguments = $"--enable-local-file-access \"{tempHtml}\" \"{tempPdf}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = AppContext.BaseDirectory
                 }
-            }
             };
 
-            return _converter.Convert(doc);
+            process.Start();
+
+            string error = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception("wkhtmltopdf error: " + error);
+            }
+
+            var pdfBytes = File.ReadAllBytes(tempPdf);
+
+            // cleanup
+            File.Delete(tempHtml);
+            File.Delete(tempPdf);
+
+            return pdfBytes;
         }
     }
 }
