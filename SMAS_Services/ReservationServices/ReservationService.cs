@@ -65,5 +65,10 @@ namespace SMAS_Services.ReservationServices
 
         public async Task<IEnumerable<ReservationListResponse>> GetMyReservationsAsync(int userId)
     => await _reservationRepository.GetReservationsByUserIdAsync(userId);
+
+        public async Task<IEnumerable<SearchReservationResponseDTO>> CheckAvailabilityAsync(string request)
+        {
+            return await _reservationRepository.GetAllReservationsByStatusAsync("Confirmed" , request);
+        }
     }
 }

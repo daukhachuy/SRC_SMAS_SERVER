@@ -23,16 +23,39 @@ namespace SMAS_Services.ConversationServices
         {
             var conversations = await _conversationRepo.GetAllAsync();
 
-            return conversations.Select(c => new ConversationDTO
+            var customerid = conversations.Select(c => c.Messages.Select(m => m.SenderId)).SelectMany(ids => ids).Distinct().ToList();
+            var customername = conversations.Select(c => c.Messages.Select(m => m.Sender.Fullname)).SelectMany(names => names).Distinct().ToList();
+            var customeravatar = conversations.Select(c => c.Messages.Select(m => m.Sender.Avatar)).SelectMany(avatars => avatars).Distinct().ToList();
+            return conversations.Select(c =>
             {
-                ConversationId = c.ConversationId,
-                UserId = c.UserId,
-                UserName = c.User.Fullname,
-                UserAvatar = c.User.Avatar,
-                LastMessage = c.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault()?.Content,
-                LastMessageAt = c.LastMessageAt,
-                UnreadCount = c.Messages.Count(m => m.IsRead == false && m.SenderId != c.UserId)
-            }).OrderByDescending(c => c.LastMessageAt).ToList();
+                var lastCustomerMessage = c.Messages
+                    .Where(m => m.SenderId != c.UserId)
+                    .OrderByDescending(m => m.SentAt)
+                    .FirstOrDefault();
+
+                var lastMessage = c.Messages
+                    .OrderByDescending(m => m.SentAt)
+                    .FirstOrDefault();
+
+                return new ConversationDTO
+                {
+                    ConversationId = c.ConversationId,
+                    UserId = c.UserId,
+                    UserName = c.User.Fullname,
+                    UserAvatar = c.User.Avatar,
+
+                    CustomerId = lastCustomerMessage?.SenderId ?? 0,
+                    CustomerName = lastCustomerMessage?.Sender.Fullname ?? "Unknown",
+                    CustomerAvatar = lastCustomerMessage?.Sender.Avatar,
+
+                    LastMessage = lastMessage?.Content,
+                    LastMessageAt = c.LastMessageAt,
+
+                    UnreadCount = c.Messages.Count(m => (m.IsRead == false) && m.SenderId != c.UserId)
+                };
+            })
+             .OrderByDescending(c => c.LastMessageAt)
+             .ToList();
         }
 
         public async Task<List<ConversationDTO>> GetConversationsByUseridAsync(int userid)
@@ -170,6 +193,15 @@ namespace SMAS_Services.ConversationServices
 
             };
             await SendMessageAsync(message, userId);
+
+            var messageresponse = new SendMessageRequestDTO
+            {
+                ConversationId = conversation.ConversationId,
+                Content = "",
+                MessageType = ""
+
+            };
+            await SendMessageAsync(message, customerid);
             return new ConversationDTO
             {
                 ConversationId = conversation.ConversationId,

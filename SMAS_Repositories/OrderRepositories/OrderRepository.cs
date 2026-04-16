@@ -383,11 +383,6 @@ namespace SMAS_Repositories.OrderRepositories
                 {
                     if (request.DeliveryInfo == null)
                         return new OrderDeliveryResponse { Success = false, Message = "Thiếu thông tin giao hàng." };
-                    //double distance = CalculateDistance(
-                    //            16.0256325, 108.2178437,
-                    //            request.DeliveryInfo.Latitude,
-                    //            request.DeliveryInfo.Longitude
-                    //);
 
                     var location = await GetCoordinatesFromAddress(request.DeliveryInfo.Address);
 

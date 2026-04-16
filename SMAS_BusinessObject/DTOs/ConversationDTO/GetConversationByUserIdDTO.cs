@@ -29,6 +29,10 @@ namespace SMAS_BusinessObject.DTOs.ConversationDTO
         public string UserName { get; set; } = null!;
         public string? UserAvatar { get; set; }
 
+        public int CustomerId { get; set; }
+
+        public string CustomerName { get; set; } = null!;
+        public string? CustomerAvatar { get; set; }
         public string? LastMessage { get; set; }
         public DateTime? LastMessageAt { get; set; }
 

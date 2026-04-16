@@ -15,5 +15,7 @@ namespace SMAS_Services.ReservationServices
         Task<ReservationListResponse> CreatePendingReservation(ReservationCreateRequestDTO dto, int userid);
         Task<IEnumerable<ReservationListResponse>> GetMyReservationsAsync(int userId);
 
+        Task<IEnumerable<SearchReservationResponseDTO>> CheckAvailabilityAsync(string request);
+
     }
 }

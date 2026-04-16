@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Core;
+using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,13 @@ namespace SMAS_DataAccess.DAO
                 .ThenByDescending(r => r.ReservationTime)
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+        public async Task<List<Reservation>> GetReservationByEmailorPhoneAsync(string status , string request)
+        {
+            return await _context.Reservations.Include(u => u.User)
+                                              .Where(r => r.Status == status && (r.User.Email == request || r.User.Phone == request))
+                                              .ToListAsync();
         }
     }
 }

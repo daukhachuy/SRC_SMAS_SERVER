@@ -1,4 +1,6 @@
 
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -30,6 +32,7 @@ using SMAS_Repositories.Inventoryrepositories;
 using SMAS_Repositories.ManagerRepositories;
 using SMAS_Repositories.Notificationrepositories;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Repositories.PdfRepositories;
 using SMAS_Repositories.ReservationRepositories;
 using SMAS_Repositories.SalaryRepository;
 using SMAS_Repositories.ServiceRepositories;
@@ -59,6 +62,7 @@ using SMAS_Services.NotificationServices;
 using SMAS_Services.OrderItemServices;
 using SMAS_Services.OrderServices;
 using SMAS_Services.PaymentServices;
+using SMAS_Services.PdfServices;
 using SMAS_Services.ReservationServices;
 using SMAS_Services.SalaryService;
 using SMAS_Services.ServiceServices;
@@ -90,6 +94,12 @@ namespace SMAS_API
                 .Get<JwtSettings>();
 
             var key = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
+
+
+            var context = new CustomAssemblyLoadContext();
+            context.LoadUnmanagedLibrary(
+                Path.Combine(Directory.GetCurrentDirectory(), "Libraries", "libwkhtmltox.dll")
+            );
 
             // Add Authentication
             builder.Services.AddAuthentication(options =>
@@ -160,6 +170,7 @@ namespace SMAS_API
                     }
                  });
             });
+            builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<AuthDAO>();
@@ -283,6 +294,10 @@ namespace SMAS_API
             builder.Services.AddScoped<ConversationDAO>();
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
             builder.Services.AddScoped<IConversationService, ConversationService>();
+
+            builder.Services.AddScoped<PdfDao>();
+            builder.Services.AddScoped<IPdfRepository,PdfRepository>();
+            builder.Services.AddScoped<IPdfService, PdfService>();
 
             builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
 
