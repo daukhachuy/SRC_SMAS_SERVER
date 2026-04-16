@@ -212,7 +212,7 @@ namespace SMAS_Services.ConversationServices
 
             };
             await SendMessageAsync(message, customerid);
-            return new ConversationDTO
+            var dto = new ConversationDTO
             {
                 ConversationId = conversation.ConversationId,
                 UserId = conversation.UserId,
