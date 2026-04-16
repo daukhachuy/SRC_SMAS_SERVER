@@ -98,11 +98,19 @@ namespace SMAS_API
             var key = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
 
-            var context = new CustomAssemblyLoadContext();
-            context.LoadUnmanagedLibrary(
-                Path.Combine(Directory.GetCurrentDirectory(), "Libraries", "libwkhtmltox.dll")
-            );
+            //var context = new CustomAssemblyLoadContext();
+            //context.LoadUnmanagedLibrary(
+            //    Path.Combine(Directory.GetCurrentDirectory(), "Libraries", "libwkhtmltox.dll")
+            //);
+            var path = Path.Combine(AppContext.BaseDirectory, "Libraries", "libwkhtmltox.dll");
 
+            if (!File.Exists(path))
+            {
+                throw new Exception("DLL NOT FOUND: " + path);
+            }
+
+            var context = new CustomAssemblyLoadContext();
+            context.LoadUnmanagedLibrary(path);
             // Add Authentication
             builder.Services.AddAuthentication(options =>
             {
