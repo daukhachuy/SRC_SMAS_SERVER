@@ -1,6 +1,3 @@
-
-using DinkToPdf;
-using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -98,20 +95,7 @@ namespace SMAS_API
             var key = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-            //var context = new CustomAssemblyLoadContext();
-            //context.LoadUnmanagedLibrary(
-            //    Path.Combine(Directory.GetCurrentDirectory(), "Libraries", "libwkhtmltox.dll")
-            //);
-            //var path = Path.Combine(AppContext.BaseDirectory, "Libraries", "libwkhtmltox.dll");
 
-            //if (!File.Exists(path))
-            //{
-            //    throw new Exception("DLL NOT FOUND: " + path);
-            //}
-
-            //var context = new CustomAssemblyLoadContext();
-            //context.LoadUnmanagedLibrary(path);
-            // Add Authentication
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -193,7 +177,7 @@ namespace SMAS_API
                     }
                  });
             });
-            builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+            //builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<AuthDAO>();
