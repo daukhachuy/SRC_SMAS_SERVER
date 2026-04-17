@@ -38,6 +38,7 @@ namespace SMAS_Repositories.OrderRepositories
         Task<AddOrderItemResponse> AddOrderItemAsync(string orderCode, AddOrderItemRequest request);
 
         Task<IEnumerable<FoodFilterResponseDTO>> GetFoodForBufferAsync(string orderCode);
+        Task<List<User>> GetUsersByRoleAsync(string role);
     }
 }
 

@@ -1,11 +1,12 @@
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Options;
 using SMAS_BusinessObject.DTOs.PayOSDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.NotificationServices;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace SMAS_Services.PaymentServices;
 
@@ -15,15 +16,18 @@ public class PaymentService : IPaymentService
     private readonly PayOSSettings _payOsSettings;
     private static readonly HttpClient SharedHttpClient = new() { BaseAddress = new Uri("https://api-merchant.payos.vn") };
     private readonly IPaymentRepository _paymentRepo;
+    private readonly INotificationService _notificationService;
 
     public PaymentService(
         IOrderRepository orderRepository,
         IOptions<PayOSSettings> payOsSettings,
-        IPaymentRepository paymentRepo)
+        IPaymentRepository paymentRepo,
+        INotificationService notificationService)
     {
         _orderRepository = orderRepository;
         _payOsSettings = payOsSettings.Value;
         _paymentRepo = paymentRepo;
+        _notificationService = notificationService;
     }
 
     public async Task<CreatePaymentLinkResponse> CreatePaymentLinkAsync(CreatePaymentLinkRequest request, int userId)
@@ -151,6 +155,20 @@ public class PaymentService : IPaymentService
         };
 
         await _orderRepository.AddPaymentAndAutoCompleteAsync(orderId, payment);
+        var order = await _orderRepository.GetOrderByIdAsync(orderId);
+        if (order != null)
+        {
+            await _notificationService.CreateAutoNotificationAsync(
+                userId: order.UserId,
+                senderId: null,
+                title: "Thanh toán thành công",
+                content: $"Đơn hàng {order.OrderCode} đã được thanh toán " +
+                         $"{data.Amount:N0}đ qua PayOS. Cảm ơn bạn!",
+                type: "Order",
+                severity: "Information"
+            );
+        }
+
         return true;
     }
 

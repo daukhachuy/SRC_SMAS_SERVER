@@ -30,7 +30,11 @@ namespace SMAS_BusinessObject.DTOs.Service
         public decimal ServicePrice { get; set; }
 
         public string? Description { get; set; }
+
+        [Required(ErrorMessage = "Unit is required")]
+        [RegularExpression("^(buổi|giờ)$", ErrorMessage = "Unit chỉ được nhập 'buổi' hoặc 'giờ'")]
         public string? Unit { get; set; }
+
         public string? Image { get; set; }
         public bool? IsAvailable { get; set; }
     }
@@ -46,7 +50,11 @@ namespace SMAS_BusinessObject.DTOs.Service
         public decimal ServicePrice { get; set; }
 
         public string? Description { get; set; }
+
+        [Required(ErrorMessage = "Unit is required")]
+        [RegularExpression("^(buổi|giờ)$", ErrorMessage = "Unit chỉ được nhập 'buổi' hoặc 'giờ'")]
         public string? Unit { get; set; }
+
         public string? Image { get; set; }
         public bool? IsAvailable { get; set; }
     }

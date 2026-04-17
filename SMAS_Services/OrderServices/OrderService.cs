@@ -3,6 +3,7 @@ using CloudinaryDotNet.Actions;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.NotificationServices;
 using SMAS_Services.TableService;
 using System;
 using System.Collections.Generic;
@@ -17,12 +18,13 @@ namespace SMAS_Services.OrderServices
         private readonly IOrderRepository _orderRepository;
         private readonly ITableService _tableService;
         private readonly IOrderItemRepository _orderItemRepository;
-
-        public OrderService(IOrderRepository orderRepository,IOrderItemRepository orderItemRepository, ITableService tableService)
+        private readonly INotificationService _notificationService;
+        public OrderService(IOrderRepository orderRepository,IOrderItemRepository orderItemRepository, ITableService tableService, INotificationService notificationService)
         {
             _orderRepository = orderRepository;
             _orderItemRepository = orderItemRepository;
             _tableService = tableService;
+            _notificationService = notificationService;
         }
         public async Task<IEnumerable<OrderListResponseDTO>> GetOrdersByUserAndStatusAsync(OrderListStatusRequest request, int userid)
         {
@@ -31,7 +33,22 @@ namespace SMAS_Services.OrderServices
 
         public async Task<OrderDeliveryResponse> CreateOrderDeliveryAsync(CreateOrderDeliveryRequest request, int userid)
         {
-            return await _orderRepository.CreateOrderDeliveryAsync(request, userid);
+            var result = await _orderRepository.CreateOrderDeliveryAsync(request, userid);
+
+            if (result.Success)
+            {
+                await _notificationService.CreateAutoNotificationAsync(
+                    userId: userid,
+                    senderId: null,
+                    title: "Đặt hàng thành công",
+                    content: $"Đơn hàng {result.OrderCode} đã được tạo thành công. " +
+                             $"Chúng tôi sẽ xử lý đơn hàng của bạn sớm nhất!",
+                    type: "Order",
+                    severity: "Information"
+                );
+            }
+
+            return result;
         }
 
         public async Task<List<OrderListResponseDTO>> GetAllActiveOrderAsync()
@@ -115,7 +132,34 @@ namespace SMAS_Services.OrderServices
                 };
             }
             // Gọi Repository để thêm món
-            return await _orderItemRepository.AddOrderItemAsync(orderCode, request);
+            var result = await _orderItemRepository.AddOrderItemAsync(orderCode, request);
+
+            // === THÊM: Notify Kitchen khi khách đặt món qua QR ===
+            if (result.Success)
+            {
+                try
+                {
+                    var kitchenUsers = await _orderRepository.GetUsersByRoleAsync("Kitchen");
+                    foreach (var kitchenUser in kitchenUsers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: kitchenUser.UserId,
+                            senderId: null,
+                            title: "Có món mới từ khách (QR)",
+                            content: $"Đơn hàng {orderCode} - Bàn {tableCodeFromToken} vừa thêm món mới. Vui lòng kiểm tra!",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] QR notification failed: {ex.Message}");
+                }
+            }
+
+            return result;
+
         }
 
         public async Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request)
@@ -531,7 +575,51 @@ namespace SMAS_Services.OrderServices
 
         public async  Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request)
         {
-            return await _orderRepository.ChangeStatusDeliveryAsync(request);
+            var result = await _orderRepository.ChangeStatusDeliveryAsync(request);
+
+            if (result.status)
+            {
+                // Lấy order để có UserId của khách
+                var order = await _orderRepository.GetOrderByIdNoTrackingAsync(request);
+                if (order != null)
+                {
+                    // Xác định nội dung theo trạng thái mới
+                    var deliveryStatus = order.Delivery?.DeliveryStatus;
+                    string? title = null;
+                    string? content = null;
+                    string severity = "Information";
+
+                    switch (deliveryStatus)
+                    {
+                        case "PickingUp":
+                            title = "Đơn hàng đang được lấy";
+                            content = $"Đơn hàng {request} đang được nhân viên lấy hàng chuẩn bị giao.";
+                            break;
+                        case "Delivering":
+                            title = "Đơn hàng đang giao";
+                            content = $"Đơn hàng {request} đang trên đường giao đến bạn.";
+                            break;
+                        case "Completed":
+                            title = "Giao hàng thành công";
+                            content = $"Đơn hàng {request} đã được giao thành công. Cảm ơn bạn!";
+                            break;
+                    }
+
+                    if (title != null)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: order.UserId,
+                            senderId: null,
+                            title: title,
+                            content: content!,
+                            type: "Order",
+                            severity: severity
+                        );
+                    }
+                }
+            }
+
+            return result;
         }
 
         public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto)

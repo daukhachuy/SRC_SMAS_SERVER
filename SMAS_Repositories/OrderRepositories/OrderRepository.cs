@@ -20,6 +20,7 @@ namespace SMAS_Repositories.OrderRepositories
         private readonly FoodDAO _foodDAO;
         private readonly DiscountDao _discountDAO;
         private readonly RestaurantDbContext _context;
+
         public OrderRepository(OrderDAO orderDAO, ComboDAO comboDAO, FoodDAO foodDAO, DiscountDao discountDAO, RestaurantDbContext context)
         {
             _orderDAO = orderDAO;
@@ -724,5 +725,15 @@ namespace SMAS_Repositories.OrderRepositories
         }
         public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
     => await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _context.Users
+                .Include(u => u.Staff)
+                .Where(u => u.Role == role
+                          || (u.Staff != null && u.Staff.Position == role))
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
+
 }

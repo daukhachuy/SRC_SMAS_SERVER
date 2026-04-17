@@ -22,5 +22,6 @@ namespace SMAS_Repositories.ReservationRepositories
         Task<IEnumerable<ReservationListResponse>> GetReservationsByUserIdAsync(int userId);
 
         Task<IEnumerable<SearchReservationResponseDTO>> GetAllReservationsByStatusAsync(string status, string request);
+        Task<List<User>> GetUsersByRoleAsync(string role);
     }
 }
