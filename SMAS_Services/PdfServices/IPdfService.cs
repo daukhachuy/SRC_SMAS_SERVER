@@ -10,7 +10,5 @@ namespace SMAS_Services.PdfServices
     {
         Task<byte[]> ExportInvoicePdfAsync(string invoiceId);
         Task<byte[]> ExportContractPdfAsync(string contractId);
-
-        byte[] GenerateTestPdf();
     }
 }
