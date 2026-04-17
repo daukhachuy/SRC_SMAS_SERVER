@@ -7,22 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DinkToPdf" Version="1.0.8" />
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
-    <ItemGroup>
-      <Content Include="Libraries\wkhtmltopdf.exe">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-    </ItemGroup>
-	<ItemGroup>
-		<Content Include="fonts\Roboto-Regular.ttf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SMAS_BusinessObject\SMAS_BusinessObject.csproj" />
     <ProjectReference Include="..\SMAS_Services\SMAS_Services.csproj" />
