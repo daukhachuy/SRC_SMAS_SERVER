@@ -649,8 +649,8 @@ namespace SMAS_Repositories.OrderRepositories
                 return (false, "Đơn hàng của bạn đã hoàn thành không thể huỷ.");
             if (order.Delivery == null)
                 return (false, $"Đơn hàng {request} không có thông tin giao hàng.");
-            if (order.Delivery.AssignedStaffId == null)
-                return (false, $"Không tìm thấy nhân viên giao hàng");
+            //if (order.Delivery.AssignedStaffId == null)
+            //    return (false, $"Không tìm thấy nhân viên giao hàng");
             return await _orderDAO.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
 

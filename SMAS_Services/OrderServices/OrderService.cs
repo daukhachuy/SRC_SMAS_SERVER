@@ -164,7 +164,26 @@ namespace SMAS_Services.OrderServices
 
         public async Task<bool> UpdateOrderDeliveryFailedAtAsync(FailDeliveryRequestDTO request)
         {
-            return await _orderRepository.UpdateOrderDeliveryFailedAtAsync(request);
+            var result = await _orderRepository.UpdateOrderDeliveryFailedAtAsync(request);
+
+            if (result)
+            {
+                var order = await _orderRepository.GetOrderByIdAsync(request.orderId);
+                if (order != null)
+                {
+                    await _notificationService.CreateAutoNotificationAsync(
+                        userId: order.UserId,
+                        senderId: null,
+                        title: "Giao hàng thất bại",
+                        content: $"Đơn hàng {order.OrderCode} giao không thành công. " +
+                                 $"Lý do: {request.reason}",
+                        type: "Order",
+                        severity: "Warning"
+                    );
+                }
+            }
+
+            return result;
         }
         public async Task<List<OrderListResponseDTO>> GetAllOrderPreparingByWaiterIdAsync(int userId)
         {
@@ -569,8 +588,27 @@ namespace SMAS_Services.OrderServices
         }
 
         public async Task<(bool status, string message)> ChooseAssignedStaffbyOrderAsync(ChooseAssignedStaffRequestDTO request)
-        {                    
-            return await _orderRepository.ChooseAssignedStaffbyOrderAsync(request);
+        {
+            var result = await _orderRepository.ChooseAssignedStaffbyOrderAsync(request);
+
+            if (result.status)
+            {
+                var order = await _orderRepository.GetOrderByIdNoTrackingAsync(request.OrderCode);
+                if (order != null)
+                {
+                    await _notificationService.CreateAutoNotificationAsync(
+                        userId: order.UserId,
+                        senderId: null,
+                        title: "Đơn hàng đã được xác nhận",
+                        content: $"Đơn hàng {request.OrderCode} đã được xác nhận " +
+                                 $"và gán nhân viên giao hàng. Đơn hàng sẽ sớm được giao đến bạn!",
+                        type: "Order",
+                        severity: "Information"
+                    );
+                }
+            }
+
+            return result;
         }
 
         public async  Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request)
@@ -624,7 +662,23 @@ namespace SMAS_Services.OrderServices
 
         public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto)
         {
-            return await _orderRepository.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
+            var order = await _orderRepository.GetOrderByIdNoTrackingAsync(request);
+
+            var result = await _orderRepository.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
+
+            if (result.status && order != null)
+            {
+                await _notificationService.CreateAutoNotificationAsync(
+                    userId: order.UserId,
+                    senderId: null,
+                    title: "Đơn hàng đã bị hủy",
+                    content: $"Đơn hàng {request} đã bị hủy. Lý do: {dto}",
+                    type: "Order",
+                    severity: "Warning"
+                );
+            }
+
+            return result;
         }
         // ─── SESSION MENU ────────────────────────────────────────────────────────
         /// Lấy menu cho khách order trong session bàn (sau khi quét QR).

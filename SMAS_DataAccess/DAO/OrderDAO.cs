@@ -494,16 +494,20 @@ namespace SMAS_DataAccess.DAO
         }
         public async Task<bool> UpdateOrderDeliveryFailedAtAsync(int orderId, string note)
         {
-            var order = await _context.Orders.Include(d => d.DeliveryDetails).FirstOrDefaultAsync(o => o.OrderId == orderId);
-            var delivery = await _context.DeliveryDetails.FirstOrDefaultAsync(d => d.OrderId == orderId);
-            var closedAT = DateTime.UtcNow;
+            var order = await _context.Orders
+                .Include(o => o.Delivery)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
             if (order == null) return false;
-            if (delivery == null) return false;
-            order.ClosedAt = closedAT;
+            if (order.Delivery == null) return false;
+
+            order.ClosedAt = DateTime.UtcNow;
             order.OrderStatus = "Cancelled";
-            delivery.Note = note;
-            delivery.DeliveryStatus = "Failed";
-            await _context.SaveChangesAsync(); return true;
+            order.Delivery.Note = note;
+            order.Delivery.DeliveryStatus = "Failed";
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<Order>> GetAllOrderPreparingByWaiterIdAsync(int userId)
@@ -660,7 +664,10 @@ namespace SMAS_DataAccess.DAO
         public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string orderCode, string note)
         {
             var order = await GetOrderDeliveryByCodeAsync(orderCode);
-            if (order.Delivery.DeliveryStatus != "Delivering" && order.Delivery.DeliveryStatus != "Pending")
+            if (order.Delivery.DeliveryStatus != "Delivering"
+                && order.Delivery.DeliveryStatus != "Pending"
+                && order.Delivery.DeliveryStatus != "Assigned"
+                && order.Delivery.DeliveryStatus != "PickingUp")
             {
                 return (false, $"Đơn hàng {orderCode} không thể hủy ở trạng thái hiện tại.");
             }
