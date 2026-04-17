@@ -84,7 +84,7 @@ namespace SMAS_Services.PdfServices
     <style>
         @font-face {{
         body {{
-            font-family:  Arial, sans-serif;
+            font-family: 'Segoe UI', 'Times New Roman', sans-serif;
         }}
         .header {{ text-align: center; margin-bottom: 10px; }}
         .model-code {{ text-align: left; font-size: 13px; font-weight: bold; }}
