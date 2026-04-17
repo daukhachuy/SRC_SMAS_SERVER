@@ -74,12 +74,12 @@ namespace SMAS_Services.PdfServices
     <meta charset=""utf-8"">
     <style>
         @font-face {{
-           font-family: 'Roboto';
+            font-family: 'Roboto';
          src: url('file:///home/site/wwwroot/fonts/Roboto-Regular.ttf') format('truetype');
         }}
 
          body {{
-             font-family:  Arial, sans-serif;
+             font-family: 'Roboto', sans-serif;
          }}
         .header {{ text-align: center; margin-bottom: 10px; }}
         .model-code {{ text-align: left; font-size: 13px; font-weight: bold; }}
