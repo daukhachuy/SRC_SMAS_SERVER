@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SMAS_Services.PdfServices
 {
@@ -51,7 +52,16 @@ namespace SMAS_Services.PdfServices
 
             return ConvertToPdf(html);
         }
-       
+
+
+//        font-family: 'Roboto';
+// src: url(data:font/truetype; charset=utf-8;base64,{base64
+//    }) format('truetype');
+//}}
+
+// body {{
+//     font-family:  Arial, sans-serif;
+// }}
 
         //  HTML hóa đơn
         private string BuildInvoiceHtml(PdfInvoiceDTO invoice)
@@ -73,12 +83,8 @@ namespace SMAS_Services.PdfServices
     <meta charset=""utf-8"">
     <style>
         @font-face {{
-        font-family: 'Roboto';
-        src: url(data:font/truetype;charset=utf-8;base64,{base64}) format('truetype');
-        }}
-
         body {{
-            font-family: 'Roboto', sans-serif;
+            font-family:  Arial, sans-serif;
         }}
         .header {{ text-align: center; margin-bottom: 10px; }}
         .model-code {{ text-align: left; font-size: 13px; font-weight: bold; }}
@@ -403,7 +409,7 @@ namespace SMAS_Services.PdfServices
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = exePath,
-                    Arguments = $"--enable-local-file-access --encoding utf-8 \"{tempHtml}\" \"{tempPdf}\"",
+                    Arguments = $"--enable-local-file-access --encoding utf-8 --disable-smart-shrinking --no-stop-slow-scripts \"{tempHtml}\" \"{tempPdf}\"",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
