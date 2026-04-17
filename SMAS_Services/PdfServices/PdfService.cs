@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SMAS_Services.PdfServices
 {
@@ -30,8 +31,8 @@ namespace SMAS_Services.PdfServices
         {
             var invoice = await _pdfRepository.GetInvoiceByIdAsync(invoiceId);
 
-            if (invoice == null)
-                return null;
+            if (invoice == null || invoice.OrderCode == null)
+                return Array.Empty<byte>(); 
 
             var html = BuildInvoiceHtml(invoice);
 
@@ -42,10 +43,10 @@ namespace SMAS_Services.PdfServices
         {
             var contract = await _pdfRepository.GetContractByIdAsync(contractId);
             var bookentdetail = await _pdfRepository.GetBookEventdetailAsync(contractId);
-            if (contract == null)
-                return null;
+            if (contract == null || contract.ContractCode == null)
+                return Array.Empty<byte>();
 
-            var html = BuildContractHtml(contract , bookentdetail);
+            var html = BuildContractHtml(contract, bookentdetail);
 
             return ConvertToPdf(html);
         }
@@ -70,7 +71,8 @@ namespace SMAS_Services.PdfServices
 <head>
     <meta charset=""utf-8"">
     <style>
-        body {{ font-family: 'Segoe UI', Arial, sans-serif; color: #333; padding: 20px; line-height: 1.5; }}
+        @font-face {{font - family: 'Roboto'; src: url('file:///app/fonts/Roboto-Regular.ttf') format('truetype');}}
+        body {{font - family: 'Roboto', sans-serif;}}
         .header {{ text-align: center; margin-bottom: 10px; }}
         .model-code {{ text-align: left; font-size: 13px; font-weight: bold; }}
         .invoice-title {{ text-align: center; font-size: 22px; font-weight: bold; margin: 10px 0; }}
@@ -244,7 +246,8 @@ namespace SMAS_Services.PdfServices
     <meta charset=""utf-8"">
     <style>
         @page {{ size: A4; margin: 15mm; }}
-        body {{ font-family: 'Times New Roman', Times, serif; line-height: 1.4; color: #111; font-size: 13px; }}
+        @font-face {{font - family: 'Roboto'; src: url('file:///app/fonts/Roboto-Regular.ttf') format('truetype');}}
+        body {{font - family: 'Roboto', sans-serif;}}
         .header {{ text-align: center; margin-bottom: 20px; }}
         .motto {{ font-size: 14px; font-weight: bold; text-transform: uppercase; }}
         .title {{ font-size: 22px; font-weight: bold; text-transform: uppercase; margin: 15px 0 5px 0; }}
@@ -387,7 +390,7 @@ namespace SMAS_Services.PdfServices
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = exePath,
-                    Arguments = $"--enable-local-file-access \"{tempHtml}\" \"{tempPdf}\"",
+                    Arguments = $"--enable-local-file-access --encoding utf-8 \"{tempHtml}\" \"{tempPdf}\"",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,

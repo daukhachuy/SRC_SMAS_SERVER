@@ -21,7 +21,7 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> ExportInvoice(string ordercode)
         {
             var pdfBytes = await _pdfService.ExportInvoicePdfAsync(ordercode.Trim());
-            if (pdfBytes == null) return NotFound($"Không tìm thấy hóa đơn có mã là :  {ordercode} ");
+            if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hóa đơn có mã là :  {ordercode} ");
             return File(pdfBytes, "application/pdf", $"invoice_{ordercode}.pdf");
         }
 
@@ -30,7 +30,7 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> ExportContract(string contraccode)
         {
             var pdfBytes = await _pdfService.ExportContractPdfAsync(contraccode.Trim());
-            if (pdfBytes == null) return NotFound($"Không tìm thấy hợp đồng có mã là : {contraccode}");
+            if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hợp đồng có mã là : {contraccode}");
             return File(pdfBytes, "application/pdf", $"contract_{contraccode}.pdf");
         }
     }

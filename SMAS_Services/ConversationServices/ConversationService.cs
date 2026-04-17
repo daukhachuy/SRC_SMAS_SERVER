@@ -211,7 +211,7 @@ namespace SMAS_Services.ConversationServices
                 MessageType = ""
 
             };
-            await SendMessageAsync(message, customerid);
+            await SendMessageAsync(messageresponse, customerid);
             var dto = new ConversationDTO
             {
                 ConversationId = conversation.ConversationId,
