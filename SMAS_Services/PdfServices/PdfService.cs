@@ -14,6 +14,9 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace SMAS_Services.PdfServices
 {
@@ -51,8 +54,34 @@ namespace SMAS_Services.PdfServices
             return ConvertToPdf(html);
         }
 
+        public byte[] GenerateTestPdf()
+        {
+            var pdf = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
 
-     
+                    page.Content().Column(col =>
+                    {
+                        col.Item().Text("HÓA ĐƠN").FontSize(20).Bold();
+
+                        col.Item().Text("Nhà hàng SMAS");
+                        col.Item().Text("Khách hàng: Nguyễn Văn A");
+
+                        col.Item().Text("Tổng tiền: 1,000,000 VND")
+                            .Bold()
+                            .FontSize(16);
+                    });
+                });
+            }).GeneratePdf();
+
+            return pdf;
+        }
+
+
+
 
         //  HTML hóa đơn
         private string BuildInvoiceHtml(PdfInvoiceDTO invoice)

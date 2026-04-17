@@ -33,5 +33,13 @@ namespace SMAS_API.Controllers
             if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hợp đồng có mã là : {contraccode}");
             return File(pdfBytes, "application/pdf", $"contract_{contraccode}.pdf");
         }
+
+
+        [HttpGet("test-pdf")]
+        public IActionResult TestPdf()
+        {
+            var pdfBytes = _pdfService.GenerateTestPdf();
+            return File(pdfBytes, "application/pdf", "test.pdf");
+        }
     }
 }

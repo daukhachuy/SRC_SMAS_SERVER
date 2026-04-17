@@ -97,7 +97,7 @@ namespace SMAS_API
 
             var key = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
-
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
             //var context = new CustomAssemblyLoadContext();
             //context.LoadUnmanagedLibrary(
             //    Path.Combine(Directory.GetCurrentDirectory(), "Libraries", "libwkhtmltox.dll")
