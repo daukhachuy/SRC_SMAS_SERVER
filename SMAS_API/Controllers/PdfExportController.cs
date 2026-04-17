@@ -18,7 +18,7 @@ namespace SMAS_API.Controllers
 
         //  API xuất hóa đơn
         [HttpGet("invoice/{ordercode}")]
-        public async Task<IActionResult> ExportInvoice(string ordercode)
+        public async Task<IActionResult> ExportInvoiceAsync(string ordercode)
         {
             var pdfBytes = await _pdfService.ExportInvoicePdfAsync(ordercode.Trim());
             if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hóa đơn có mã là :  {ordercode} ");
@@ -27,7 +27,7 @@ namespace SMAS_API.Controllers
 
         //  API xuất hợp đồng
         [HttpGet("contract/{contraccode}")]
-        public async Task<IActionResult> ExportContract(string contraccode)
+        public async Task<IActionResult> ExportContractAsync(string contraccode)
         {
             var pdfBytes = await _pdfService.ExportContractPdfAsync(contraccode.Trim());
             if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hợp đồng có mã là : {contraccode}");
