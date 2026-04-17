@@ -59,7 +59,7 @@ namespace SMAS_Services.BookEventService
             if (ev == null)
                 throw new ArgumentException($"Không tìm thấy sự kiện với Id: {request.EventId}.");
 
-            decimal totalAmount = ev.BasePrice ?? 0;
+            decimal totalAmount = 0;
 
             var bookEventServices = new List<SMAS_BusinessObject.Models.BookEventService>();
             foreach (var item in request.Services ?? new List<BookEventServiceItemDTO>())
@@ -87,7 +87,7 @@ namespace SMAS_Services.BookEventService
                     throw new ArgumentException($"Không tìm thấy món với Id: {item.FoodId}.");
                 int qty = item.Quantity <= 0 ? 1 : item.Quantity;
                 decimal unitPrice = food.PromotionalPrice ?? food.Price;
-                totalAmount += unitPrice * qty;
+                totalAmount += unitPrice * qty * request.NumberOfGuests;
                 eventFoods.Add(new EventFood
                 {
                     FoodId = item.FoodId,
@@ -114,7 +114,7 @@ namespace SMAS_Services.BookEventService
                 Note = string.IsNullOrEmpty(note) ? null : note,
                 Status = "Pending",
                 TotalAmount = totalAmount,
-                IsContract = request.NumberOfGuests >= 30,
+                IsContract = request.NumberOfGuests >= 5 && request.NumberOfGuests <= 30,
                 CreatedAt = now,
                 UpdatedAt = now
             };
