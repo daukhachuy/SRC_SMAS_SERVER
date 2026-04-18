@@ -185,13 +185,13 @@ namespace SMAS_API.Controllers
 
                 if (request.EventId <= 0)
                     return BadRequest(new { message = "Vui lòng chọn loại sự kiện." });
-                if (request.NumberOfTables <= 0)
+                if (request.NumberOfGuests <= 0)
                     return BadRequest(new { message = "Số lượng bàn phải lớn hơn 0." });
 
                 var fullRequest = new CreateBookEventRequestDTO
                 {
                     CustomerId = userId,
-                    NumberOfGuests = request.NumberOfTables,
+                    NumberOfGuests = request.NumberOfGuests,
                     ReservationDate = request.ReservationDate,
                     ReservationTime = request.ReservationTime,
                     Note = request.Note,
