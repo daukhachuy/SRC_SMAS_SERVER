@@ -171,6 +171,7 @@ namespace SMAS_API.Controllers
         /// Hoàn thành đặt sự kiện (sau khi điền đủ 3 bước và bấm "Hoàn thành thực đơn").
         /// CustomerId lấy tự động từ JWT (không cần gửi trong body).
         /// </summary>
+        [Authorize(Roles = "Customer")]
         [HttpPost("create")]
         public async Task<IActionResult> CompleteBookEvent([FromBody] CreateBookEventApiRequestDTO request)
         {
@@ -195,7 +196,6 @@ namespace SMAS_API.Controllers
                     ReservationDate = request.ReservationDate,
                     ReservationTime = request.ReservationTime,
                     Note = request.Note,
-                    Area = request.Area,
                     EventId = request.EventId,
                     Services = request.Services ?? new List<BookEventServiceItemDTO>(),
                     Foods = request.Foods ?? new List<EventFoodItemDTO>()

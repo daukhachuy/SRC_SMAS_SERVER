@@ -293,7 +293,7 @@ namespace SMAS_API.Controllers
         [HttpPost("delivery/fail")]
         public async Task<IActionResult> UpdateStatusDeliveryAsync([FromBody] FailDeliveryRequestDTO request)
         {
-            if (ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await _orderService.UpdateOrderDeliveryFailedAtAsync(request);
             return Ok(result);
         }
@@ -365,7 +365,7 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, new { MsgCode = "MSG_500", Message = "Đã xảy ra lỗi hệ thống.", Detail = ex.Message });
             }
         }
-        [Authorize(Roles = "Waiter,Manager")]
+        [Authorize(Roles = "Waiter,Manager,Admin")]
         [HttpPost("/api/orders/lookup")]
         public async Task<IActionResult> Lookup([FromBody] OrderLookupRequestDto request)
         {
@@ -383,7 +383,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Waiter,Manager")]
+        [Authorize(Roles = "Waiter,Manager,Admin")]
         [HttpPost("/api/orders/by-reservation")]
         public async Task<IActionResult> CreateOrderByReservation([FromBody] CreateOrderByReservationRequest request)
         {
@@ -405,7 +405,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Waiter,Manager")]
+        [Authorize(Roles = "Waiter,Manager,Admin")]
         [HttpPost("/api/orders/by-contact")]
         public async Task<IActionResult> CreateOrderByContact([FromBody] CreateOrderByContactRequest request)
         {
@@ -427,7 +427,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Waiter,Manager")]
+        [Authorize(Roles = "Waiter,Manager,Admin")]
         [HttpPost("/api/orders/guest")]
         public async Task<IActionResult> CreateGuestOrder([FromBody] CreateGuestOrderRequest request)
         {
@@ -450,7 +450,7 @@ namespace SMAS_API.Controllers
         }
 
 
-        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [Authorize(Roles = "Waiter,Manager,Kitchen,Admin")]
         [HttpPost("choose-staffid-delivery")]
         public async Task<IActionResult> ChooseAssignedStaffbyOrderAsync([FromBody] ChooseAssignedStaffRequestDTO request)
         {
@@ -470,7 +470,7 @@ namespace SMAS_API.Controllers
                 return HandleOrderExceptions(ex);
             }
         }
-        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [Authorize(Roles = "Waiter,Manager,Kitchen,Admin")]
         [HttpPatch("change-status/{OrderCode}")]
         public async Task<IActionResult> ChangeStatusDeliveryAsync([FromRoute] string OrderCode)
         {
@@ -490,7 +490,7 @@ namespace SMAS_API.Controllers
                 return HandleOrderExceptions(ex);
             }
         }
-        [Authorize(Roles = "Waiter,Manager,Kitchen")]
+        [Authorize(Roles = "Waiter,Manager,Kitchen,Admin")]
         [HttpPost("delete-orderdelivery/{OrderCode}")]
         public async Task<IActionResult> DeleteOrderDeliveryByDeliveryCodeAsync(string OrderCode, [FromBody] CancelReservationRequestDTO dto)
         {

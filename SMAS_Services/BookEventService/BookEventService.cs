@@ -98,8 +98,7 @@ namespace SMAS_Services.BookEventService
             }
 
             var note = request.Note?.Trim() ?? "";
-            if (!string.IsNullOrWhiteSpace(request.Area))
-                note = string.IsNullOrEmpty(note) ? request.Area.Trim() : $"{request.Area.Trim()}. {note}";
+            
 
             var bookingCode = "BE" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
             var now = DateTime.UtcNow;
@@ -113,7 +112,7 @@ namespace SMAS_Services.BookEventService
                 ReservationTime = request.ReservationTime,
                 Note = string.IsNullOrEmpty(note) ? null : note,
                 Status = "Pending",
-                TotalAmount = totalAmount,
+                TotalAmount = totalAmount + totalAmount * 0.1m,
                 IsContract = request.NumberOfGuests >= 5 && request.NumberOfGuests <= 30,
                 CreatedAt = now,
                 UpdatedAt = now

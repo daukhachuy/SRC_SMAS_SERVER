@@ -20,6 +20,7 @@ namespace SMAS_Repositories.OrderRepositories
         private readonly FoodDAO _foodDAO;
         private readonly DiscountDao _discountDAO;
         private readonly RestaurantDbContext _context;
+
         public OrderRepository(OrderDAO orderDAO, ComboDAO comboDAO, FoodDAO foodDAO, DiscountDao discountDAO, RestaurantDbContext context)
         {
             _orderDAO = orderDAO;
@@ -455,9 +456,9 @@ namespace SMAS_Repositories.OrderRepositories
                     else
                         order.DeliveryPrice = 40000;
                 }
-
-                order.TotalAmount = (order.SubTotal ?? 0) - (order.DiscountAmount ?? 0) + (order.DeliveryPrice ?? 0);
-
+                var taxamount = (order.SubTotal ?? 0) * 0.1m;
+                order.TotalAmount = (order.SubTotal ?? 0) + (order.DeliveryPrice ?? 0) + order.TaxAmount ?? 0 - (order.DiscountAmount ?? 0);
+                order.TaxAmount = taxamount;
                 var result = await _orderDAO.CreateOrderDeliveryAsync(order);
 
                 await transaction.CommitAsync();
@@ -648,8 +649,8 @@ namespace SMAS_Repositories.OrderRepositories
                 return (false, "Đơn hàng của bạn đã hoàn thành không thể huỷ.");
             if (order.Delivery == null)
                 return (false, $"Đơn hàng {request} không có thông tin giao hàng.");
-            if (order.Delivery.AssignedStaffId == null)
-                return (false, $"Không tìm thấy nhân viên giao hàng");
+            //if (order.Delivery.AssignedStaffId == null)
+            //    return (false, $"Không tìm thấy nhân viên giao hàng");
             return await _orderDAO.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
 
@@ -724,5 +725,15 @@ namespace SMAS_Repositories.OrderRepositories
         }
         public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
     => await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _context.Users
+                .Include(u => u.Staff)
+                .Where(u => u.Role == role
+                          || (u.Staff != null && u.Staff.Position == role))
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
+
 }

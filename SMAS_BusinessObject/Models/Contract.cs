@@ -29,7 +29,7 @@ public partial class Contract
 
     public DateTime? SignedAt { get; set; }
 
-    public string? ContractFileUrl { get; set; }
+    public string? ContractFileUrl { get; set; } // thay bằng  taxamount
 
     public string? ServiceDetails { get; set; }
 
