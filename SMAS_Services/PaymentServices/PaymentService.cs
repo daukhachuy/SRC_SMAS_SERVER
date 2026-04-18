@@ -460,4 +460,10 @@ public class PaymentService : IPaymentService
             // Bỏ qua lỗi cancel — link cũ có thể không tồn tại hoặc đã hết hạn
         }
     }
+
+    public async Task<List<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request)
+    {
+        return await _paymentRepo.GetTransactionHistoryAsync(request);
+    }
+
 }
