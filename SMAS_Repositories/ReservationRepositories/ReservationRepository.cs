@@ -122,5 +122,9 @@ namespace SMAS_Repositories.ReservationRepositories
                                }).ToList();
 
         }
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _reservation.GetUsersByRoleAsync(role);
+        }
     }
 }

@@ -61,8 +61,7 @@ namespace SMAS_API.Controllers
                 return BadRequest(ModelState);
 
             var result = await _serviceService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetAsync), new { id = result.ServiceId },
-                new { Message = "Tạo dịch vụ thành công", Data = result });
+            return StatusCode(201, new { Message = "Tạo dịch vụ thành công", Data = result });
         }
 
         // PUT
