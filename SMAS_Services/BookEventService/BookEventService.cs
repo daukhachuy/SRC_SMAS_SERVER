@@ -113,7 +113,7 @@ namespace SMAS_Services.BookEventService
                 ReservationTime = request.ReservationTime,
                 Note = string.IsNullOrEmpty(note) ? null : note,
                 Status = "Pending",
-                TotalAmount = totalAmount,
+                TotalAmount = totalAmount + totalAmount * (10 /100),
                 IsContract = request.NumberOfGuests >= 30,
                 CreatedAt = now,
                 UpdatedAt = now

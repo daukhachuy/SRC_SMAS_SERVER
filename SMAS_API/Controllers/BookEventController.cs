@@ -171,6 +171,7 @@ namespace SMAS_API.Controllers
         /// Hoàn thành đặt sự kiện (sau khi điền đủ 3 bước và bấm "Hoàn thành thực đơn").
         /// CustomerId lấy tự động từ JWT (không cần gửi trong body).
         /// </summary>
+        [Authorize(Roles = "Customer")]
         [HttpPost("create")]
         public async Task<IActionResult> CompleteBookEvent([FromBody] CreateBookEventApiRequestDTO request)
         {

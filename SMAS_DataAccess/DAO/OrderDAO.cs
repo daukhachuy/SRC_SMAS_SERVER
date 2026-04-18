@@ -313,6 +313,7 @@ namespace SMAS_DataAccess.DAO
             if (order == null) return;
 
             order.SubTotal = (order.SubTotal ?? 0) + subtotal;
+            order.TaxAmount = order.SubTotal * 0.1m;
             order.TotalAmount = (order.SubTotal ?? 0)
                               - (order.DiscountAmount ?? 0)
                               + (order.TaxAmount ?? 0)
