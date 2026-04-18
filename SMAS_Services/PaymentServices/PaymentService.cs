@@ -132,7 +132,11 @@ public class PaymentService : IPaymentService
             return false;
 
         if (!payload.Success)
+        {
+            int cancelledOrderId = (int)payload.Data.OrderCode;
+            await _orderRepository.UpdateOrderStatusAsync(cancelledOrderId, "Cancelled");
             return true;
+        }
 
         int orderId = (int)payload.Data.OrderCode;
         var data = payload.Data;
