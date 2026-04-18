@@ -666,8 +666,7 @@ namespace SMAS_DataAccess.DAO
             var order = await GetOrderDeliveryByCodeAsync(orderCode);
             if (order.Delivery.DeliveryStatus != "Delivering"
                 && order.Delivery.DeliveryStatus != "Pending"
-                && order.Delivery.DeliveryStatus != "Assigned"
-                && order.Delivery.DeliveryStatus != "PickingUp")
+               )
             {
                 return (false, $"Đơn hàng {orderCode} không thể hủy ở trạng thái hiện tại.");
             }
