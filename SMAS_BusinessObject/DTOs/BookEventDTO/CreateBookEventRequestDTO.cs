@@ -17,8 +17,6 @@ public class CreateBookEventApiRequestDTO
     /// <summary>Ghi chú thêm về sự kiện.</summary>
     public string? Note { get; set; }
 
-    /// <summary>Khu vực (vd: Trong nhà máy lạnh).</summary>
-    public string? Area { get; set; }
 
     /// <summary>Loại sự kiện (EventId).</summary>
     public int EventId { get; set; }
@@ -46,8 +44,6 @@ public class CreateBookEventRequestDTO
     /// <summary>Ghi chú chung. Có thể gộp thêm khu vực (Area) vào đây nếu cần.</summary>
     public string? Note { get; set; }
 
-    /// <summary>Khu vực (vd: Trong nhà máy lạnh). Có thể lưu vào Note khi gửi API.</summary>
-    public string? Area { get; set; }
 
     /// <summary>Bước 2: Loại sự kiện.</summary>
     public int EventId { get; set; }
