@@ -195,7 +195,6 @@ namespace SMAS_API.Controllers
                     ReservationDate = request.ReservationDate,
                     ReservationTime = request.ReservationTime,
                     Note = request.Note,
-                    Area = request.Area,
                     EventId = request.EventId,
                     Services = request.Services ?? new List<BookEventServiceItemDTO>(),
                     Foods = request.Foods ?? new List<EventFoodItemDTO>()
