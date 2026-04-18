@@ -32,4 +32,6 @@ public interface IPaymentService
     Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid);
 
     Task<CreatePaymentLinkResponse> CreateRemainingPaymentLinkAsync(RemainingPaymentQrRequestDTO request);
+
+    Task<List<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request);
 }
