@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.PDFDTO;
 using SMAS_Services.PdfServices;
 
@@ -17,6 +18,7 @@ namespace SMAS_API.Controllers
         }
 
         //  API xuất hóa đơn
+        [Authorize(Roles = "Admin,Customer,Waiter,Manager")]
         [HttpGet("invoice/{ordercode}")]
         public async Task<IActionResult> ExportInvoiceAsync(string ordercode)
         {
@@ -24,8 +26,8 @@ namespace SMAS_API.Controllers
             if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hóa đơn có mã là :  {ordercode} ");
             return File(pdfBytes, "application/pdf", $"invoice_{ordercode}.pdf");
         }
-
         //  API xuất hợp đồng
+        [Authorize(Roles = "Admin,Customer,Waiter,Manager")]
         [HttpGet("contract/{contraccode}")]
         public async Task<IActionResult> ExportContractAsync(string contraccode)
         {

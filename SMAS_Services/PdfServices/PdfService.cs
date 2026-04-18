@@ -243,7 +243,7 @@ namespace SMAS_Services.PdfServices
                                 c.Item().Text("Địa chỉ: 123 Võ Nguyên Giáp, Đà Nẵng");
                                 c.Item().Text($"Đại diện: {_detail.ConfirmedBy?.Fullname ?? _contract.ManagerName}");
                                 c.Item().Text("Chức vụ: Quản lý");
-                                c.Item().Text("Điện thoại: 0912.xxx.xxx");
+                                c.Item().Text($"Điện thoại:{ _contract.ManagerPhone} ");
                             });
 
                             row.ConstantItem(10);
@@ -263,7 +263,7 @@ namespace SMAS_Services.PdfServices
 
                         col.Item().Text($"- Loại hình: {_detail.Event.Title}");
                         col.Item().Text($"- Thời gian: {_detail.ReservationTime} ngày {_detail.ReservationDate:dd/MM/yyyy}");
-                        col.Item().Text($"- Quy mô: {_detail.NumberOfGuests} bàn");
+                        col.Item().Text($"- Quy mô: {_contract.NumberOfGuests} bàn");
 
                         // ===== ĐIỀU 2 =====
                         col.Item().PaddingTop(10).Background("#A9A9A9").Padding(5).Text("ĐIỀU 2: CHI TIẾT THỰC ĐƠN VÀ DỊCH VỤ")
@@ -338,6 +338,11 @@ namespace SMAS_Services.PdfServices
 
                         col.Item().Border(2).Padding(10).Column(c =>
                         {
+                            var tax = _contract.TotalAmount * 0.1m; 
+                            var subtotal = _contract.TotalAmount - tax;
+
+                            c.Item().Text($"Tạm tính: {subtotal:N0} VNĐ").Bold();
+                            c.Item().Text($"Thuế (10%): {tax:N0} VNĐ").Bold();
                             c.Item().Text($"Tổng giá trị: {_contract.TotalAmount:N0} VNĐ").Bold();
                             c.Item().Text($"Đặt cọc ({depositPercent:0}%): {_contract.DepositAmount:N0} VNĐ");
                             c.Item().Text($"Còn lại: {(_contract.TotalAmount - (_contract.DepositAmount ?? 0)):N0} VNĐ");
