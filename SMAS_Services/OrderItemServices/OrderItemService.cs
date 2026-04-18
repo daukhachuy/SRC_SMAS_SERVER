@@ -2,6 +2,7 @@ using SMAS_BusinessObject.DTOs.Food;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.Models;
 using SMAS_Repositories.OrderRepositories;
+using SMAS_Services.NotificationServices;
 using SMAS_Services.Realtime;
 using System;
 using System.Collections.Generic;
@@ -15,14 +16,15 @@ namespace SMAS_Services.OrderItemServices
         private readonly IOrderItemRepository _orderItemRepository;
 
         private readonly IOrderRepository _orderRepository;
-
+        private readonly INotificationService _notificationService;
         private readonly IKitchenNotifier _kitchenNotifier;
 
-        public OrderItemService(IOrderItemRepository orderItemRepository, IOrderRepository orderRepository, IKitchenNotifier kitchenNotifier)
+        public OrderItemService(IOrderItemRepository orderItemRepository, IOrderRepository orderRepository, IKitchenNotifier kitchenNotifier, INotificationService notificationService)
         {
             _orderItemRepository = orderItemRepository;
             _orderRepository = orderRepository;
             _kitchenNotifier = kitchenNotifier;
+            _notificationService = notificationService;
         }
 
         // 1) ValidateOrderActive(int orderId)
@@ -408,6 +410,18 @@ namespace SMAS_Services.OrderItemServices
             if (result.status)
             {
                 await _kitchenNotifier.NotifyNewOrderItems(order.OrderId, orderCode);
+                var kitchenUsers = await _orderItemRepository.GetUsersByRoleAsync("Kitchen");
+                foreach (var kitchenUser in kitchenUsers)
+                {
+                    await _notificationService.CreateAutoNotificationAsync(
+                        userId: kitchenUser.UserId,
+                        senderId: null,
+                        title: "Có món mới cần chuẩn bị",
+                        content: $"Đơn hàng {orderCode} vừa thêm món mới. Vui lòng kiểm tra!",
+                        type: "Order",
+                        severity: "Information"
+                    );
+                }
             }
             return result;
         }

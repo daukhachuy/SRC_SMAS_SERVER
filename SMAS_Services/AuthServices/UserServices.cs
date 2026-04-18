@@ -302,6 +302,34 @@ namespace SMAS_Services.AuthServices
             // đổi password nếu có
             if (!string.IsNullOrWhiteSpace(request.NewPassword))
             {
+                if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+                {
+                    return new LoginResponse
+                    {
+                        Token = null,
+                        MsgCode = MSGCode.MSG_029.ToString() // "Vui lòng nhập mật khẩu hiện tại"
+                    };
+                }
+
+                // Tài khoản Google không có password → không cho đổi bằng cách này
+                if (string.IsNullOrEmpty(user.PasswordHash))
+                {
+                    return new LoginResponse
+                    {
+                        Token = null,
+                        MsgCode = MSGCode.MSG_030.ToString() // "Tài khoản Google không hỗ trợ đổi mật khẩu"
+                    };
+                }
+
+                // Xác thực mật khẩu cũ
+                if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+                {
+                    return new LoginResponse
+                    {
+                        Token = null,
+                        MsgCode = MSGCode.MSG_031.ToString() // "Mật khẩu hiện tại không đúng"
+                    };
+                }
                 var hashed = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                 user.PasswordHash = hashed;
                 user.PasswordSalt = string.Empty;

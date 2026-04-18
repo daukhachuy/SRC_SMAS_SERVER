@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -181,6 +181,16 @@ namespace SMAS_DataAccess.DAO
             if (!buffetId.HasValue) return new List<Food>();
             return await _context.Foods
                 .Where(f => f.BuffetFoods.Any(bf => bf.BuffetId == buffetId.Value))
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _context.Users
+                .Include(u => u.Staff)
+                .Where(u => u.Role == role
+                          || (u.Staff != null && u.Staff.Position == role))
                 .AsNoTracking()
                 .ToListAsync();
         }

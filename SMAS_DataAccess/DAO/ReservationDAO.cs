@@ -65,5 +65,14 @@ namespace SMAS_DataAccess.DAO
                                               .Where(r => r.Status == status && (r.User.Email == request || r.User.Phone == request))
                                               .ToListAsync();
         }
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _context.Users
+                .Include(u => u.Staff)
+                .Where(u => u.Role == role
+                          || (u.Staff != null && u.Staff.Position == role))
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }
