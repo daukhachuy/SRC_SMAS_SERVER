@@ -46,7 +46,19 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> GetOrderToday()
         {
             var result = await _managerService.GetOrdersTodayAsync();
-            return Ok(result);
+
+            if (result == null || !result.Any())
+                return Ok(new
+                {
+                    data = Array.Empty<object>(),
+                    message = "Hôm nay chưa có đơn hàng nào."
+                });
+
+            return Ok(new
+            {
+                data = result,
+                message = $"Có {result.Count()} đơn hàng hôm nay."
+            });
         }
 
         /// <summary>

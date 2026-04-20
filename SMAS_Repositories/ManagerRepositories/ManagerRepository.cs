@@ -1,4 +1,4 @@
-using SMAS_BusinessObject.DTOs.ManagerDTO;
+﻿using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.OrderDTO;
 using SMAS_BusinessObject.DTOs.ReservationDTO;
 using SMAS_BusinessObject.Models;
@@ -40,15 +40,10 @@ namespace SMAS_Repositories.ManagerRepositories
             }).ToList();
         }
 
+        // ManagerRepository.cs - bỏ deconstruct tuple, gọi thẳng
         public async Task<RevenueWeekResponseDTO> GetRevenuePreviousSevenDaysAsync()
         {
-            var (startDate, endDate, totalRevenue) = await _managerDAO.GetRevenuePreviousSevenDaysAsync();
-            return new RevenueWeekResponseDTO
-            {
-                StartDate = startDate,
-                EndDate = endDate,
-                TotalRevenue = totalRevenue
-            };
+            return await _managerDAO.GetRevenuePreviousSevenDaysAsync();
         }
 
         public async Task<IEnumerable<OrderTodayResponseDTO>> GetFourNewestOrdersAsync()

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -21,9 +22,11 @@ namespace SMAS_DataAccess.DAO
         /// </summary>
         public async Task<List<Order>> GetOrdersTodayAsync()
         {
-            var today = DateTime.Today;
-            return await _context.Orders
-                .Where(o => o.CreatedAt.Date == today)
+            var todayStart = DateTime.Today;
+            var todayEnd = todayStart.AddDays(1);
+
+            var orders = await _context.Orders
+                .Where(o => o.CreatedAt >= todayStart && o.CreatedAt < todayEnd)
                 .Include(o => o.User)
                 .Include(o => o.ServedByNavigation)
                     .ThenInclude(s => s!.User)
@@ -37,15 +40,16 @@ namespace SMAS_DataAccess.DAO
                     .ThenInclude(i => i.Buffet)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
+
+            return orders;
         }
 
-        /// <summary>
         /// Lấy danh sách bàn trống (Status = ACTIVE)
-        /// </summary>
         public async Task<List<Table>> GetEmptyTablesAsync()
         {
             return await _context.Tables
-                .Where(t => t.Status == "ACTIVE" && (t.IsActive == true || t.IsActive == null))
+                .Where(t => t.Status == "AVAILABLE"
+                         && t.IsActive != false)
                 .OrderBy(t => t.TableName)
                 .ToListAsync();
         }
@@ -53,20 +57,51 @@ namespace SMAS_DataAccess.DAO
         /// <summary>
         /// Lấy tổng doanh thu 7 ngày gần nhất (theo tuần)
         /// </summary>
-        public async Task<(DateTime StartDate, DateTime EndDate, decimal TotalRevenue)> GetRevenuePreviousSevenDaysAsync()
+        // ManagerDAO.cs - đổi return type từ tuple sang RevenueWeekResponseDTO
+        public async Task<RevenueWeekResponseDTO> GetRevenuePreviousSevenDaysAsync()
         {
-            var startDate = DateTime.Today.AddDays(-7);
-            var endDate = DateTime.Today;
+            var today = DateTime.Today;
+            var sevenDaysAgo = today.AddDays(-6);
+            var tomorrow = today.AddDays(1);
 
-            var totalRevenue = await _context.Orders
+            var rawData = await _context.Orders
                 .Where(o => o.OrderStatus == "Completed"
-                    && o.ClosedAt.HasValue
-                    && o.ClosedAt.Value.Date >= startDate
-                    && o.ClosedAt.Value.Date < endDate.AddDays(1))
-                .SumAsync(o => o.TotalAmount);
+                         && o.CreatedAt >= sevenDaysAgo
+                         && o.CreatedAt < tomorrow)   // thay .Date bằng range
+                .GroupBy(o => o.CreatedAt.Date)
+                .Select(g => new { Date = g.Key, Revenue = g.Sum(o => o.TotalAmount) })
+                .ToListAsync(); 
+            var days = new List<DailyRevenueDTO>();
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = today.AddDays(-i);
+                var found = rawData.FirstOrDefault(x => x.Date == date);
+                days.Add(new DailyRevenueDTO
+                {
+                    DayLabel = GetVietnameseDayLabel(date),
+                    Date = date,
+                    Revenue = found?.Revenue ?? 0
+                });
+            }
 
-            return (startDate, endDate, totalRevenue);
+            return new RevenueWeekResponseDTO
+            {
+                Days = days,
+                TotalRevenue = days.Sum(d => d.Revenue)
+            };
         }
+
+        private static string GetVietnameseDayLabel(DateTime d) => d.DayOfWeek switch
+        {
+            DayOfWeek.Monday => "T2",
+            DayOfWeek.Tuesday => "T3",
+            DayOfWeek.Wednesday => "T4",
+            DayOfWeek.Thursday => "T5",
+            DayOfWeek.Friday => "T6",
+            DayOfWeek.Saturday => "T7",
+            DayOfWeek.Sunday => "CN",
+            _ => ""
+        };
 
         /// <summary>
         /// Lấy 4 đơn hàng mới tạo gần nhất

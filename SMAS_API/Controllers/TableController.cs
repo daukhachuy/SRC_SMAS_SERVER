@@ -27,15 +27,25 @@ namespace SMAS_API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
         /// Lấy danh sách bàn trống
-        /// </summary>
         [Authorize(Roles = "Manager,Admin")]
         [HttpGet("empty")]
         public async Task<IActionResult> GetTableEmpty()
         {
             var result = await _managerService.GetEmptyTablesAsync();
-            return Ok(result);
+
+            if (result == null || !result.Any())
+                return Ok(new
+                {
+                    data = Array.Empty<object>(),
+                    message = "Hiện tại không có bàn trống."
+                });
+
+            return Ok(new
+            {
+                data = result,
+                message = $"Có {result.Count()} bàn đang trống."
+            });
         }
 
         /// <summary>

@@ -129,8 +129,9 @@ namespace SMAS_Repositories.DiscountRepositories
             UsageLimit = dto.UsageLimit,
             UsedCount = 0,
             ApplicableFor = dto.ApplicableFor,
-            Status = dto.Status ?? "Active",
+            Status = "Active", // ← luôn là Active khi tạo mới, bỏ qua input
             CreatedBy = dto.CreatedBy,
+            CreatedByNavigation = null,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -148,5 +149,7 @@ namespace SMAS_Repositories.DiscountRepositories
             entity.ApplicableFor = dto.ApplicableFor;
             entity.Status = dto.Status;
         }
+        public Task<bool> ExistsCodeAsync(string code)
+    => _context.ExistsCodeAsync(code.Trim().ToUpper()); 
     }
 }

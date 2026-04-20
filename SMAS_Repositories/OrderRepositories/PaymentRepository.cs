@@ -75,7 +75,8 @@
 
                 return (true, "OK", remaining, order.OrderId);
             }
-        public async Task<List<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request)
+        public async Task<PagedResult<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(
+      TransactionHistoryRequestDTO request)
         {
             return await _paymentDAO.GetTransactionHistoryAsync(request);
         }

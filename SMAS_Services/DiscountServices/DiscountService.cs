@@ -17,13 +17,15 @@ namespace SMAS_Services.DiscountServices
             _discountRepository = discountRepository;
         }
 
-        public async Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync()
+        public async Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync(string? filterStatus = "Active")
         {
-           var discounts = await _discountRepository.GetAllDiscountsAsync();
+            var discounts = await _discountRepository.GetAllDiscountsAsync();
 
-            return discounts.Where(d => d.Status == "Active").ToList();
+            if (string.IsNullOrEmpty(filterStatus))
+                return discounts.ToList();
+
+            return discounts.Where(d => d.Status == filterStatus).ToList();
         }
-
         public async Task<DiscountResponse?> GetDiscountByCodeAsync(string Code)
         {
             return await _discountRepository.GetDiscountByCodeAsync(Code);
@@ -38,6 +40,11 @@ namespace SMAS_Services.DiscountServices
         {
             if (dto.EndDate < dto.StartDate)
                 throw new ArgumentException("EndDate must be greater than or equal to StartDate.");
+
+            // Check trùng code
+            var existingCode = await _discountRepository.ExistsCodeAsync(dto.Code.Trim().ToUpper());
+            if (existingCode)
+                throw new InvalidOperationException($"Mã giảm giá '{dto.Code}' đã tồn tại.");
 
             return await _discountRepository.CreateAsync(dto);
         }

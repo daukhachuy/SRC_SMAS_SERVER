@@ -9,7 +9,7 @@ namespace SMAS_Services.DiscountServices
 {
     public interface IDiscountService
     {
-        Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync();
+        Task<IEnumerable<DiscountResponse>> GetAllDiscountsAsync(string? filterStatus = "Active");
 
         Task<DiscountResponse?> GetDiscountByCodeAsync(string code);
         Task<DiscountResponse> GetByIdAsync(int id);
