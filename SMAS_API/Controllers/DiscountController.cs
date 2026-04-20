@@ -31,7 +31,7 @@ namespace SMAS_API.Controllers
         // GET: api/discounts        -> lấy tất cả
         // GET: api/discounts?id=2   -> lấy theo id
         [HttpGet]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<IActionResult> GetAsync([FromQuery] int? id)
         {
             if (id.HasValue)
