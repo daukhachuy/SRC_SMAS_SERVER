@@ -32,7 +32,7 @@ namespace SMAS_API.Controllers
         public async Task<IActionResult> ExportContractAsync(string contraccode)
         {
             var pdfBytes = await _pdfService.ExportContractPdfAsync(contraccode.Trim());
-            if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hợp đồng có mã là : {contraccode}");
+            if (pdfBytes == null || pdfBytes.Length == 0) return NotFound($"Không tìm thấy hoặc hợp đồng đã bị hủy có mã là : {contraccode}");
             return File(pdfBytes, "application/pdf", $"contract_{contraccode}.pdf");
         }
     }
