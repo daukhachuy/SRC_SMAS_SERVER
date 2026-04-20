@@ -53,5 +53,7 @@ namespace SMAS_Repositories.OrderRepositories
         Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request, string dto);
         Task<object> GetMenuForSessionAsync(string? type, int? categoryId, string? keyword);
         Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId);
+
+        Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode);
     }
 }

@@ -38,5 +38,7 @@ namespace SMAS_Services.OrderServices
         Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto);
         Task<(bool Success, string? ErrorCode, object? Data)> GetMenuForSessionAsync(string accessToken, string? type, int? categoryId, string? keyword);
         Task<(bool Success, string? ErrorCode, object? Data)> GetCurrentOrderBySessionAsync(string accessToken);
+
+        Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode);
     }
 }

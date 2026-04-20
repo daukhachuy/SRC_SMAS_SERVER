@@ -599,5 +599,14 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
             }
         }
+        [Authorize(Roles = "Waiter,Manager,Admin,Customer")]
+        [HttpPost("{ordercode}/apply-discount/{discountcode}")]
+        public async Task<IActionResult> AddDiscountToOrderAsync(string ordercode, string discountcode)
+        {
+            var success = await _orderService.AddDiscountToOrderAsync(ordercode, discountcode);
+            if (!success.status)
+                return NotFound(success.message);
+            return Ok(success.message);
+        }
     }
 }
