@@ -103,5 +103,20 @@ namespace SMAS_Services.NotificationServices
             };
             return await _notificationREPO.UpdateNotificationAsync(requets);
         }
+        public async Task<bool> CreateAutoNotificationAsync(int userId, int? senderId, string title, string content, string type, string severity = "Information")
+        {
+            var notification = new Notification
+            {
+                UserId = userId,        // người NHẬN thông báo
+                SenderId = senderId,    // người gửi (null = hệ thống)
+                Title = title,
+                Content = content,
+                Type = type,
+                Severity = severity,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            return await _notificationREPO.CreateNotificationAsync(notification);
+        }
     }
 }

@@ -2,6 +2,7 @@
 using SMAS_BusinessObject.Models;
 using SMAS_DataAccess.DAO;
 using SMAS_Repositories.ReservationRepositories;
+using SMAS_Services.NotificationServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,11 @@ namespace SMAS_Services.ReservationServices
     public class ReservationService : IReservationService
     {
         private readonly IReservationRepository _reservationRepository;
-
-        public ReservationService(IReservationRepository reservationRepository)
+        private readonly INotificationService _notificationService;
+        public ReservationService(IReservationRepository reservationRepository, INotificationService notificationService)
         {
             _reservationRepository = reservationRepository;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<ReservationListResponse>> GetAllReservationsAsync()
@@ -53,6 +55,35 @@ namespace SMAS_Services.ReservationServices
 
 
             var response = await _reservationRepository.CreatePendingReservation(newReservation);
+            if (response != null && response.ReservationId > 0)
+            {
+                try
+                {
+                    var managers = await _reservationRepository.GetUsersByRoleAsync("Manager");
+                    Console.WriteLine($"[DEBUG] Found {managers.Count} managers");
+
+                    foreach (var manager in managers)
+                    {
+                        Console.WriteLine($"[DEBUG] Sending notification to manager userId={manager.UserId}");
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: manager.UserId,
+                            senderId: userid,
+                            title: "Có đặt bàn mới cần xác nhận",
+                            content: $"Khách {response.Fullname} đặt bàn {uniqueCode} " +
+                                     $"ngày {dto.ReservationDate:dd/MM/yyyy} lúc {dto.ReservationTime:HH\\:mm} " +
+                                     $"cho {dto.NumberOfGuests} khách.",
+                            type: "Reservation",
+                            severity: "Information"
+                        );
+                        Console.WriteLine($"[DEBUG] Notification sent to manager userId={manager.UserId}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Notification failed: {ex.Message}");
+                    Console.WriteLine($"[ERROR] StackTrace: {ex.StackTrace}");
+                }
+            }
             return response;
         }
         private string GenerateCode()

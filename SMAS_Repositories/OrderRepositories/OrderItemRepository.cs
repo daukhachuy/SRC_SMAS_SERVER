@@ -179,6 +179,10 @@ namespace SMAS_Repositories.OrderRepositories
                 Note = f.Note
             }).ToList();
         }
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _orderItemDAO.GetUsersByRoleAsync(role);
+        }
     }
 }
 

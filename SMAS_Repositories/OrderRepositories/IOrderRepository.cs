@@ -55,5 +55,6 @@ namespace SMAS_Repositories.OrderRepositories
         Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId);
 
         Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode);
+        Task<List<User>> GetUsersByRoleAsync(string role);
     }
 }

@@ -16,4 +16,10 @@ public class AppSettings
 
     /// <summary>Chu kỳ chạy job hủy hợp đồng Signed quá hạn cọc (phút).</summary>
     public int ContractExpirationSweepIntervalMinutes { get; set; } = 5;
+
+    /// <summary>Số phút đơn Delivery ở trạng thái Pending mà chưa thanh toán sẽ bị tự động hủy.</summary>
+    public int DeliveryOrderExpireMinutes { get; set; } = 30;
+
+    /// <summary>Chu kỳ chạy job hủy đơn Delivery quá hạn (phút).</summary>
+    public int DeliveryOrderSweepIntervalMinutes { get; set; } = 5;
 }

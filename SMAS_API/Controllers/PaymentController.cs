@@ -85,4 +85,47 @@ public class PaymentController : ControllerBase
         return Ok(new { checkoutUrl = result.CheckoutUrl, qrCode = result.QrCode });
     }
 
+    /// Lấy lịch sử giao dịch cho Admin và Manager.
+    /// Hỗ trợ lọc theo: khoảng thời gian, phương thức thanh toán,
+    /// mã đơn hàng, trạng thái.
+    /// </summary>
+    [Authorize(Roles = "Admin,Manager")]
+    [HttpGet("transaction-history")]
+    public async Task<IActionResult> GetTransactionHistory([FromQuery] TransactionHistoryRequestDTO request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var result = await _paymentService.GetTransactionHistoryAsync(request);
+
+            if (result == null || !result.Any())
+            {
+                return Ok(new
+                {
+                    MsgCode = "MSG_021",
+                    Message = "Không tìm thấy giao dịch nào phù hợp.",
+                    Data = result
+                });
+            }
+
+            return Ok(new
+            {
+                MsgCode = "MSG_000",
+                Message = "Lấy lịch sử giao dịch thành công.",
+                Data = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                MsgCode = "MSG_500",
+                Message = "Đã xảy ra lỗi hệ thống.",
+                Detail = ex.Message
+            });
+        }
+    }
+
 }

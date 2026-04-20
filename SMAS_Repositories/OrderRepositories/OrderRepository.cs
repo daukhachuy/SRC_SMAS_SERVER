@@ -20,6 +20,7 @@ namespace SMAS_Repositories.OrderRepositories
         private readonly FoodDAO _foodDAO;
         private readonly DiscountDao _discountDAO;
         private readonly RestaurantDbContext _context;
+
         public OrderRepository(OrderDAO orderDAO, ComboDAO comboDAO, FoodDAO foodDAO, DiscountDao discountDAO, RestaurantDbContext context)
         {
             _orderDAO = orderDAO;
@@ -654,8 +655,8 @@ namespace SMAS_Repositories.OrderRepositories
                 return (false, "Đơn hàng của bạn đã hoàn thành không thể huỷ.");
             if (order.Delivery == null)
                 return (false, $"Đơn hàng {request} không có thông tin giao hàng.");
-            if (order.Delivery.AssignedStaffId == null)
-                return (false, $"Không tìm thấy nhân viên giao hàng");
+            //if (order.Delivery.AssignedStaffId == null)
+            //    return (false, $"Không tìm thấy nhân viên giao hàng");
             return await _orderDAO.DeleteOrderDeliveryByDeliveryCodeAsync(request, dto);
         }
 
@@ -755,5 +756,17 @@ namespace SMAS_Repositories.OrderRepositories
             if (isupdate) return (true, $"Cập nhật mã giảm giá thành công giảm {order.DiscountAmount}");
             return (true, $"Áp dụng mã thành công giảm {order.DiscountAmount}");
         }
+    
+    
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _context.Users
+                .Include(u => u.Staff)
+                .Where(u => u.Role == role
+                          || (u.Staff != null && u.Staff.Position == role))
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
+
 }

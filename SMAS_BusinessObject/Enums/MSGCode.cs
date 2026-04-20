@@ -35,7 +35,9 @@ namespace SMAS_BusinessObject.Enums
         MSG_026, // Không có combo nào phù hợp với tiêu chí lọc
         MSG_027,
         MSG_028,
-        MSG_029, // đặt dơn giao hàng không thành công 
+        MSG_029,// Vui lòng nhập mật khẩu hiện tại
+        MSG_030,// Tài khoản Google không hỗ trợ đổi mật khẩu
+        MSG_031,// Mật khẩu hiện tại không đúng
         MSG_999 // Dữ liệu đầu vào rỗng 
     }
 }
