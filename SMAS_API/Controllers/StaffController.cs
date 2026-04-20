@@ -70,7 +70,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        //[Authorize(Roles = "Manager,Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("filter-by-position")]
         public async Task<IActionResult> GetFilterStaffByPosition([FromQuery] string? positions)
         {
@@ -144,7 +144,7 @@ namespace SMAS_API.Controllers
         }
 
 
-        //[Authorize(Roles = "Manager,Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpGet("workshift/all")]
         public async Task<IActionResult> GetAllWorkShift()
         {
@@ -161,7 +161,7 @@ namespace SMAS_API.Controllers
             }
         }
 
-        //[Authorize(Roles = "Manager,Admin")]
+        [Authorize(Roles = "Manager,Admin")]
         [HttpPost("workshift")]
         public async Task<IActionResult> CreateWorkStaff([FromBody] CreateWorkStaffRequestDto dto)
         {
@@ -359,7 +359,7 @@ namespace SMAS_API.Controllers
         }
 
         [Authorize(Roles = "Admin,Manager")]
-        [HttpGet("staff-filter")]
+        [HttpPost("staff-filter")]
         public async Task<ActionResult<StaffResponseDTO>> GetFilterStaff([FromBody] FilterAccountStaffRequestDTO filter)
         {
             var staffs = await _staffProfileService.FilterAccountStaffAsync(filter);

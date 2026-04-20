@@ -338,7 +338,7 @@ namespace SMAS_Services.PdfServices
 
                         col.Item().Border(2).Padding(10).Column(c =>
                         {
-                            var tax = _contract.TotalAmount * 0.1m; 
+                            var tax = _contract.TotalAmount / 1.1m * 0.1m; 
                             var subtotal = _contract.TotalAmount - tax;
 
                             c.Item().Text($"Tạm tính: {subtotal:N0} VNĐ").Bold();
@@ -385,15 +385,28 @@ namespace SMAS_Services.PdfServices
                                 c.Item().Text("ĐẠI DIỆN BÊN A").Bold();
                                 c.Item().Height(50);
                                 c.Item().Border(1).Padding(5)
-                                    .Text($"✔ Đã ký\n{_detail.ConfirmedBy?.Fullname}");
+                                    .Text($"✔ Đã ký\n{_contract.ManagerName ?? "Chưa Ký"}");
                             });
 
                             row.RelativeItem().AlignCenter().Column(c =>
                             {
                                 c.Item().Text("ĐẠI DIỆN BÊN B").Bold();
                                 c.Item().Height(50);
-                                c.Item().Border(1).Padding(5)
-                                    .Text($"✔ Đã ký\n{_detail.Customer.Fullname}");
+                                if (_contract.Status == "Draft")
+                                {
+                                    c.Item().Border(1).Padding(5).Text($"Chờ ký hợp đồng !");                                 
+                                }else if (_contract.Status == "Sent")
+                                 {
+                                     c.Item().Border(1).Padding(5).Text($"Đã gửi mail xác nhận");
+                                }else if (_contract.Status == "Signed")
+                                 {
+                                     c.Item().Border(1).Padding(5).Text($"Chờ thanh toán tiền cọc");
+                                }
+                                else
+                                {
+                                    c.Item().Border(1).Padding(5).Text($"✔ Đã ký\n{_contract.CustomerName}");
+                                }
+
                             });
                         });
                     });

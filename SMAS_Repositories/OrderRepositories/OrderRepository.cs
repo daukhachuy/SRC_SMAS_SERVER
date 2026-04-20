@@ -402,20 +402,7 @@ namespace SMAS_Repositories.OrderRepositories
 
                 order.SubTotal = subTotal;
 
-                // --- Logic Giảm giá (Discount) ---
-                if (!string.IsNullOrEmpty(request.DiscountCode))
-                {
-                    var discount = await _discountDAO.GetDiscountByIdAsync(request.DiscountCode);
-                    if (discount == null)
-                        return new OrderDeliveryResponse { Success = false, Message = "Mã giảm giá không hợp lệ." };
-
-                    if (subTotal < discount.MinOrderAmount)
-                        return new OrderDeliveryResponse { Success = false, Message = $"Đơn hàng chưa đạt giá trị tối thiểu {discount.MinOrderAmount} để áp dụng mã." };
-
-                    order.DiscountId = discount.DiscountId;
-                    decimal amount = (discount.DiscountType == "Percentage") ? (subTotal * (discount.Value / 100)) : discount.Value;
-                    order.DiscountAmount = Math.Min(amount, discount.MaxDiscountAmount ?? amount);
-                }
+               
 
                 // --- Logic Giao hàng (Delivery) ---
                 if (order.OrderType == "Delivery")
@@ -456,8 +443,28 @@ namespace SMAS_Repositories.OrderRepositories
                     else
                         order.DeliveryPrice = 40000;
                 }
-                order.TaxAmount = (order.SubTotal ?? 0) * 0.1m;
-                order.TotalAmount = (order.SubTotal ?? 0) + (order.DeliveryPrice ?? 0) + (order.TaxAmount ?? 0) - (order.DiscountAmount ?? 0);
+                var taxamount = (order.SubTotal ?? 0) * 0.1m;
+                order.TotalAmount = (order.SubTotal ?? 0) + (order.DeliveryPrice ?? 0) + (order.TaxAmount ?? 0 );
+                order.TaxAmount = taxamount;
+
+
+                // --- Logic Giảm giá (Discount) ---
+                if (!string.IsNullOrEmpty(request.DiscountCode))
+                {
+                    var discount = await _discountDAO.GetDiscountByIdAsync(request.DiscountCode);
+                    if (discount == null)
+                        return new OrderDeliveryResponse { Success = false, Message = "Mã giảm giá không hợp lệ." };
+                    if (discount.ApplicableFor != order.OrderType && discount.ApplicableFor != "All") return new OrderDeliveryResponse { Success = false, Message = $".Mã giảm giá không áp dụng cho đơn hàng này" };
+                    if (order.TotalAmount < discount.MinOrderAmount)
+                        return new OrderDeliveryResponse { Success = false, Message = $"Đơn hàng chưa đạt giá trị tối thiểu {discount.MinOrderAmount} để áp dụng mã." };
+
+                    order.DiscountId = discount.DiscountId;
+                    decimal amount = (discount.DiscountType == "Percentage") ? (order.TotalAmount * (discount.Value / 100)) : discount.Value;
+                    order.DiscountAmount = Math.Min(amount, discount.MaxDiscountAmount ?? amount);
+                    order.TotalAmount -= (order.DiscountAmount ?? 0);
+                }
+
+
                 var result = await _orderDAO.CreateOrderDeliveryAsync(order);
 
                 await transaction.CommitAsync();
@@ -722,8 +729,35 @@ namespace SMAS_Repositories.OrderRepositories
                 buffets
             };
         }
-        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)
-    => await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)=> await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
+
+        public async Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode)
+        {
+
+            var order = await _orderDAO.GetOrderDetailByOrderCodeAsync(ordercode);
+            if (order == null) return (false, $"Không tìm thấy đơn hàng với mã {ordercode}.");
+            var isupdate = false ;
+            if (order.DiscountAmount > 0)
+            {
+                order.TotalAmount = order.TotalAmount + (order.DiscountAmount ?? 0);
+                order.DiscountAmount = 0;
+                isupdate = true;
+            }
+            var discount = await _discountDAO.GetDiscountByIdAsync(discountcode);
+            if (discount == null) return (false, $"Không tìm thấy mã giảm giá {discountcode} hoặc mã không còn hiệu lực.");
+            if (discount.ApplicableFor != order.OrderType && discount.ApplicableFor != "All") return (false, $"Mã giảm giá {discountcode} không áp dụng cho loại đơn hàng {order.OrderType}.");
+            if (discount.MinOrderAmount > order.TotalAmount) return (false, $"Đơn hàng chưa đạt giá trị tối thiểu {discount.MinOrderAmount} để áp dụng mã giảm giá {discountcode}.");
+            order.DiscountAmount = discount.DiscountType == "Percentage" ? (order.TotalAmount) * (discount.Value / 100) : discount.Value;
+            if (order.DiscountAmount > discount.MaxDiscountAmount) order.DiscountAmount = discount.MaxDiscountAmount;
+            order.TotalAmount = order.TotalAmount - (order.DiscountAmount ?? 0);
+            order.DiscountId = discount.DiscountId;
+            var result  =  await _orderDAO.UpdateOrderAsync(order);
+            if (!result) return (false, $"Cập nhật mã giảm giá thất bại cho đơn hàng {ordercode}.");
+            if (isupdate) return (true, $"Cập nhật mã giảm giá thành công giảm {order.DiscountAmount}");
+            return (true, $"Áp dụng mã thành công giảm {order.DiscountAmount}");
+        }
+    
+    
         public async Task<List<User>> GetUsersByRoleAsync(string role)
         {
             return await _context.Users

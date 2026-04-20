@@ -119,7 +119,7 @@ namespace SMAS_Services.OrderServices
             var activeTable = order.TableOrders?.FirstOrDefault(t => t.LeftAt == null);
             //if (activeTable == null || activeTable.TableId.ToString() != validateResult.TableCode)
             //    return new AddOrderItemResponse { Success = false, Message = "Bạn chỉ có thể đặt món tại bàn bạn đang ngồi." };
-           
+
             // Debug log
             Console.WriteLine($"[DEBUG] Token TableCode: {tableCodeFromToken} | Order Tables: {string.Join(",", order.TableOrders?.Select(t => t.TableId) ?? new List<int>())}");
 
@@ -304,12 +304,12 @@ namespace SMAS_Services.OrderServices
 
             var now = DateTime.Now;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
-            var subTotal = 0m;  
+            var subTotal = 0m;
             var orderItems = new List<OrderItem>();
 
             var order = new Order
             {
-                OrderCode = GenerateOrderCode(now , "ORR"),
+                OrderCode = GenerateOrderCode(now, "ORR"),
                 UserId = reservation.UserId,
                 ReservationId = reservation.ReservationId,
                 BookEventId = null,
@@ -332,7 +332,7 @@ namespace SMAS_Services.OrderServices
             await _orderRepository.CreateInHouseOrderAsync(order, orderItems, tableOrders, reservation);
 
             return MapCreateInHouseOrderResponse(order, request.TableIds!, tableOrders, orderItems);
-            
+
         }
 
         public async Task<CreateInHouseOrderResponse> CreateOrderByContactAsync(CreateOrderByContactRequest request, int waiterUserId)
@@ -546,7 +546,7 @@ namespace SMAS_Services.OrderServices
             return built;
         }
 
-        private static string GenerateOrderCode(DateTime now , string code)
+        private static string GenerateOrderCode(DateTime now, string code)
         {
             var random = Random.Shared.Next(1000, 10000);
             return $"{code}-{now:yyyyMMddHHmmss}-{random}";
@@ -583,7 +583,7 @@ namespace SMAS_Services.OrderServices
                     Subtotal = x.Subtotal ?? 0,
                     Status = x.Status,
                     Note = x.Note
-    }).ToList()
+                }).ToList()
             };
         }
 
@@ -611,7 +611,7 @@ namespace SMAS_Services.OrderServices
             return result;
         }
 
-        public async  Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request)
+        public async Task<(bool status, string message)> ChangeStatusDeliveryAsync(string request)
         {
             var result = await _orderRepository.ChangeStatusDeliveryAsync(request);
 
@@ -660,7 +660,7 @@ namespace SMAS_Services.OrderServices
             return result;
         }
 
-        public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request , string dto)
+        public async Task<(bool status, string message)> DeleteOrderDeliveryByDeliveryCodeAsync(string request, string dto)
         {
             var order = await _orderRepository.GetOrderByIdNoTrackingAsync(request);
 
@@ -720,6 +720,11 @@ namespace SMAS_Services.OrderServices
             // Reuse GetOrderDetailByOrderCodeAsync đã có
             var order = await _orderRepository.GetOrderDetailByOrderCodeAsync(orderCode);
             return (true, null, order);
+        }
+
+        public async Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode)
+        {
+            return await _orderRepository.AddDiscountToOrderAsync( ordercode,  discountcode);
         }
     }
 }

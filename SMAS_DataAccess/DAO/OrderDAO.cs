@@ -757,5 +757,16 @@ namespace SMAS_DataAccess.DAO
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<bool> UpdateOrderAsync(Order order)
+        {
+            var existingOrder = await _context.Orders.FindAsync(order.OrderId);
+            if (existingOrder == null) return false;
+            existingOrder.TotalAmount = order.TotalAmount;
+            existingOrder.DiscountAmount = order.DiscountAmount;
+            existingOrder.DiscountId = order.DiscountId;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
