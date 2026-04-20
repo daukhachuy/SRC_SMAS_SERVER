@@ -87,20 +87,17 @@ public class PaymentController : ControllerBase
 
     /// Lấy lịch sử giao dịch cho Admin và Manager.
     /// Hỗ trợ lọc theo: khoảng thời gian, phương thức thanh toán,
-    /// mã đơn hàng, trạng thái.
-    /// </summary>
+    /// mã đơn hàng, trạng thái.S
     [Authorize(Roles = "Admin,Manager")]
     [HttpGet("transaction-history")]
     public async Task<IActionResult> GetTransactionHistory([FromQuery] TransactionHistoryRequestDTO request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
         try
         {
             var result = await _paymentService.GetTransactionHistoryAsync(request);
-
-            if (result == null || !result.Any())
+            if (result.TotalCount == 0)
             {
                 return Ok(new
                 {
@@ -109,7 +106,6 @@ public class PaymentController : ControllerBase
                     Data = result
                 });
             }
-
             return Ok(new
             {
                 MsgCode = "MSG_000",

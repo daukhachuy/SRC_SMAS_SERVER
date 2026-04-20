@@ -15,6 +15,7 @@ namespace SMAS_Repositories.OrderRepositories
         Task<(bool success, string message, decimal remaining, int orderId)> CreateRemainingPaymentLinkAsync(
             string orderCode, string returnUrl, string cancelUrl);
 
-        Task<List<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request);
+        Task<PagedResult<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request);
+
     }
 }

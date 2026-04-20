@@ -52,6 +52,7 @@ namespace SMAS_BusinessObject.DTOs.DiscountDTO
 
         [Required(ErrorMessage = "Loại giảm giá không được để trống.")]
         [MaxLength(50)]
+        [AllowedValues("Percentage", "Fixed", ErrorMessage = "DiscountType phải là 'Percentage' hoặc 'Fixed'.")]
         public string DiscountType { get; set; } = null!;
 
         [Required(ErrorMessage = "Giá trị không được để trống.")]
@@ -75,6 +76,7 @@ namespace SMAS_BusinessObject.DTOs.DiscountDTO
         public int? UsageLimit { get; set; }
 
         [MaxLength(100)]
+        [AllowedValues("All", "DineIn", "Takeaway", "Delivery", ErrorMessage = "ApplicableFor phải là 'All', 'DineIn', 'Takeaway' hoặc 'Delivery'.")]
         public string? ApplicableFor { get; set; }
 
         [MaxLength(50)]
@@ -93,6 +95,7 @@ namespace SMAS_BusinessObject.DTOs.DiscountDTO
 
         [Required(ErrorMessage = "Loại giảm giá không được để trống.")]
         [MaxLength(50)]
+        [AllowedValues("Percentage", "Fixed", ErrorMessage = "DiscountType phải là 'Percentage' hoặc 'Fixed'.")]
         public string DiscountType { get; set; } = null!;
 
         [Required(ErrorMessage = "Giá trị không được để trống.")]
@@ -116,6 +119,7 @@ namespace SMAS_BusinessObject.DTOs.DiscountDTO
         public int? UsageLimit { get; set; }
 
         [MaxLength(100)]
+        [AllowedValues("All", "DineIn", "Takeaway", "Delivery", ErrorMessage = "ApplicableFor phải là 'All', 'DineIn', 'Takeaway' hoặc 'Delivery'.")]
         public string? ApplicableFor { get; set; }
 
         [MaxLength(50)]

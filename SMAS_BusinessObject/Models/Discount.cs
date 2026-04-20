@@ -11,7 +11,7 @@ public partial class Discount
 
     public string? Description { get; set; }
 
-    public string DiscountType { get; set; } = null!;
+    public string DiscountType { get; set; } = null!; //Percentage/Fixed
 
     public decimal Value { get; set; }
 
@@ -27,13 +27,13 @@ public partial class Discount
 
     public int? UsedCount { get; set; }
 
-    public string? ApplicableFor { get; set; }
+    public string? ApplicableFor { get; set; } //All/DineIn/Takeaway/Delivery
 
     public string? Status { get; set; }    // Active/Inactive/Expired
-
+        
     public int? CreatedBy { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }    
 
     public virtual Staff? CreatedByNavigation { get; set; }
 

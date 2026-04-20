@@ -80,76 +80,71 @@ public class PaymentDAO
             .Include(o => o.Payments)
             .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
     }
-    public async Task<List<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request)
+    public async Task<PagedResult<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(
+    TransactionHistoryRequestDTO request)
     {
         var query = _context.Payments
-            .Include(p => p.Order)
-                .ThenInclude(o => o.User)                   // Order → User (khách hàng)
-            .Include(p => p.ReceivedByNavigation)           // Payment → Staff
-                .ThenInclude(s => s.User)                   // Staff → User (nhân viên)
+            .Include(p => p.Order).ThenInclude(o => o.User)
+            .Include(p => p.ReceivedByNavigation).ThenInclude(s => s.User)
             .AsNoTracking()
             .AsQueryable();
 
-        // ── Lọc theo khoảng thời gian ──
+        // ── Filters (giữ nguyên) ──
         if (request.FromDate.HasValue)
-        {
-            var from = request.FromDate.Value.Date;
-            query = query.Where(p => p.CreatedAt >= from);
-        }
+            query = query.Where(p => p.CreatedAt >= request.FromDate.Value.Date);
 
         if (request.ToDate.HasValue)
-        {
-            var to = request.ToDate.Value.Date.AddDays(1);
-            query = query.Where(p => p.CreatedAt < to);
-        }
+            query = query.Where(p => p.CreatedAt < request.ToDate.Value.Date.AddDays(1));
 
-        // ── Lọc theo phương thức thanh toán ──
         if (!string.IsNullOrWhiteSpace(request.PaymentMethod))
             query = query.Where(p => p.PaymentMethod == request.PaymentMethod);
 
-        // ── Lọc theo mã đơn hàng ──
         if (!string.IsNullOrWhiteSpace(request.OrderCode))
-            query = query.Where(p => p.Order != null
-                                   && p.Order.OrderCode.Contains(request.OrderCode));
+            query = query.Where(p => p.Order != null && p.Order.OrderCode.Contains(request.OrderCode));
 
-        // ── Lọc theo trạng thái thanh toán ──
         if (!string.IsNullOrWhiteSpace(request.PaymentStatus))
             query = query.Where(p => p.PaymentStatus == request.PaymentStatus);
 
-        return await query
+        // ── Đếm tổng trước khi phân trang ──
+        int totalCount = await query.CountAsync();
+
+        // ── Paging ──
+        int page = Math.Max(request.Page, 1);
+        int pageSize = Math.Clamp(request.PageSize, 1, 100);
+
+        var items = await query
             .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(p => new TransactionHistoryItemDTO
             {
-                // Thông tin giao dịch
                 PaymentId = p.PaymentId,
                 PaymentCode = p.PaymentCode ?? "",
                 Amount = p.Amount,
                 PaymentMethod = p.PaymentMethod,
                 PaymentStatus = p.PaymentStatus ?? "",
-             
-                PaidAt = p.PaidAt,                   // DateTime? → DateTime? khớp nhau
-                CreatedAt = p.CreatedAt,                // DateTime? → DateTime? khớp nhau
+                PaidAt = p.PaidAt,
+                CreatedAt = p.CreatedAt,
                 Note = p.Note,
-
-                // Thông tin đơn hàng
                 OrderId = p.OrderId,
                 OrderCode = p.Order != null ? p.Order.OrderCode : null,
                 OrderType = p.Order != null ? p.Order.OrderType : null,
-
-                // Thông tin khách hàng (Order.User)
-                // User.Fullname — chữ 'n' thường theo entity
                 CustomerId = p.Order != null ? (int?)p.Order.UserId : null,
-                CustomerName = p.Order != null && p.Order.User != null
-                                ? p.Order.User.Fullname : null,
-                CustomerPhone = p.Order != null && p.Order.User != null
-                                ? p.Order.User.Phone : null,
-
-                // Thông tin nhân viên (Payment.ReceivedByNavigation → Staff.User)
+                CustomerName = p.Order != null && p.Order.User != null ? p.Order.User.Fullname : null,
+                CustomerPhone = p.Order != null && p.Order.User != null ? p.Order.User.Phone : null,
                 StaffId = p.ReceivedBy,
                 StaffName = p.ReceivedByNavigation != null && p.ReceivedByNavigation.User != null
-                            ? p.ReceivedByNavigation.User.Fullname : null
+                                  ? p.ReceivedByNavigation.User.Fullname : null
             })
             .ToListAsync();
+
+        return new PagedResult<TransactionHistoryItemDTO>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
 }

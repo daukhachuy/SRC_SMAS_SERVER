@@ -10,19 +10,32 @@ namespace SMAS_BusinessObject.DTOs.PayOSDTO
     {
         /// Lọc từ ngày (nullable = không lọc)
         public DateTime? FromDate { get; set; }
-
-        ///Lọc đến ngày (nullable = không lọc)
+        /// Lọc đến ngày (nullable = không lọc)
         public DateTime? ToDate { get; set; }
-
         /// Cash | PayOS (nullable = lấy tất cả)
         public string? PaymentMethod { get; set; }
-
         /// Tìm theo mã đơn hàng (chứa / contains)
         public string? OrderCode { get; set; }
-
         /// Paid | Failed | Pending (nullable = lấy tất cả)
         public string? PaymentStatus { get; set; }
+
+        // ── Paging ──
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
     }
+
+    /// Wrapper phân trang dùng chung
+    public class PagedResult<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+        public bool HasNextPage => Page < TotalPages;
+        public bool HasPreviousPage => Page > 1;
+    }
+
     /// Thông tin chi tiết của một giao dịch
     public class TransactionHistoryItemDTO
     {
@@ -30,11 +43,11 @@ namespace SMAS_BusinessObject.DTOs.PayOSDTO
         public int PaymentId { get; set; }
         public string PaymentCode { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public string PaymentMethod { get; set; } = string.Empty;    // Cash | PayOS
-        public string PaymentStatus { get; set; } = string.Empty;    // Paid | Unpaid
-   
-        public DateTime? PaidAt { get; set; }       // nullable — khớp Payment.PaidAt
-        public DateTime? CreatedAt { get; set; }    // nullable — khớp Payment.CreatedAt
+        public string PaymentMethod { get; set; } = string.Empty;   // Cash | PayOS
+        public string PaymentStatus { get; set; } = string.Empty;   // Paid | Unpaid
+
+        public DateTime? PaidAt { get; set; }     // nullable — khớp Payment.PaidAt
+        public DateTime? CreatedAt { get; set; }  // nullable — khớp Payment.CreatedAt
         public string? Note { get; set; }
 
         // ── Thông tin đơn hàng ──
