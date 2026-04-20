@@ -33,5 +33,7 @@ public interface IPaymentService
 
     Task<CreatePaymentLinkResponse> CreateRemainingPaymentLinkAsync(RemainingPaymentQrRequestDTO request);
 
-    Task<List<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request);
+    Task<PagedResult<TransactionHistoryItemDTO>> GetTransactionHistoryAsync(TransactionHistoryRequestDTO request);
+
+  
 }

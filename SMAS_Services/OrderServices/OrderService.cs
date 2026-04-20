@@ -302,7 +302,7 @@ namespace SMAS_Services.OrderServices
             if (hasActiveOrder)
                 throw new ArgumentException("Reservation already has an active order");
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
             var subTotal = 0m;  
             var orderItems = new List<OrderItem>();
@@ -325,7 +325,7 @@ namespace SMAS_Services.OrderServices
                 TaxAmount = null,
                 DeliveryPrice = null,
                 TotalAmount = 0,
-                CreatedAt = now,
+                CreatedAt = DateTime.Now,
                 ClosedAt = null
             };
 
@@ -365,7 +365,7 @@ namespace SMAS_Services.OrderServices
             if (!string.Equals(user.Role, "Customer", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Account is not a customer account");
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
             var subTotal = 0m;
             var orderItems = new List<OrderItem>();
@@ -389,7 +389,7 @@ namespace SMAS_Services.OrderServices
                 TaxAmount = null,
                 DeliveryPrice = null,
                 TotalAmount = 0,
-                CreatedAt = now,
+                CreatedAt = DateTime.Now,
                 ClosedAt = null
             };
 
@@ -404,7 +404,7 @@ namespace SMAS_Services.OrderServices
                 !string.Equals(request.OrderType, "Buffet", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Invalid order type");
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var tableOrders = await ValidateAndBuildTableOrders(request.TableIds);
             var subTotal = 0m;
             var orderItems = new List<OrderItem>();
@@ -428,7 +428,7 @@ namespace SMAS_Services.OrderServices
                 TaxAmount = null,
                 DeliveryPrice = null,
                 TotalAmount = 0,
-                CreatedAt = now,
+                CreatedAt = DateTime.Now,
                 ClosedAt = null
             };
 
@@ -443,7 +443,7 @@ namespace SMAS_Services.OrderServices
             if (tableIds == null || tableIds.Count == 0)
                 throw new ArgumentException("At least one table is required");
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var tableOrders = new List<TableOrder>();
 
             foreach (var tableId in tableIds)

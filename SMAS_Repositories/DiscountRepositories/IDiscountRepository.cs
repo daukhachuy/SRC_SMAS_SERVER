@@ -20,5 +20,6 @@ namespace SMAS_Repositories.DiscountRepositories
         Task<DiscountResponse> UpdateAsync(int id, DiscountUpdateDto dto);
         Task<bool> DeleteAsync(int id);
         Task<bool> UpdateStatusAsync(int id, string status);
+        Task<bool> ExistsCodeAsync(string code);
     }
 }

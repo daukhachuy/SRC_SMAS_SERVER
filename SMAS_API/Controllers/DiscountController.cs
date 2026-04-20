@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SMAS_BusinessObject.DTOs.DiscountDTO;
 using SMAS_Services.DiscountServices;
+using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
@@ -31,8 +32,8 @@ namespace SMAS_API.Controllers
         // GET: api/discounts        -> lấy tất cả
         // GET: api/discounts?id=2   -> lấy theo id
         [HttpGet]
-        [AllowAnonymous] 
-        public async Task<IActionResult> GetAsync([FromQuery] int? id)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAsync([FromQuery] int? id, [FromQuery] string? status)
         {
             if (id.HasValue)
             {
@@ -42,7 +43,9 @@ namespace SMAS_API.Controllers
                 return Ok(discount);
             }
 
-            return Ok(await _discountService.GetAllDiscountsAsync());
+            bool isPrivileged = User.IsInRole("Admin") || User.IsInRole("Manager");
+            var result = await _discountService.GetAllDiscountsAsync(isPrivileged ? status : "Active");
+            return Ok(result);
         }
 
         [HttpGet("lists")]
@@ -63,8 +66,22 @@ namespace SMAS_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var created = await _discountService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetAsync), new { id = created.DiscountId }, created);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            dto.CreatedBy = int.TryParse(userIdClaim, out int userId) ? userId : null;
+
+            try
+            {
+                var created = await _discountService.CreateAsync(dto);
+                return Ok(created);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message }); // 409
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message }); // 400
+            }
         }
 
         // PUT: api/discounts/{id}
