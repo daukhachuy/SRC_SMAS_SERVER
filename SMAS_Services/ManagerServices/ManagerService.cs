@@ -18,6 +18,11 @@ namespace SMAS_Services.ManagerServices
             _notificationService = notificationService;
         }
 
+        public async Task<TableAvailabilityResponseDTO> GetTableAvailabilityAsync(DateOnly date, string? timeSlot)
+        {
+            return await _managerRepository.GetTableAvailabilityAsync(date, timeSlot);
+        }
+
         public async Task<IEnumerable<OrderTodayResponseDTO>> GetOrdersTodayAsync()
         {
             return await _managerRepository.GetOrdersTodayAsync();
