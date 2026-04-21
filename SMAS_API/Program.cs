@@ -140,7 +140,8 @@ namespace SMAS_API
                     policy.WithOrigins(
                         //"https://brave-hill-0480d9600.1.azurestaticapps.net",
                         "https://zealous-sky-0d8578e00.2.azurestaticapps.net",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        "https://samsrestaurant.app"
                     )
                     .AllowAnyMethod()
                     .AllowAnyHeader()
