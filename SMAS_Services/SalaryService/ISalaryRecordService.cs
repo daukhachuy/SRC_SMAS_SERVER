@@ -1,9 +1,4 @@
 ﻿using SMAS_BusinessObject.DTOs.SalaryDTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SMAS_Services.SalaryService
 {
@@ -11,6 +6,9 @@ namespace SMAS_Services.SalaryService
     {
         Task<SalaryLastSixMonthsResponseDto> GetSalaryLastSixMonthsAsync(int userId);
         Task<MonthlySalaryDetailResponseDto?> GetCurrentMonthlySalaryDetailAsync(int userId);
+        Task<int> CalculateAndSaveMonthlySalaryAsync(int month, int year, decimal penaltyPerLateMinute, decimal fullMonthBonus, decimal defaultSalaryPerHour);
+        Task<List<SalaryRecordListItemDto>> GetAllSalaryByMonthAsync(int month, int year);
+        Task<MonthlySalaryDetailResponseDto?> GetSalaryDetailByUserAndMonthAsync(int userId, int month, int year);
+        Task<(bool Success, string Message)> AdjustBonusPenaltyAsync(int salaryRecordId, decimal? bonus, decimal? penalty);
     }
-
 }
