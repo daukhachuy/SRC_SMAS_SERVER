@@ -14,9 +14,122 @@ namespace SMAS_Repositories.ManagerRepositories
     {
         private readonly ManagerDAO _managerDAO;
 
+        private static readonly List<(string Name, TimeOnly Start, TimeOnly End)> TimeSlots = new()
+        {
+            ("Sáng",  new TimeOnly(9, 0),  new TimeOnly(12, 0)),
+            ("Trưa",  new TimeOnly(12, 0), new TimeOnly(15, 0)),
+            ("Chiều", new TimeOnly(15, 0), new TimeOnly(19, 0)),
+            ("Tối",   new TimeOnly(19, 0), new TimeOnly(22, 0))
+        };
+
         public ManagerRepository(ManagerDAO managerDAO)
         {
             _managerDAO = managerDAO;
+        }
+
+        public async Task<TableAvailabilityResponseDTO> GetTableAvailabilityAsync(DateOnly date, string? timeSlot)
+        {
+            var reservations = await _managerDAO.GetConfirmedReservationsByDateAsync(date);
+            var bookEvents = await _managerDAO.GetConfirmedBookEventsByDateAsync(date);
+            int totalTables = await _managerDAO.CountActiveTablesAsync();
+
+            var now = DateTime.Now;
+            var today = DateOnly.FromDateTime(now);
+            var currentTime = TimeOnly.FromDateTime(now);
+
+            var slotsToProcess = string.IsNullOrWhiteSpace(timeSlot)
+                ? TimeSlots
+                : TimeSlots.Where(s => s.Name.Equals(timeSlot, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var result = new TableAvailabilityResponseDTO
+            {
+                Date = date,
+                TimeSlots = new List<TimeSlotAvailabilityDTO>()
+            };
+
+            foreach (var (slotName, slotStart, slotEnd) in slotsToProcess)
+            {
+                bool isCurrentSlot = date == today && currentTime >= slotStart && currentTime < slotEnd;
+
+                var slotReservations = reservations
+                    .Where(r => r.ReservationTime >= slotStart && r.ReservationTime < slotEnd)
+                    .ToList();
+
+                var slotBookEvents = bookEvents
+                    .Where(be => be.ReservationTime >= slotStart && be.ReservationTime < slotEnd)
+                    .ToList();
+
+                var reservationDtos = slotReservations.Select(r =>
+                {
+                    string? orderCode = null;
+                    if (isCurrentSlot)
+                    {
+                        orderCode = r.Orders
+                            .Where(o => o.OrderStatus != "Cancelled" && o.OrderStatus != "Closed" && o.OrderStatus != "Completed")
+                            .Select(o => o.OrderCode)
+                            .FirstOrDefault();
+                    }
+
+                    return new ReservationSlotDTO
+                    {
+                        ReservationCode = r.ReservationCode,
+                        NumberOfGuests = r.NumberOfGuests,
+                        ReservationTime = r.ReservationTime,
+                        CustomerName = r.User?.Fullname,
+                        CustomerPhone = r.User?.Phone,
+                        OrderCode = orderCode
+                    };
+                }).ToList();
+
+                var bookEventDtos = slotBookEvents.Select(be =>
+                {
+                    string? orderCode = null;
+                    if (isCurrentSlot)
+                    {
+                        orderCode = be.Orders
+                            .Where(o => o.OrderStatus != "Cancelled" && o.OrderStatus != "Closed" && o.OrderStatus != "Completed")
+                            .Select(o => o.OrderCode)
+                            .FirstOrDefault();
+                    }
+
+                    return new BookEventSlotDTO
+                    {
+                        BookingCode = be.BookingCode,
+                        NumberOfGuests = be.NumberOfGuests,
+                        ReservationTime = be.ReservationTime,
+                        CustomerName = be.Customer?.Fullname,
+                        EventTitle = be.Event?.Title,
+                        OrderCode = orderCode
+                    };
+                }).ToList();
+
+                int totalGuests = slotReservations.Sum(r => r.NumberOfGuests);
+                int reservationTables = slotReservations
+                    .Sum(r => (int)Math.Ceiling(r.NumberOfGuests / 4.0));
+                int bookEventTables = slotBookEvents.Sum(be => be.NumberOfGuests);
+                int bookedTables = reservationTables + bookEventTables;
+                double capacity = totalTables > 0
+                    ? Math.Round((double)bookedTables / totalTables * 100, 1)
+                    : 0;
+
+                result.TimeSlots.Add(new TimeSlotAvailabilityDTO
+                {
+                    TimeSlotName = slotName,
+                    StartTime = slotStart,
+                    EndTime = slotEnd,
+                    Reservations = reservationDtos,
+                    BookEvents = bookEventDtos,
+                    Summary = new SlotSummaryDTO
+                    {
+                        TotalGuests = totalGuests,
+                        TotalBookedTables = Math.Min(bookedTables, totalTables),
+                        ActiveTables = totalTables,
+                        CapacityPercentage = Math.Min(capacity, 100)
+                    }
+                });
+            }
+
+            return result;
         }
 
         public async Task<IEnumerable<OrderTodayResponseDTO>> GetOrdersTodayAsync()
@@ -66,7 +179,8 @@ namespace SMAS_Repositories.ManagerRepositories
                 ShiftId = ws.ShiftId,
                 ShiftName = ws.Shift?.ShiftName,
                 CheckInTime = ws.CheckInTime,
-                CheckOutTime = ws.CheckOutTime
+                CheckOutTime = ws.CheckOutTime,
+                IsWorking = ws.IsWorking
             }).ToList();
         }
 

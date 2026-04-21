@@ -280,6 +280,7 @@ namespace SMAS_API
             builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
             builder.Services.AddHostedService<ContractDepositExpirationHostedService>();
             builder.Services.AddHostedService<AutoCancelExpiredDeliveryOrdersJob>();
+            builder.Services.AddHostedService<MonthlySalaryCalculationJob>();
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();

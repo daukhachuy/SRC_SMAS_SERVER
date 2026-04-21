@@ -444,7 +444,7 @@ namespace SMAS_Repositories.OrderRepositories
                         order.DeliveryPrice = 40000;
                 }
                 var taxamount = (order.SubTotal ?? 0) * 0.1m;
-                order.TotalAmount = (order.SubTotal ?? 0) + (order.DeliveryPrice ?? 0) + (order.TaxAmount ?? 0 );
+                order.TotalAmount = (order.SubTotal ?? 0) + (order.DeliveryPrice ?? 0) + taxamount;
                 order.TaxAmount = taxamount;
 
 
