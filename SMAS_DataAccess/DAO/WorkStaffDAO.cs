@@ -25,11 +25,12 @@ namespace SMAS_DataAccess.DAO
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             return await _context.WorkStaffs
-                .Include(ws => ws.User)
-                    .ThenInclude(u => u.Staff)   // cần: Position
-                .Where(ws => ws.WorkDay == today && ws.IsWorking == true)
-                .AsNoTracking()
-                .ToListAsync();
+       .Include(ws => ws.Shift)              
+       .Include(ws => ws.User)
+           .ThenInclude(u => u.Staff)
+       .Where(ws => ws.WorkDay == today && ws.IsWorking == true)
+       .AsNoTracking()
+       .ToListAsync();
         }
 
         public async Task<IEnumerable<Staff>> GetFilterStaffByPositionAsync(List<string> positions)

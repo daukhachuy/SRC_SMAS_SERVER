@@ -51,12 +51,20 @@ namespace SMAS_API.Controllers
                 return Ok(new
                 {
                     data = Array.Empty<object>(),
+                    total = 0,
+                    revenueToday = 0,                                        // thêm
                     message = "Hôm nay chưa có đơn hàng nào."
                 });
+
+            var revenueToday = result
+                .Where(o => o.OrderStatus == "Completed")
+                .Sum(o => o.TotalAmount);                                     // thêm
 
             return Ok(new
             {
                 data = result,
+                total = result.Count(),
+                revenueToday,                                                 // thêm
                 message = $"Có {result.Count()} đơn hàng hôm nay."
             });
         }
