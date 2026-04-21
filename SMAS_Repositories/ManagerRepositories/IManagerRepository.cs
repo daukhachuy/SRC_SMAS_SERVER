@@ -1,5 +1,6 @@
 using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.ReservationDTO;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace SMAS_Repositories.ManagerRepositories
 {
     public interface IManagerRepository
     {
+        Task<TableAvailabilityResponseDTO> GetTableAvailabilityAsync(DateOnly date, string? timeSlot);
         Task<IEnumerable<OrderTodayResponseDTO>> GetOrdersTodayAsync();
         Task<IEnumerable<TableEmptyResponseDTO>> GetEmptyTablesAsync();
         Task<RevenueWeekResponseDTO> GetRevenuePreviousSevenDaysAsync();

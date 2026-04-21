@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.TableDTO;
 using SMAS_BusinessObject.Enums;
 using SMAS_Services.ManagerServices;
@@ -25,6 +26,33 @@ namespace SMAS_API.Controllers
             _managerService = managerService;
             _tableService = tableService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Xem bàn available theo ngày và khung giờ (Sáng/Trưa/Chiều/Tối).
+        /// Trả về danh sách Reservation + BookEvent đã confirmed cùng bàn available.
+        /// </summary>
+       // [Authorize(Roles = "Manager,Admin")]
+        [HttpGet("availability")]
+        public async Task<IActionResult> GetTableAvailability(
+            [FromQuery] DateOnly? date,
+            [FromQuery] string? timeSlot)
+        {
+            try
+            {
+                var targetDate = date ?? DateOnly.FromDateTime(DateTime.Now);
+
+                if (targetDate < DateOnly.FromDateTime(DateTime.Now))
+                    return BadRequest(new { success = false, message = "Không thể xem bàn cho ngày trong quá khứ." });
+
+                var result = await _managerService.GetTableAvailabilityAsync(targetDate, timeSlot);
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy table availability.");
+                return StatusCode(500, new { success = false, message = "Đã xảy ra lỗi hệ thống." });
+            }
         }
 
         /// Lấy danh sách bàn trống
