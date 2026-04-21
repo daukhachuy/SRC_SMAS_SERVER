@@ -37,6 +37,7 @@ namespace SMAS_DataAccess.DAO
                     .ThenInclude(oi => oi.Combo)
                 .Include(o => o.Payments)
                 .Where(o => o.OrderStatus != "Completed" && o.OrderStatus != "Cancelled")
+                .Where(o => o.OrderType != "BookEvent")
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
@@ -745,7 +746,8 @@ namespace SMAS_DataAccess.DAO
                           && to.LeftAt == null
                           && to.Order.OrderStatus != "Cancelled"
                           && to.Order.OrderStatus != "Closed"
-                          && to.Order.OrderStatus != "Completed")
+                          && to.Order.OrderStatus != "Completed"
+                          && to.Order.OrderType != "BookEvent")
                 .Select(to => to.Order.OrderCode)
                 .FirstOrDefaultAsync();
         }

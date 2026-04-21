@@ -126,5 +126,20 @@ namespace SMAS_Services.BookEventService
                 Message = "Đặt sự kiện đã được tạo thành công."
             };
         }
+
+        public async Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds)
+        {
+            return await _bookEventRepository.CheckInBookEventAsync(bookEventId, managerUserId, tableIds);
+        }
+
+        public async Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId)
+        {
+            return await _bookEventRepository.CheckoutBookEventAsync(bookEventId, managerUserId);
+        }
+
+        public async Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart)
+        {
+            return await _bookEventRepository.NotifyManagersBeforeUpcomingEventsAsync(hoursBeforeStart);
+        }
     }
 }
