@@ -282,6 +282,7 @@ namespace SMAS_API
             builder.Services.AddHostedService<ContractDepositExpirationHostedService>();
             builder.Services.AddHostedService<AutoCancelExpiredDeliveryOrdersJob>();
             builder.Services.AddHostedService<UpcomingBookEventReminderHostedService>();
+            builder.Services.AddHostedService<MonthlySalaryCalculationJob>();
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();

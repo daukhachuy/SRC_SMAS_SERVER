@@ -217,7 +217,9 @@ namespace SMAS_Repositories.StaffRepository
                 AvatarUrl = ws.User?.Avatar,
                 Position = ws.User?.Staff?.Position,
                 Note = ws.Note,
-                CheckInTime = ws.CheckInTime
+                CheckInTime = ws.CheckInTime,
+                CheckOutTime = ws.CheckOutTime,
+                IsWorking = ws.IsWorking
             };
         }
 

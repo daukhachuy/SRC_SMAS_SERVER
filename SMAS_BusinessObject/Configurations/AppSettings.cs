@@ -28,4 +28,15 @@ public class AppSettings
 
     /// <summary>Chu kỳ chạy job quét nhắc sự kiện sắp diễn ra (phút).</summary>
     public int EventReminderSweepIntervalMinutes { get; set; } = 10;
+    /// <summary>Số tiền phạt mỗi phút đi trễ (VNĐ).</summary>
+    public decimal PenaltyPerLateMinute { get; set; } = 2000;
+
+    /// <summary>Thưởng cố định khi đủ công cả tháng (VNĐ).</summary>
+    public decimal FullMonthBonusAmount { get; set; } = 500000;
+
+    /// <summary>Lương theo giờ mặc định dùng tính overtime (VNĐ).</summary>
+    public decimal DefaultSalaryPerHour { get; set; } = 30000;
+
+    /// <summary>Chu kỳ chạy job tính lương hàng tháng (giờ).</summary>
+    public int SalarySweepIntervalHours { get; set; } = 6;
 }
