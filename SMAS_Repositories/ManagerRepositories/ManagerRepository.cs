@@ -66,7 +66,8 @@ namespace SMAS_Repositories.ManagerRepositories
                 ShiftId = ws.ShiftId,
                 ShiftName = ws.Shift?.ShiftName,
                 CheckInTime = ws.CheckInTime,
-                CheckOutTime = ws.CheckOutTime
+                CheckOutTime = ws.CheckOutTime,
+                IsWorking = ws.IsWorking
             }).ToList();
         }
 

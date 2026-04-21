@@ -38,12 +38,14 @@ namespace SMAS_API.Controllers
                 return Ok(new
                 {
                     data = Array.Empty<object>(),
+                    total = 0,                        
                     message = "Hiện tại không có bàn trống."
                 });
 
             return Ok(new
             {
                 data = result,
+                total = result.Count(),             
                 message = $"Có {result.Count()} bàn đang trống."
             });
         }
