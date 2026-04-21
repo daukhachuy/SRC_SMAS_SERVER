@@ -236,7 +236,7 @@ namespace SMAS_Services.ConversationServices
             }
             var conversation = new Conversation
             {
-                UserId = userId,
+                UserId = managerid,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
 
@@ -247,7 +247,7 @@ namespace SMAS_Services.ConversationServices
             var message = new SendMessageRequestDTO
             {
                 ConversationId = conversation.ConversationId,
-                Content = "Xin chào, Chúng tôi muốn liên lạc với bạn !",
+                Content = "Xin chào, Chúng tôi cần hỗ trợ !",
                 MessageType = "string"
 
             };
