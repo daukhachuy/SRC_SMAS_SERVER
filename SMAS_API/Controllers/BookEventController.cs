@@ -5,6 +5,7 @@ using SMAS_BusinessObject.DTOs.Workflow;
 using SMAS_Services.BookEventService;
 using SMAS_Services.ContractWorkflow;
 using SMAS_Services.ManagerServices;
+using System.Collections.Generic;
 using System.Security.Claims;
 
 namespace SMAS_API.Controllers
@@ -88,6 +89,63 @@ namespace SMAS_API.Controllers
                 404 => NotFound(new { message = error }),
                 _ => StatusCode(status, new { message = error })
             };
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/check-in")]
+        public async Task<IActionResult> CheckInBookEvent([FromRoute] int id, [FromBody] BookEventCheckInRequestDTO request)
+        {
+            try
+            {
+                var managerId = GetUserId();
+                if (managerId == null)
+                    return Unauthorized();
+
+                if (request == null)
+                    return BadRequest(new { message = "Dữ liệu check-in không hợp lệ." });
+
+                var result = await _bookEventService.CheckInBookEventAsync(id, managerId.Value, request.TableIds);
+                return Ok(new { data = result, message = result.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/check-out")]
+        public async Task<IActionResult> CheckOutBookEvent([FromRoute] int id)
+        {
+            try
+            {
+                var managerId = GetUserId();
+                if (managerId == null)
+                    return Unauthorized();
+
+                var result = await _bookEventService.CheckoutBookEventAsync(id, managerId.Value);
+                return Ok(new { data = result, message = result.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
         }
 
         [Authorize(Roles = "Manager,Staff")]

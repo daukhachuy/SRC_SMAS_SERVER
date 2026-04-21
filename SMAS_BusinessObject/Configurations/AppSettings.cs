@@ -23,6 +23,11 @@ public class AppSettings
     /// <summary>Chu kỳ chạy job hủy đơn Delivery quá hạn (phút).</summary>
     public int DeliveryOrderSweepIntervalMinutes { get; set; } = 5;
 
+    /// <summary>Số giờ trước thời điểm diễn ra sự kiện để gửi nhắc manager.</summary>
+    public int EventReminderHoursBeforeStart { get; set; } = 3;
+
+    /// <summary>Chu kỳ chạy job quét nhắc sự kiện sắp diễn ra (phút).</summary>
+    public int EventReminderSweepIntervalMinutes { get; set; } = 10;
     /// <summary>Số tiền phạt mỗi phút đi trễ (VNĐ).</summary>
     public decimal PenaltyPerLateMinute { get; set; } = 2000;
 

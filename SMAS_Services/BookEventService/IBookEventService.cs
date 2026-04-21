@@ -14,5 +14,8 @@ namespace SMAS_Services.BookEventService
         Task<List<BookEventListResponseDTO>> GetAllBookEventCompleteAndCancelAsync();
         Task<List<BookEventListResponseDTO>> GetMyBookEventHistoryAsync(int customerId);
         Task<CreateBookEventResponseDTO> CreateBookEventWithDetailsAsync(CreateBookEventRequestDTO request);
+        Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds);
+        Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId);
+        Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart);
     }
 }
