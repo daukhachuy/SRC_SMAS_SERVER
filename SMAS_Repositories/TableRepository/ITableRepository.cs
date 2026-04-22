@@ -20,9 +20,10 @@ namespace SMAS_Repositories.TableRepository
         (bool Valid, string? ErrorCode, string? TableCode) ValidateAccessToken(string accessToken);
 
         //Task<List<TableResponseDTO>> GetAllTableAsync();
-        Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status);
+        Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status, bool? isActive);
         Task<TableResponseDTO> CreateTableAsync(CreateTableDto dto);
         Task<TableResponseDTO?> UpdateTableAsync(int tableId, UpdateTableDto dto);
         Task<bool> DeleteTableAsync(int tableId);
+        Task<TableResponseDTO?> ToggleTableActiveAsync(int tableId, bool isActive);
     }
 }

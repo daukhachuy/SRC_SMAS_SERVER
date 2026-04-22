@@ -254,11 +254,8 @@ namespace SMAS_Repositories.TableRepository
         //    }).ToList();
         //}
 
-        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status)
-        {
-            return await _dao.GetTablesAsync(tableType, status);
-        }
-
+        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status, bool? isActive)
+     => await _dao.GetTablesAsync(tableType, status, isActive);
         public async Task<TableResponseDTO> CreateTableAsync(CreateTableDto dto)
         {
             var table = new Table
@@ -320,6 +317,20 @@ namespace SMAS_Repositories.TableRepository
                 throw new InvalidOperationException("Không thể xóa bàn đang có khách.");
 
             return await _dao.SoftDeleteTableAsync(tableId);
+        }
+        public async Task<TableResponseDTO?> ToggleTableActiveAsync(int tableId, bool isActive)
+        {
+            // Không cho tắt bàn đang có khách
+            if (!isActive)
+            {
+                var table = await _dao.GetTableByIdRawAsync(tableId);  // tìm kể cả IsActive=false
+                if (table == null) return null;
+
+                if (table.Status == "OPEN")
+                    throw new InvalidOperationException("Không thể vô hiệu hóa bàn đang có khách.");
+            }
+
+            return await _dao.ToggleTableActiveAsync(tableId, isActive);
         }
     }
 }

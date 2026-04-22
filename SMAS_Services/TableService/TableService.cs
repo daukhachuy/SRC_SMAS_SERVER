@@ -39,10 +39,8 @@ namespace SMAS_Services.TableService
         //{
         //    return await _repo.GetAllTableAsync();
         //}
-        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status)
-        {
-            return await _repo.GetTablesAsync(tableType, status);
-        }
+        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status, bool? isActive)
+    => await _repo.GetTablesAsync(tableType, status, isActive);
 
         public async Task<TableResponseDTO> CreateTableAsync(CreateTableDto dto)
         {
@@ -68,5 +66,8 @@ namespace SMAS_Services.TableService
         {
             return await _repo.DeleteTableAsync(tableId);
         }
+
+        public async Task<TableResponseDTO?> ToggleTableActiveAsync(int tableId, bool isActive)
+    => await _repo.ToggleTableActiveAsync(tableId, isActive);
     }   
 }

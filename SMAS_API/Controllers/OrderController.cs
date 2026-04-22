@@ -38,9 +38,8 @@ namespace SMAS_API.Controllers
             };
         }
 
-        /// <summary>
+
         /// Lấy danh sách đơn hàng được tạo trong ngày hôm nay
-        /// </summary>
         [Authorize(Roles = "Manager")]
         [HttpGet("orders-today")]
         public async Task<IActionResult> GetOrderToday()
@@ -52,26 +51,24 @@ namespace SMAS_API.Controllers
                 {
                     data = Array.Empty<object>(),
                     total = 0,
-                    revenueToday = 0,                                        // thêm
+                    revenueToday = 0,                                        
                     message = "Hôm nay chưa có đơn hàng nào."
                 });
 
             var revenueToday = result
                 .Where(o => o.OrderStatus == "Completed")
-                .Sum(o => o.TotalAmount);                                     // thêm
+                .Sum(o => o.TotalAmount);                                     
 
             return Ok(new
             {
                 data = result,
                 total = result.Count(),
-                revenueToday,                                                 // thêm
+                revenueToday,                                                 
                 message = $"Có {result.Count()} đơn hàng hôm nay."
             });
         }
 
-        /// <summary>
         /// Lấy tổng doanh thu 7 ngày gần nhất (theo tuần)
-        /// </summary>
         [Authorize(Roles = "Manager")]
         [HttpGet("revenue-previous-seven-days")]
         public async Task<IActionResult> GetRevenuePreviousSevenDay()
