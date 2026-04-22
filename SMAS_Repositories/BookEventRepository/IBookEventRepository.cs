@@ -14,6 +14,7 @@ namespace SMAS_Repositories.BookEventRepository
         Task<BookEventListResponseDTO?> GetBookEventByIdAsync(int bookEventId);
         Task<List<BookEventListResponseDTO>> GetAllBookEventCompleteAndCancelAsync();
         Task<List<BookEventListResponseDTO>> GetBookEventsByCustomerIdAsync(int customerId);
+        Task<List<BookEventListResponseDTO>> GetBookEventsByStatusAsync(string status);
         Task<BookEvent> CreateBookEventWithDetailsAsync(BookEvent bookEvent,List<SMAS_BusinessObject.Models.BookEventService> bookEventServices, List<EventFood> eventFoods);
         Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds);
         Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId);

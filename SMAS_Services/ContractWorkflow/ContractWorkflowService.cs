@@ -553,6 +553,136 @@ public class ContractWorkflowService : IContractWorkflowService
     public Task<int> CancelExpiredSignedDepositContractsAsync() =>
         _repo.CancelSignedContractsPastDepositWindowAsync(DepositDeadlineHours());
 
+    public async Task<(ConfirmContractFinalPaymentResponseDTO? dto, int statusCode, string? error)>
+        ConfirmFinalPaymentCashAsync(string contractCode, ConfirmContractFinalPaymentRequestDTO request, int managerUserId)
+    {
+        if (string.IsNullOrWhiteSpace(contractCode))
+            return (null, 400, "Mã hợp đồng không hợp lệ");
+
+        var contract = await _repo.GetContractWithBookEventAndPaymentsByCodeAsync(contractCode.Trim());
+        if (contract == null)
+            return (null, 404, "Không tìm thấy hợp đồng");
+
+        if (contract.Status == "Cancelled")
+            return (null, 400, "Hợp đồng đã bị hủy, không thể tất toán");
+
+        if (contract.Status == "PaidInFull")
+            return (null, 400, "Hợp đồng đã tất toán trước đó");
+
+        if (contract.Status != "Deposited")
+            return (null, 400, "Hợp đồng chưa ở trạng thái đã đặt cọc, không thể tất toán");
+
+        if (contract.BookEvent == null)
+            return (null, 400, "Hợp đồng không liên kết với sự kiện nào");
+
+        if (!string.Equals(contract.BookEvent.Status, "AwaitingFinalPayment", StringComparison.OrdinalIgnoreCase))
+            return (null, 400, "Sự kiện chưa ở trạng thái chờ thanh toán phần còn lại (cần checkout trước)");
+
+        try
+        {
+            var (payment, paidBefore, paidTotal, outstandingAfter) =
+                await _repo.AddRemainingCashPaymentAndCompleteAsync(contract.ContractId, request.Note, managerUserId);
+
+            var dto = new ConfirmContractFinalPaymentResponseDTO
+            {
+                ContractId = contract.ContractId,
+                ContractCode = contract.ContractCode,
+                BookEventId = contract.BookEventId,
+                BookingCode = contract.BookEvent.BookingCode,
+                ContractStatus = "PaidInFull",
+                BookEventStatus = "Completed",
+                TotalAmount = contract.TotalAmount,
+                DepositAmount = contract.DepositAmount ?? 0,
+                PaidBefore = paidBefore,
+                PaidThisTime = payment.Amount,
+                PaidTotal = paidTotal,
+                OutstandingAmount = outstandingAfter,
+                PaymentId = payment.PaymentId,
+                PaymentCode = payment.PaymentCode,
+                PaidAt = payment.PaidAt ?? DateTime.UtcNow,
+                Message = "Xác nhận tất toán thành công. Sự kiện đã hoàn tất."
+            };
+            return (dto, 200, null);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ex.Message switch
+            {
+                "CONTRACT_NOT_FOUND" => (null, 404, "Không tìm thấy hợp đồng"),
+                "CONTRACT_CANCELLED" => (null, 400, "Hợp đồng đã bị hủy, không thể tất toán"),
+                "CONTRACT_ALREADY_PAID_IN_FULL" => (null, 400, "Hợp đồng đã tất toán trước đó"),
+                "CONTRACT_NOT_DEPOSITED" => (null, 400, "Hợp đồng chưa ở trạng thái đã đặt cọc, không thể tất toán"),
+                "BOOKEVENT_NOT_FOUND" => (null, 400, "Hợp đồng không liên kết với sự kiện nào"),
+                "BOOKEVENT_NOT_AWAITING_FINAL_PAYMENT" => (null, 400, "Sự kiện chưa ở trạng thái chờ thanh toán phần còn lại (cần checkout trước)"),
+                _ => (null, 500, "Không thể tất toán hợp đồng, vui lòng thử lại")
+            };
+        }
+    }
+
+    public async Task<(ContractPaymentHistoryResponseDTO? dto, int statusCode, string? error)>
+        GetContractPaymentsByIdAsync(int contractId)
+    {
+        var contract = await _repo.GetContractWithBookEventAndPaymentsAsync(contractId);
+        if (contract == null)
+            return (null, 404, "Không tìm thấy hợp đồng");
+        return (BuildContractPaymentHistory(contract), 200, null);
+    }
+
+    public async Task<(ContractPaymentHistoryResponseDTO? dto, int statusCode, string? error)>
+        GetContractPaymentsByCodeAsync(string contractCode)
+    {
+        if (string.IsNullOrWhiteSpace(contractCode))
+            return (null, 400, "Mã hợp đồng không hợp lệ");
+
+        var contract = await _repo.GetContractWithBookEventAndPaymentsByCodeAsync(contractCode.Trim());
+        if (contract == null)
+            return (null, 404, "Không tìm thấy hợp đồng");
+        return (BuildContractPaymentHistory(contract), 200, null);
+    }
+
+    /// <summary>Build payment history view; paid = Sum Payments có PaymentStatus=Paid.</summary>
+    private static ContractPaymentHistoryResponseDTO BuildContractPaymentHistory(Contract contract)
+    {
+        var allPayments = ((IEnumerable<Payment>?)contract.Payments ?? Enumerable.Empty<Payment>())
+            .OrderBy(p => p.PaidAt ?? p.CreatedAt)
+            .ThenBy(p => p.PaymentId)
+            .ToList();
+
+        decimal paidAmount = allPayments
+            .Where(p => p.PaymentStatus == "Paid")
+            .Sum(p => p.Amount);
+        decimal outstanding = contract.TotalAmount - paidAmount;
+        if (outstanding < 0)
+            outstanding = 0;
+
+        return new ContractPaymentHistoryResponseDTO
+        {
+            ContractId = contract.ContractId,
+            ContractCode = contract.ContractCode,
+            ContractStatus = contract.Status,
+            BookEventId = contract.BookEventId,
+            BookingCode = contract.BookEvent?.BookingCode,
+            TotalAmount = contract.TotalAmount,
+            DepositAmount = contract.DepositAmount ?? 0,
+            PaidAmount = paidAmount,
+            OutstandingAmount = outstanding,
+            Payments = allPayments.Select(p => new ContractPaymentHistoryItemDTO
+            {
+                PaymentId = p.PaymentId,
+                PaymentCode = p.PaymentCode,
+                Amount = p.Amount,
+                PaymentMethod = p.PaymentMethod,
+                PaymentStatus = p.PaymentStatus,
+                Note = p.Note,
+                TransactionId = p.TransactionId,
+                PaidAt = p.PaidAt,
+                CreatedAt = p.CreatedAt,
+                ReceivedBy = p.ReceivedBy,
+                ReceivedByName = p.ReceivedByNavigation?.User?.Fullname
+            }).ToList()
+        };
+    }
+
     private int DepositDeadlineHours() =>
         Math.Max(1, _appSettings.DepositDeadlineHoursAfterSign);
 

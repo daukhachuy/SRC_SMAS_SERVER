@@ -101,7 +101,7 @@ namespace SMAS_API.Controllers
             };
         }
 
-        [Authorize(Roles = "Manager,Cashier,Customer")]
+        [Authorize(Roles = "Manager,Customer")]
         [HttpPost("{id:int}/deposit")]
         public async Task<IActionResult> Deposit([FromRoute] int id)
         {
@@ -156,6 +156,63 @@ namespace SMAS_API.Controllers
             var sig = Request.Headers["x-payos-signature"].FirstOrDefault();
             await _contractWorkflowService.DepositWebhookAsync(id, rawBody, sig);
             return Ok();
+        }
+
+        /// <summary>
+        /// Manager xác nhận thu phần còn lại (tiền mặt) sau khi đã checkout sự kiện.
+        /// Nhập ContractCode (mã hợp đồng in trên chứng từ), hệ thống sẽ tự tra cứu.
+        /// Tạo payment cash, chuyển Contract -> PaidInFull và BookEvent -> Completed.
+        /// </summary>
+        [Authorize(Roles = "Manager")]
+        [HttpPost("by-code/{contractCode}/final-payment/confirm")]
+        public async Task<IActionResult> ConfirmFinalPayment(
+            [FromRoute] string contractCode,
+            [FromBody] ConfirmContractFinalPaymentRequestDTO? request)
+        {
+            var managerId = GetUserId();
+            if (managerId == null)
+                return Unauthorized();
+
+            request ??= new ConfirmContractFinalPaymentRequestDTO();
+
+            var (dto, status, error) = await _contractWorkflowService.ConfirmFinalPaymentCashAsync(
+                contractCode, request, managerId.Value);
+            return status switch
+            {
+                200 => Ok(dto),
+                400 => BadRequest(new { message = error }),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
+        }
+
+        /// <summary>Lịch sử giao dịch của hợp đồng theo ContractId (cả deposit + remaining).</summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("{contractId:int}/payments")]
+        public async Task<IActionResult> GetContractPayments([FromRoute] int contractId)
+        {
+            var (dto, status, error) = await _contractWorkflowService.GetContractPaymentsByIdAsync(contractId);
+            return status switch
+            {
+                200 => Ok(dto),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
+        }
+
+        /// <summary>Lịch sử giao dịch của hợp đồng theo ContractCode (tra theo mã hợp đồng in trên chứng từ).</summary>
+        [Authorize(Roles = "Manager")]
+        [HttpGet("by-code/{contractCode}/payments")]
+        public async Task<IActionResult> GetContractPaymentsByCode([FromRoute] string contractCode)
+        {
+            var (dto, status, error) = await _contractWorkflowService.GetContractPaymentsByCodeAsync(contractCode);
+            return status switch
+            {
+                200 => Ok(dto),
+                400 => BadRequest(new { message = error }),
+                404 => NotFound(new { message = error }),
+                _ => StatusCode(status, new { message = error })
+            };
         }
 
         [HttpGet("{bookingCode}", Order = 10)]

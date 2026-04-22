@@ -330,7 +330,9 @@ namespace SMAS_DataAccess.DAO
                 sessionOrder.ClosedAt = now;
                 sessionOrder.ServedBy ??= managerUserId;
 
-                bookEvent.Status = "Completed";
+                // Nghiệp vụ mới: checkout chỉ giải phóng bàn, chờ manager tất toán đợt 2.
+                // Trạng thái Completed của BookEvent chỉ đạt được sau khi ConfirmFinalPayment.
+                bookEvent.Status = "AwaitingFinalPayment";
                 bookEvent.UpdatedAt = now;
 
                 await _context.SaveChangesAsync();
@@ -343,6 +345,28 @@ namespace SMAS_DataAccess.DAO
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Lấy danh sách BookEvent theo đúng status truyền vào (so sánh không phân biệt hoa thường),
+        /// kèm đủ navigation để map sang BookEventListResponseDTO.
+        /// </summary>
+        public async Task<List<BookEvent>> GetBookEventsByStatusAsync(string status)
+        {
+            return await _context.BookEvents
+                .Include(be => be.Customer)
+                .Include(be => be.Event)
+                .Include(be => be.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(be => be.Contract)
+                .Include(be => be.BookEventServices)
+                    .ThenInclude(s => s.Service)
+                .Include(be => be.EventFoods)
+                    .ThenInclude(ef => ef.Food)
+                .Where(be => be.Status == status)
+                .OrderByDescending(be => be.ReservationDate)
+                .ThenByDescending(be => be.ReservationTime)
+                .ToListAsync();
         }
 
         public async Task<List<BookEvent>> GetBookEvenTocheckinAsync()

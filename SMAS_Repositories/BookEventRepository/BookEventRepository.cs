@@ -42,6 +42,12 @@ namespace SMAS_Repositories.BookEventRepository
             return MapToDTO(bookEvents);
         }
 
+        public async Task<List<BookEventListResponseDTO>> GetBookEventsByStatusAsync(string status)
+        {
+            var bookEvents = await _bookEventDAO.GetBookEventsByStatusAsync(status);
+            return MapToDTO(bookEvents);
+        }
+
         public async Task<BookEvent> CreateBookEventWithDetailsAsync(
             BookEvent bookEvent,
             List<SMAS_BusinessObject.Models.BookEventService> bookEventServices,
@@ -79,7 +85,7 @@ namespace SMAS_Repositories.BookEventRepository
                 Status = bookEvent.Status,
                 CheckOutAt = checkOutAt,
                 ReleasedTableIds = releasedTableIds,
-                Message = "Checkout sự kiện thành công. Bàn đã được giải phóng về AVAILABLE."
+                Message = "Checkout thành công. Bàn đã giải phóng, vui lòng xác nhận thanh toán phần còn lại để hoàn tất sự kiện."
             };
         }
 
