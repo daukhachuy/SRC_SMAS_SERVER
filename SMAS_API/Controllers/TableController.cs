@@ -204,23 +204,31 @@ namespace SMAS_API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Manager,Admin,Waiter")]
         public async Task<IActionResult> GetAllTables(
-         [FromQuery] string? tableType,
-         [FromQuery] string? status)
+            [FromQuery] string? tableType,
+            [FromQuery] string? status,
+            [FromQuery] bool? isActive)
         {
             try
             {
-                var result = await _tableService.GetTablesAsync(tableType, status);
+           
+                var isAdminOrHigher = User.IsInRole("Admin");
+                var resolvedIsActive = isAdminOrHigher ? isActive : true;
+
+                var result = await _tableService.GetTablesAsync(tableType, status, resolvedIsActive);
                 return Ok(new { success = true, data = result });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Lỗi lấy danh sách bàn.");
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
             }
         }
 
         /// <summary>Thêm bàn mới</summary>
         [HttpPost]
+        [Authorize(Roles = "Manager,Admin")]
         public async Task<IActionResult> CreateTable([FromBody] CreateTableDto dto)
         {
             try
@@ -240,6 +248,7 @@ namespace SMAS_API.Controllers
 
         /// <summary>Cập nhật thông tin bàn</summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Manager,Admin")]
         public async Task<IActionResult> UpdateTable(int id, [FromBody] UpdateTableDto dto)
         {
             try
@@ -259,9 +268,32 @@ namespace SMAS_API.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
             }
         }
+    
+        [HttpPatch("{id}/active")]
+        [Authorize(Roles = "Manager,Admin")]
+        public async Task<IActionResult> ToggleTableActive(int id, [FromBody] ToggleTableActiveDto dto)
+        {
+            try
+            {
+                var result = await _tableService.ToggleTableActiveAsync(id, dto.IsActive);
+                if (result == null)
+                    return NotFound(new { success = false, message = $"Không tìm thấy bàn #{id}." });
 
+                return Ok(new { success = true, data = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi toggle active bàn #{Id}.", id);
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
+            }
+        }
         /// <summary>Xóa bàn (soft delete — không cho xóa bàn đang có khách)</summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Manager,Admin")]
         public async Task<IActionResult> DeleteTable(int id)
         {
             try

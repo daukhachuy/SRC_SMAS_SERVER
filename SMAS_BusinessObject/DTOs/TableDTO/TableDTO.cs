@@ -85,4 +85,11 @@ namespace SMAS_BusinessObject.DTOs.TableDTO
         public int NumberOfPeople { get; set; }
     }
 
+    public class ToggleTableActiveDto
+    {
+        /// <summary>true = kích hoạt bàn | false = vô hiệu hóa bàn</summary>
+        public bool IsActive { get; set; }
+    }
+
+
 }
