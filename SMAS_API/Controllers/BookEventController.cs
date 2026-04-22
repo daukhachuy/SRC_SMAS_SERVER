@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/book-event")]
     public class BookEventController : ControllerBase
@@ -276,6 +276,23 @@ namespace SMAS_API.Controllers
         {
             var v = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(v, out var id) ? id : null;
+        }
+
+        //[Authorize(Roles = "Admin,Manager")]
+        [HttpGet("get-bookevent")]
+        public async Task<ActionResult<BookEventResponseDTO>> GetBookEventAsync()
+        {
+            try
+            {
+                var result = await _bookEventService.GetBookEvenAsync();
+                if (result == null|| !result.Any() )
+                    return NotFound(new { message = $"Không tìm thấy đơn sự kiện nào" });
+                return Ok(new { data = result, message = "Lấy thông tin loại sự kiện thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
         }
     }
 }

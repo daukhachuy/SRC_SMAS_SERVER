@@ -189,7 +189,7 @@ namespace SMAS_DataAccess.DAO
                     throw new ArgumentException("Chỉ cho phép check-in sự kiện ở trạng thái Active.");
 
                 var eventStart = bookEvent.ReservationDate.ToDateTime(bookEvent.ReservationTime);
-                var earliestCheckIn = eventStart.AddMinutes(-30);
+                var earliestCheckIn = eventStart.AddMinutes(-90);
                 var localNow = DateTime.Now;
                 if (localNow < earliestCheckIn)
                     throw new ArgumentException(
@@ -240,7 +240,7 @@ namespace SMAS_DataAccess.DAO
                     OrderType = EventOrderType,
                     OrderStatus = EventSessionOrderStatus,
                     NumberOfGuests = bookEvent.NumberOfGuests,
-                    Note = $"Giữ bàn cho sự kiện {bookEvent.BookingCode}",
+                    Note = $"Bàn phục vụ cho sự kiện {bookEvent.BookingCode}",
                     ServedBy = managerUserId,
                     SubTotal = 0,
                     DiscountAmount = 0,
@@ -343,6 +343,25 @@ namespace SMAS_DataAccess.DAO
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<List<BookEvent>> GetBookEvenTocheckinAsync()
+        {
+            var bookEvent = await _context.BookEvents
+                .Include(be => be.Customer)
+                .Include(be => be.Event)
+                .Include(be => be.ConfirmedByNavigation)
+                    .ThenInclude(s => s!.User)
+                .Include(be => be.Contract)
+                .Include(be => be.BookEventServices)
+                    .ThenInclude(s => s.Service)
+                .Include(be => be.EventFoods)
+                    .ThenInclude(ef => ef.Food)
+                .Where(be => be.Status == "Active")
+                .OrderByDescending(be => be.ReservationDate)
+                .ToListAsync();
+            if (bookEvent == null || bookEvent.Count == 0) return null;
+            return bookEvent;
         }
 
         public async Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart)

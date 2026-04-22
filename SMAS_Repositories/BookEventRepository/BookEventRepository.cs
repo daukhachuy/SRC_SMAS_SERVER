@@ -88,6 +88,22 @@ namespace SMAS_Repositories.BookEventRepository
             return await _bookEventDAO.NotifyManagersBeforeUpcomingEventsAsync(hoursBeforeStart);
         }
 
+        public async Task<IEnumerable<BookEventResponseDTO>> GetBookEvenAsync()
+        {
+            var bookEvents = await _bookEventDAO.GetBookEvenTocheckinAsync();
+            if (bookEvents == null || bookEvents.Count == 0) return null;
+            return bookEvents.Select(be => new BookEventResponseDTO
+            {
+                BookEventId = be.BookEventId,
+                BookingCode = be.BookingCode,
+                Status = be.Status,
+                NumberOfTable = be.NumberOfGuests,
+                TitleEvent = be.Event.Title,
+                ReservationDate = be.ReservationDate,
+                ReservationTime = be.ReservationTime
+            }).ToList();
+        }
+
         // ── Private helper mapping ─────────────────────────────────────────────
         private static List<BookEventListResponseDTO> MapToDTO(List<SMAS_BusinessObject.Models.BookEvent> bookEvents)
         {

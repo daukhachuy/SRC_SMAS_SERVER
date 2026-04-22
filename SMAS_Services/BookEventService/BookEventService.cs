@@ -98,7 +98,7 @@ namespace SMAS_Services.BookEventService
             }
 
             var note = request.Note?.Trim() ?? "";
-            
+
 
             var bookingCode = "BE" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
             var now = DateTime.UtcNow;
@@ -140,6 +140,21 @@ namespace SMAS_Services.BookEventService
         public async Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart)
         {
             return await _bookEventRepository.NotifyManagersBeforeUpcomingEventsAsync(hoursBeforeStart);
+        }
+
+        public async Task<IEnumerable<BookEventResponseDTO>> GetBookEvenAsync()
+        {
+            var result = await _bookEventRepository.GetBookEvenAsync();
+            var now = DateTime.Now;
+            var filtered = result.Where(x =>
+            {
+                var reservationDateTime = x.ReservationDate.ToDateTime(x.ReservationTime);
+                var checkInStartTime = reservationDateTime.AddHours(-2);
+                return now >= checkInStartTime && now <= reservationDateTime;
+            });
+
+            return filtered;
+
         }
     }
 }
