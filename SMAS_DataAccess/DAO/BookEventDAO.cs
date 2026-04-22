@@ -190,7 +190,7 @@ namespace SMAS_DataAccess.DAO
 
                 var eventStart = bookEvent.ReservationDate.ToDateTime(bookEvent.ReservationTime);
                 var earliestCheckIn = eventStart.AddMinutes(-90);
-                var localNow = DateTime.Now;
+                var localNow = DateTime.Now.AddHours(7); 
                 if (localNow < earliestCheckIn)
                     throw new ArgumentException(
                         $"Chưa đến thời gian check-in. Bạn chỉ có thể check-in từ {earliestCheckIn:yyyy-MM-dd HH:mm}.");
