@@ -284,9 +284,11 @@ namespace SMAS_API.Controllers
         {
             try
             {
+                var now = DateTime.Now;
+                var utc = DateTime.UtcNow;
                 var result = await _bookEventService.GetBookEvenAsync();
                 if (result == null|| !result.Any() )
-                    return NotFound(new { message = $"Không tìm thấy đơn sự kiện nào" });
+                    return NotFound(new { message = $"Không tìm thấy đơn sự kiện nào utc{utc} : now{now}" });
                 return Ok(new { data = result, message = "Lấy thông tin loại sự kiện thành công." });
             }
             catch (Exception ex)
