@@ -49,6 +49,12 @@ namespace SMAS_Services.BookEventService
             return await _bookEventRepository.GetBookEventsByCustomerIdAsync(customerId);
         }
 
+        public Task<List<BookEventListResponseDTO>> GetInProgressBookEventsAsync()
+            => _bookEventRepository.GetBookEventsByStatusAsync("InProgress");
+
+        public Task<List<BookEventListResponseDTO>> GetAwaitingFinalPaymentBookEventsAsync()
+            => _bookEventRepository.GetBookEventsByStatusAsync("AwaitingFinalPayment");
+
         /// <summary>
         /// Hoàn thành đặt sự kiện (gộp 3 bước). Chỉ lưu DB khi gọi đủ dữ liệu; dùng transaction, lỗi thì rollback.
         /// NumberOfGuests trong DB lưu số bàn (không có trường numberOfTable).
@@ -98,7 +104,7 @@ namespace SMAS_Services.BookEventService
             }
 
             var note = request.Note?.Trim() ?? "";
-            
+
 
             var bookingCode = "BE" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
             var now = DateTime.UtcNow;
@@ -125,6 +131,36 @@ namespace SMAS_Services.BookEventService
                 BookingCode = created.BookingCode!,
                 Message = "Đặt sự kiện đã được tạo thành công."
             };
+        }
+
+        public async Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds)
+        {
+            return await _bookEventRepository.CheckInBookEventAsync(bookEventId, managerUserId, tableIds);
+        }
+
+        public async Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId)
+        {
+            return await _bookEventRepository.CheckoutBookEventAsync(bookEventId, managerUserId);
+        }
+
+        public async Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart)
+        {
+            return await _bookEventRepository.NotifyManagersBeforeUpcomingEventsAsync(hoursBeforeStart);
+        }
+
+        public async Task<IEnumerable<BookEventResponseDTO>> GetBookEvenAsync()
+        {
+            var result = await _bookEventRepository.GetBookEvenAsync();
+            var now = DateTime.UtcNow.AddHours(7);
+            var filtered = result.Where(x =>
+            {
+                var reservationDateTime = x.ReservationDate.ToDateTime(x.ReservationTime);
+                var checkInStartTime = reservationDateTime.AddHours(-2);
+                return now >= checkInStartTime && now <= reservationDateTime;
+            });
+
+            return filtered;
+
         }
     }
 }

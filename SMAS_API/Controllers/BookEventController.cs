@@ -5,11 +5,12 @@ using SMAS_BusinessObject.DTOs.Workflow;
 using SMAS_Services.BookEventService;
 using SMAS_Services.ContractWorkflow;
 using SMAS_Services.ManagerServices;
+using System.Collections.Generic;
 using System.Security.Claims;
 
 namespace SMAS_API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/book-event")]
     public class BookEventController : ControllerBase
@@ -90,6 +91,63 @@ namespace SMAS_API.Controllers
             };
         }
 
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/check-in")]
+        public async Task<IActionResult> CheckInBookEvent([FromRoute] int id, [FromBody] BookEventCheckInRequestDTO request)
+        {
+            try
+            {
+                var managerId = GetUserId();
+                if (managerId == null)
+                    return Unauthorized();
+
+                if (request == null)
+                    return BadRequest(new { message = "Dữ liệu check-in không hợp lệ." });
+
+                var result = await _bookEventService.CheckInBookEventAsync(id, managerId.Value, request.TableIds);
+                return Ok(new { data = result, message = result.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("{id:int}/check-out")]
+        public async Task<IActionResult> CheckOutBookEvent([FromRoute] int id)
+        {
+            try
+            {
+                var managerId = GetUserId();
+                if (managerId == null)
+                    return Unauthorized();
+
+                var result = await _bookEventService.CheckoutBookEventAsync(id, managerId.Value);
+                return Ok(new { data = result, message = result.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
         [Authorize(Roles = "Manager,Staff")]
         [HttpGet("{id:int}/detail")]
         public async Task<IActionResult> GetBookEventDetail([FromRoute] int id)
@@ -122,6 +180,49 @@ namespace SMAS_API.Controllers
                     return Ok(new { data = (object?)null, message = "Bạn chưa có lịch sử đặt sự kiện." });
 
                 return Ok(new { data = bookEvents, message = "Lấy lịch sử đặt sự kiện thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>Danh sách BookEvent đang phục vụ (Status = InProgress) — sau check-in, chưa check-out.</summary>
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("in-progress")]
+        public async Task<IActionResult> GetInProgressBookEvents()
+        {
+            try
+            {
+                var bookEvents = await _bookEventService.GetInProgressBookEventsAsync();
+
+                if (bookEvents == null || bookEvents.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Không có sự kiện nào đang phục vụ." });
+
+                return Ok(new { data = bookEvents, message = "Lấy danh sách sự kiện đang phục vụ thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Danh sách BookEvent đã checkout, đang chờ manager xác nhận tất toán phần còn lại
+        /// (Status = AwaitingFinalPayment).
+        /// </summary>
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("awaiting-final-payment")]
+        public async Task<IActionResult> GetAwaitingFinalPaymentBookEvents()
+        {
+            try
+            {
+                var bookEvents = await _bookEventService.GetAwaitingFinalPaymentBookEventsAsync();
+
+                if (bookEvents == null || bookEvents.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Không có sự kiện nào chờ thanh toán phần còn lại." });
+
+                return Ok(new { data = bookEvents, message = "Lấy danh sách sự kiện chờ tất toán thành công." });
             }
             catch (Exception ex)
             {
@@ -218,6 +319,23 @@ namespace SMAS_API.Controllers
         {
             var v = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(v, out var id) ? id : null;
+        }
+
+        //[Authorize(Roles = "Admin,Manager")]
+        [HttpGet("get-bookevent")]
+        public async Task<ActionResult<BookEventResponseDTO>> GetBookEventAsync()
+        {
+            try
+            {
+                var result = await _bookEventService.GetBookEvenAsync();
+                if (result == null|| !result.Any() )
+                    return NotFound(new { message = $"Không tìm thấy đơn sự kiện nào " });
+                return Ok(new { data = result, message = "Lấy thông tin loại sự kiện thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
         }
     }
 }

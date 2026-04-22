@@ -467,7 +467,7 @@ namespace SMAS_API.Controllers
         }
 
 
-        [Authorize(Roles = "Waiter,Manager,Kitchen,Admin")]
+        //[Authorize(Roles = "Waiter,Manager,Kitchen,Admin")]
         [HttpPost("choose-staffid-delivery")]
         public async Task<IActionResult> ChooseAssignedStaffbyOrderAsync([FromBody] ChooseAssignedStaffRequestDTO request)
         {

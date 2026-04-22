@@ -228,6 +228,42 @@ namespace SMAS_DataAccess.DAO
         }
 
         /// <summary>
+        /// Lấy danh sách Reservation đã Confirmed theo ngày, kèm User + Orders (để lấy OrderCode nếu cần)
+        /// </summary>
+        public async Task<List<Reservation>> GetConfirmedReservationsByDateAsync(DateOnly date)
+        {
+            return await _context.Reservations
+                .Where(r => r.ReservationDate == date && r.Status == "Confirmed")
+                .Include(r => r.User)
+                .Include(r => r.Orders)
+                .OrderBy(r => r.ReservationTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Lấy danh sách BookEvent đã Confirmed theo ngày, kèm Customer + Event + Orders (để lấy OrderCode nếu cần)
+        /// </summary>
+        public async Task<List<BookEvent>> GetConfirmedBookEventsByDateAsync(DateOnly date)
+        {
+            return await _context.BookEvents
+                .Where(be => be.ReservationDate == date && be.Status == "Confirmed")
+                .Include(be => be.Customer)
+                .Include(be => be.Event)
+                .Include(be => be.Orders)
+                .OrderBy(be => be.ReservationTime)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Đếm tổng số bàn đang active
+        /// </summary>
+        public async Task<int> CountActiveTablesAsync()
+        {
+            return await _context.Tables
+                .CountAsync(t => t.IsActive != false);
+        }
+
+        /// <summary>
         /// Manager bấm Cancel đặt bàn theo ReservationCode:
         /// - Status → Cancelled
         /// - Ghi CancellationReason (bắt buộc)

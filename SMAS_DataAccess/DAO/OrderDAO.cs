@@ -37,6 +37,7 @@ namespace SMAS_DataAccess.DAO
                     .ThenInclude(oi => oi.Combo)
                 .Include(o => o.Payments)
                 .Where(o => o.OrderStatus != "Completed" && o.OrderStatus != "Cancelled")
+                .Where(o => o.OrderType != "BookEvent")
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
@@ -583,10 +584,6 @@ namespace SMAS_DataAccess.DAO
                 return (false, "Chỉ đơn Pending mới được gán nhân viên.");
             if (order.Delivery == null)
                 return (false, $"Đơn hàng {request.OrderCode} không có thông tin giao hàng.");
-
-            if (!await CheckPaymentAsync(order.OrderCode))
-                return (false, $"Đơn hàng {request.OrderCode} chưa được thanh toán, không thể gán shipper.");
-
             var staff = await _context.Staff
                                       .FirstOrDefaultAsync(s => s.UserId == request.StaffId);
             if (staff == null)
@@ -745,7 +742,8 @@ namespace SMAS_DataAccess.DAO
                           && to.LeftAt == null
                           && to.Order.OrderStatus != "Cancelled"
                           && to.Order.OrderStatus != "Closed"
-                          && to.Order.OrderStatus != "Completed")
+                          && to.Order.OrderStatus != "Completed"
+                          && to.Order.OrderType != "BookEvent")
                 .Select(to => to.Order.OrderCode)
                 .FirstOrDefaultAsync();
         }

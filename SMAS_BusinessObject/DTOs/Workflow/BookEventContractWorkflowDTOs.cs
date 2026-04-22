@@ -167,3 +167,70 @@ public class ConfirmBookEventResponseDTO
     public bool EmailSent { get; set; }
     public string Message { get; set; } = null!;
 }
+
+/// <summary>
+/// Request manager xác nhận thu phần còn lại của hợp đồng (sau checkout sự kiện).
+/// Mặc định phương thức Cash; nếu Amount null sẽ auto dùng outstanding tính động.
+/// </summary>
+public class ConfirmContractFinalPaymentRequestDTO
+{
+    /// <summary>
+    /// Ghi chú thêm (tuỳ chọn). Payment.Note sẽ luôn bắt đầu bằng "remaining".
+    /// Số tiền thu được backend tự tính = TotalAmount - Σ(payment đã Paid), manager không cần nhập.
+    /// </summary>
+    public string? Note { get; set; }
+}
+
+public class ConfirmContractFinalPaymentResponseDTO
+{
+    public int ContractId { get; set; }
+    public string? ContractCode { get; set; }
+    public int? BookEventId { get; set; }
+    public string? BookingCode { get; set; }
+
+    public string ContractStatus { get; set; } = null!;
+    public string BookEventStatus { get; set; } = null!;
+
+    public decimal TotalAmount { get; set; }
+    public decimal DepositAmount { get; set; }
+    public decimal PaidBefore { get; set; }
+    public decimal PaidThisTime { get; set; }
+    public decimal PaidTotal { get; set; }
+    public decimal OutstandingAmount { get; set; }
+
+    public int PaymentId { get; set; }
+    public string? PaymentCode { get; set; }
+    public DateTime PaidAt { get; set; }
+    public string Message { get; set; } = null!;
+}
+
+public class ContractPaymentHistoryResponseDTO
+{
+    public int ContractId { get; set; }
+    public string? ContractCode { get; set; }
+    public string? ContractStatus { get; set; }
+    public int? BookEventId { get; set; }
+    public string? BookingCode { get; set; }
+
+    public decimal TotalAmount { get; set; }
+    public decimal DepositAmount { get; set; }
+    public decimal PaidAmount { get; set; }
+    public decimal OutstandingAmount { get; set; }
+
+    public List<ContractPaymentHistoryItemDTO> Payments { get; set; } = new();
+}
+
+public class ContractPaymentHistoryItemDTO
+{
+    public int PaymentId { get; set; }
+    public string? PaymentCode { get; set; }
+    public decimal Amount { get; set; }
+    public string PaymentMethod { get; set; } = null!;
+    public string? PaymentStatus { get; set; }
+    public string? Note { get; set; }
+    public string? TransactionId { get; set; }
+    public DateTime? PaidAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public int? ReceivedBy { get; set; }
+    public string? ReceivedByName { get; set; }
+}

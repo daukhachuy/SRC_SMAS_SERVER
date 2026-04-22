@@ -140,7 +140,8 @@ namespace SMAS_API
                     policy.WithOrigins(
                         //"https://brave-hill-0480d9600.1.azurestaticapps.net",
                         "https://zealous-sky-0d8578e00.2.azurestaticapps.net",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        "https://samsrestaurant.app"
                     )
                     .AllowAnyMethod()
                     .AllowAnyHeader()
@@ -280,6 +281,8 @@ namespace SMAS_API
             builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
             builder.Services.AddHostedService<ContractDepositExpirationHostedService>();
             builder.Services.AddHostedService<AutoCancelExpiredDeliveryOrdersJob>();
+            builder.Services.AddHostedService<UpcomingBookEventReminderHostedService>();
+            builder.Services.AddHostedService<MonthlySalaryCalculationJob>();
             builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection(PayOSSettings.SectionName));
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentService, PaymentService>();

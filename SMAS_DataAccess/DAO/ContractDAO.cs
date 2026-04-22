@@ -195,5 +195,123 @@ namespace SMAS_DataAccess.DAO
             _context.Contracts.Update(contract);
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Lấy contract kèm BookEvent + Payments (+ Staff của ReceivedBy) để dùng cho
+        /// xác nhận tất toán cuối và xem lịch sử giao dịch.
+        /// </summary>
+        public async Task<Contract?> GetContractWithBookEventAndPaymentsAsync(int contractId)
+        {
+            return await _context.Contracts
+                .Include(c => c.BookEvent)
+                .Include(c => c.Payments)
+                    .ThenInclude(p => p.ReceivedByNavigation)
+                        .ThenInclude(s => s!.User)
+                .FirstOrDefaultAsync(c => c.ContractId == contractId);
+        }
+
+        public async Task<Contract?> GetContractWithBookEventAndPaymentsByCodeAsync(string contractCode)
+        {
+            return await _context.Contracts
+                .Include(c => c.BookEvent)
+                .Include(c => c.Payments)
+                    .ThenInclude(p => p.ReceivedByNavigation)
+                        .ThenInclude(s => s!.User)
+                .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+        }
+
+        /// <summary>
+        /// Tạo payment tiền mặt cho phần còn lại của hợp đồng và kết thúc sự kiện trong 1 transaction.
+        /// - Re-check điều kiện bằng dữ liệu "fresh" để tránh race (double-click / double-confirm).
+        /// - Không đụng cột computed Contract.RemainingAmount.
+        /// - Tính outstanding = Contract.TotalAmount - Sum(Paid payments) -> tránh sai khi có payment khác ngoài deposit.
+        /// </summary>
+        public async Task<(Payment payment, decimal paidBefore, decimal paidTotal, decimal outstanding)>
+            AddRemainingCashPaymentAndCompleteAsync(int contractId, string? extraNote, int managerUserId)
+        {
+            const decimal Tolerance = 0.01m;
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var contract = await _context.Contracts
+                    .Include(c => c.Payments)
+                    .FirstOrDefaultAsync(c => c.ContractId == contractId);
+
+                if (contract == null)
+                    throw new InvalidOperationException("CONTRACT_NOT_FOUND");
+
+                if (contract.Status == "Cancelled")
+                    throw new InvalidOperationException("CONTRACT_CANCELLED");
+
+                if (contract.Status == "PaidInFull")
+                    throw new InvalidOperationException("CONTRACT_ALREADY_PAID_IN_FULL");
+
+                if (contract.Status != "Deposited")
+                    throw new InvalidOperationException("CONTRACT_NOT_DEPOSITED");
+
+                var bookEvent = contract.BookEventId == null
+                    ? null
+                    : await _context.BookEvents.FirstOrDefaultAsync(b => b.BookEventId == contract.BookEventId);
+
+                if (bookEvent == null)
+                    throw new InvalidOperationException("BOOKEVENT_NOT_FOUND");
+
+                if (!string.Equals(bookEvent.Status, "AwaitingFinalPayment", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("BOOKEVENT_NOT_AWAITING_FINAL_PAYMENT");
+
+                decimal totalAmount = contract.TotalAmount;
+                decimal paidBefore = contract.Payments
+                    .Where(p => p.PaymentStatus == "Paid")
+                    .Sum(p => p.Amount);
+                decimal outstanding = totalAmount - paidBefore;
+
+                // Nghiệp vụ: tất toán 1 lần bằng outstanding đúng tại thời điểm confirm.
+                // Nếu outstanding ~ 0 nghĩa là deposit đã đủ (bất thường với flow 30%), coi như đã trả đủ.
+                if (outstanding <= Tolerance)
+                    throw new InvalidOperationException("CONTRACT_ALREADY_PAID_IN_FULL");
+
+                decimal amountToPay = outstanding;
+
+                var now = DateTime.UtcNow;
+                var note = string.IsNullOrWhiteSpace(extraNote) ? "remaining" : $"remaining: {extraNote.Trim()}";
+
+                var payment = new Payment
+                {
+                    PaymentCode = "REM-" + now.ToString("yyyyMMddHHmm") + "-" + contractId,
+                    ContractId = contractId,
+                    OrderId = null,
+                    Amount = amountToPay,
+                    PaymentMethod = "Cash",
+                    PaymentStatus = "Paid",
+                    TransactionId = $"CASH-CON-{contractId}-{now.Ticks}",
+                    Note = note,
+                    ReceivedBy = managerUserId,
+                    PaidAt = now,
+                    CreatedAt = now
+                };
+                _context.Payments.Add(payment);
+
+                contract.Status = "PaidInFull";
+                contract.UpdatedAt = now;
+                _context.Contracts.Update(contract);
+
+                bookEvent.Status = "Completed";
+                bookEvent.UpdatedAt = now;
+                _context.BookEvents.Update(bookEvent);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                decimal paidTotal = paidBefore + amountToPay;
+                decimal newOutstanding = totalAmount - paidTotal;
+                return (payment, paidBefore, paidTotal, newOutstanding < 0 ? 0 : newOutstanding);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

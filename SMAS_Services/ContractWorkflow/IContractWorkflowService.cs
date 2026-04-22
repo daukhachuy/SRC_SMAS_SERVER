@@ -31,4 +31,20 @@ public interface IContractWorkflowService
 
     /// <summary>Job nền: hủy Signed quá hạn cọc (theo SignedAt + cấu hình giờ).</summary>
     Task<int> CancelExpiredSignedDepositContractsAsync();
+
+    /// <summary>
+    /// Manager xác nhận thu phần còn lại (tiền mặt) sau khi checkout sự kiện.
+    /// Nhập ContractCode (mã hợp đồng trên chứng từ) thay vì ContractId.
+    /// Tạo Payment cash, chuyển Contract -> PaidInFull và BookEvent -> Completed.
+    /// </summary>
+    Task<(ConfirmContractFinalPaymentResponseDTO? dto, int statusCode, string? error)>
+        ConfirmFinalPaymentCashAsync(string contractCode, ConfirmContractFinalPaymentRequestDTO request, int managerUserId);
+
+    /// <summary>Lịch sử giao dịch của 1 hợp đồng (deposit + remaining + other), kèm tổng đã/sẽ thu.</summary>
+    Task<(ContractPaymentHistoryResponseDTO? dto, int statusCode, string? error)>
+        GetContractPaymentsByIdAsync(int contractId);
+
+    /// <summary>Lịch sử giao dịch theo ContractCode (để manager tra theo mã hợp đồng).</summary>
+    Task<(ContractPaymentHistoryResponseDTO? dto, int statusCode, string? error)>
+        GetContractPaymentsByCodeAsync(string contractCode);
 }
