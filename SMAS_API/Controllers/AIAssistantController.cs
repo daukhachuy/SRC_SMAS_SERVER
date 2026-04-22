@@ -8,7 +8,7 @@ namespace SMAS_API.Controllers
 {
     [ApiController]
     [Route("api/admin/dashboard")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class AIAssistantController : Controller
     {
         private readonly IAIAnalysisServices _aiservice;
