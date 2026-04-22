@@ -98,7 +98,7 @@ namespace SMAS_Services.BookEventService
             }
 
             var note = request.Note?.Trim() ?? "";
-            
+
 
             var bookingCode = "BE" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
             var now = DateTime.UtcNow;
@@ -125,6 +125,36 @@ namespace SMAS_Services.BookEventService
                 BookingCode = created.BookingCode!,
                 Message = "Đặt sự kiện đã được tạo thành công."
             };
+        }
+
+        public async Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds)
+        {
+            return await _bookEventRepository.CheckInBookEventAsync(bookEventId, managerUserId, tableIds);
+        }
+
+        public async Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId)
+        {
+            return await _bookEventRepository.CheckoutBookEventAsync(bookEventId, managerUserId);
+        }
+
+        public async Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart)
+        {
+            return await _bookEventRepository.NotifyManagersBeforeUpcomingEventsAsync(hoursBeforeStart);
+        }
+
+        public async Task<IEnumerable<BookEventResponseDTO>> GetBookEvenAsync()
+        {
+            var result = await _bookEventRepository.GetBookEvenAsync();
+            var now = DateTime.Now;
+            var filtered = result.Where(x =>
+            {
+                var reservationDateTime = x.ReservationDate.ToDateTime(x.ReservationTime);
+                var checkInStartTime = reservationDateTime.AddHours(-2);
+                return now >= checkInStartTime && now <= reservationDateTime;
+            });
+
+            return filtered;
+
         }
     }
 }
