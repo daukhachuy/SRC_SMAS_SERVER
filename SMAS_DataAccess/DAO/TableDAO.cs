@@ -60,11 +60,13 @@ namespace SMAS_DataAccess.DAO
         //        .ToListAsync();
         //}
 
-        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status)
+        public async Task<List<TableResponseDTO>> GetTablesAsync(string? tableType, string? status, bool? isActive)
         {
-            var query = _context.Tables
-                .Where(t => t.IsActive != false)
-                .AsQueryable();
+            var query = _context.Tables.AsQueryable();
+
+            // Chỉ lọc IsActive khi FE truyền tường minh
+            if (isActive.HasValue)
+                query = query.Where(t => t.IsActive == isActive.Value);
 
             if (!string.IsNullOrEmpty(tableType))
                 query = query.Where(t => t.TableType == tableType);
@@ -98,12 +100,14 @@ namespace SMAS_DataAccess.DAO
                     TableType = t.TableType,
                     NumberOfPeople = t.NumberOfPeople,
                     Status = t.Status,
+                    IsActive = t.IsActive,
                     QrCode = t.QrCode,
                     CurrentGuests = activeOrder?.NumberOfGuests ?? 0,
                     CurrentAmount = activeOrder?.TotalAmount ?? 0
                 };
             }).ToList();
         }
+
 
         private string GenerateQrCodeValue(int tableId)
         {
@@ -164,6 +168,33 @@ namespace SMAS_DataAccess.DAO
                              && to.LeftAt == null
                              && to.Order.OrderStatus != "Cancelled"
                              && to.Order.OrderStatus != "Closed");
+        }
+
+        public async Task<TableResponseDTO?> ToggleTableActiveAsync(int tableId, bool isActive)
+        {
+            var table = await _context.Tables.FindAsync(tableId);
+            if (table == null) return null;
+
+            table.IsActive = isActive;
+            table.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return new TableResponseDTO
+            {
+                TableId = table.TableId,
+                TableName = table.TableName,
+                TableType = table.TableType,
+                NumberOfPeople = table.NumberOfPeople,
+                Status = table.Status,
+                IsActive = table.IsActive,
+                QrCode = table.QrCode,
+                CurrentGuests = 0,
+                CurrentAmount = 0
+            };
+        }
+        public async Task<Table?> GetTableByIdRawAsync(int tableId)
+        {
+            return await _context.Tables.FindAsync(tableId);  // không filter IsActive
         }
     }
 }
