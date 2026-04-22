@@ -145,7 +145,7 @@ namespace SMAS_Services.BookEventService
         public async Task<IEnumerable<BookEventResponseDTO>> GetBookEvenAsync()
         {
             var result = await _bookEventRepository.GetBookEvenAsync();
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var filtered = result.Where(x =>
             {
                 var reservationDateTime = x.ReservationDate.ToDateTime(x.ReservationTime);
