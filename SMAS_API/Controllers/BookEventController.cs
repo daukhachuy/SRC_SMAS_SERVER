@@ -187,6 +187,49 @@ namespace SMAS_API.Controllers
             }
         }
 
+        /// <summary>Danh sách BookEvent đang phục vụ (Status = InProgress) — sau check-in, chưa check-out.</summary>
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("in-progress")]
+        public async Task<IActionResult> GetInProgressBookEvents()
+        {
+            try
+            {
+                var bookEvents = await _bookEventService.GetInProgressBookEventsAsync();
+
+                if (bookEvents == null || bookEvents.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Không có sự kiện nào đang phục vụ." });
+
+                return Ok(new { data = bookEvents, message = "Lấy danh sách sự kiện đang phục vụ thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Danh sách BookEvent đã checkout, đang chờ manager xác nhận tất toán phần còn lại
+        /// (Status = AwaitingFinalPayment).
+        /// </summary>
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("awaiting-final-payment")]
+        public async Task<IActionResult> GetAwaitingFinalPaymentBookEvents()
+        {
+            try
+            {
+                var bookEvents = await _bookEventService.GetAwaitingFinalPaymentBookEventsAsync();
+
+                if (bookEvents == null || bookEvents.Count == 0)
+                    return Ok(new { data = (object?)null, message = "Không có sự kiện nào chờ thanh toán phần còn lại." });
+
+                return Ok(new { data = bookEvents, message = "Lấy danh sách sự kiện chờ tất toán thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống.", detail = ex.Message });
+            }
+        }
+
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("history")]
         public async Task<IActionResult> GetAllBookEventCompleteAndCancel()

@@ -32,7 +32,7 @@ namespace SMAS_API.Controllers
         /// Xem bàn available theo ngày và khung giờ (Sáng/Trưa/Chiều/Tối).
         /// Trả về danh sách Reservation + BookEvent đã confirmed cùng bàn available.
         /// </summary>
-       [Authorize(Roles = "Manager,Admin")]
+       [Authorize(Roles = "Manager,Admin,Waiter")]
         [HttpGet("availability")]
         public async Task<IActionResult> GetTableAvailability(
             [FromQuery] DateOnly? date,

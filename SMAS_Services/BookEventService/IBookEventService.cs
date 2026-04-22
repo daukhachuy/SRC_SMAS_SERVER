@@ -13,6 +13,8 @@ namespace SMAS_Services.BookEventService
         Task<BookEventListResponseDTO?> GetBookEventByIdAsync(int bookEventId);
         Task<List<BookEventListResponseDTO>> GetAllBookEventCompleteAndCancelAsync();
         Task<List<BookEventListResponseDTO>> GetMyBookEventHistoryAsync(int customerId);
+        Task<List<BookEventListResponseDTO>> GetInProgressBookEventsAsync();
+        Task<List<BookEventListResponseDTO>> GetAwaitingFinalPaymentBookEventsAsync();
         Task<CreateBookEventResponseDTO> CreateBookEventWithDetailsAsync(CreateBookEventRequestDTO request);
         Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds);
         Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId);
