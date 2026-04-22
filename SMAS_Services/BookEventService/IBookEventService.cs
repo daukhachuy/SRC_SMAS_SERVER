@@ -17,5 +17,6 @@ namespace SMAS_Services.BookEventService
         Task<BookEventCheckInResponseDTO> CheckInBookEventAsync(int bookEventId, int managerUserId, List<int> tableIds);
         Task<BookEventCheckoutResponseDTO> CheckoutBookEventAsync(int bookEventId, int managerUserId);
         Task<int> NotifyManagersBeforeUpcomingEventsAsync(int hoursBeforeStart);
+        Task<IEnumerable<BookEventResponseDTO>> GetBookEvenAsync();
     }
 }
