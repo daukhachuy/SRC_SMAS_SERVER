@@ -27,4 +27,11 @@ public interface IContractWorkflowRepository
     Task<bool> ExistsPaidDepositForContractAsync(int contractId);
 
     Task<int> CancelSignedContractsPastDepositWindowAsync(int depositDeadlineHoursAfterSign);
+
+    Task<Contract?> GetContractWithBookEventAndPaymentsAsync(int contractId);
+
+    Task<Contract?> GetContractWithBookEventAndPaymentsByCodeAsync(string contractCode);
+
+    Task<(Payment payment, decimal paidBefore, decimal paidTotal, decimal outstanding)>
+        AddRemainingCashPaymentAndCompleteAsync(int contractId, string? extraNote, int managerUserId);
 }

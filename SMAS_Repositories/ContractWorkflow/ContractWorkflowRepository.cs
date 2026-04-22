@@ -69,4 +69,14 @@ public class ContractWorkflowRepository : IContractWorkflowRepository
 
     public Task<int> CancelSignedContractsPastDepositWindowAsync(int depositDeadlineHoursAfterSign) =>
         _contractDAO.CancelSignedContractsPastDepositWindowAsync(depositDeadlineHoursAfterSign);
+
+    public Task<Contract?> GetContractWithBookEventAndPaymentsAsync(int contractId) =>
+        _contractDAO.GetContractWithBookEventAndPaymentsAsync(contractId);
+
+    public Task<Contract?> GetContractWithBookEventAndPaymentsByCodeAsync(string contractCode) =>
+        _contractDAO.GetContractWithBookEventAndPaymentsByCodeAsync(contractCode);
+
+    public Task<(Payment payment, decimal paidBefore, decimal paidTotal, decimal outstanding)>
+        AddRemainingCashPaymentAndCompleteAsync(int contractId, string? extraNote, int managerUserId) =>
+        _contractDAO.AddRemainingCashPaymentAndCompleteAsync(contractId, extraNote, managerUserId);
 }

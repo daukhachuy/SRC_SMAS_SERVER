@@ -49,6 +49,12 @@ namespace SMAS_Services.BookEventService
             return await _bookEventRepository.GetBookEventsByCustomerIdAsync(customerId);
         }
 
+        public Task<List<BookEventListResponseDTO>> GetInProgressBookEventsAsync()
+            => _bookEventRepository.GetBookEventsByStatusAsync("InProgress");
+
+        public Task<List<BookEventListResponseDTO>> GetAwaitingFinalPaymentBookEventsAsync()
+            => _bookEventRepository.GetBookEventsByStatusAsync("AwaitingFinalPayment");
+
         /// <summary>
         /// Hoàn thành đặt sự kiện (gộp 3 bước). Chỉ lưu DB khi gọi đủ dữ liệu; dùng transaction, lỗi thì rollback.
         /// NumberOfGuests trong DB lưu số bàn (không có trường numberOfTable).
