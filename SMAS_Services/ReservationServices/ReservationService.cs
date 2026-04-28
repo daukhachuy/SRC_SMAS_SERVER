@@ -59,6 +59,17 @@ namespace SMAS_Services.ReservationServices
             {
                 try
                 {
+                    await _notificationService.CreateAutoNotificationAsync(
+                                userId: userid,
+                                senderId: null,
+                                title: "Đặt bàn thành công",
+                                content: $"Đặt bàn {uniqueCode} ngày {dto.ReservationDate:dd/MM/yyyy} " +
+                                         $"lúc {dto.ReservationTime:HH\\:mm} cho {dto.NumberOfGuests} khách " +
+                                         $"đã được ghi nhận. Vui lòng chờ nhà hàng xác nhận!",
+                                type: "Reservation",
+                                severity: "Information"
+                            );
+
                     var managers = await _reservationRepository.GetUsersByRoleAsync("Manager");
                     Console.WriteLine($"[DEBUG] Found {managers.Count} managers");
 

@@ -1,5 +1,6 @@
 using SMAS_BusinessObject.DTOs.ManagerDTO;
 using SMAS_BusinessObject.DTOs.ReservationDTO;
+using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,5 +24,6 @@ namespace SMAS_Repositories.ManagerRepositories
         Task<NumberContractNeedSignedResponseDTO> GetNumberContractNeedSignedAsync();
         Task<bool> DeleteReservationByReservationCodeAsync(string reservationCode, string cancellationReason, int? managerUserId);
         Task<ReservationListResponse?> PatchConfirmReservationAsync(string reservationCode, int? managerUserId);
+        Task<List<User>> GetUsersByRoleAsync(string role);
     }
 }

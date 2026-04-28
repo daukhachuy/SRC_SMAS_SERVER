@@ -171,6 +171,26 @@ public class PaymentService : IPaymentService
                 type: "Order",
                 severity: "Information"
             );
+            try
+            {
+                var managers = await _orderRepository.GetUsersByRoleAsync("Manager");
+                foreach (var manager in managers)
+                {
+                    await _notificationService.CreateAutoNotificationAsync(
+                        userId: manager.UserId,
+                        senderId: null,
+                        title: "Thanh toán thành công",
+                        content: $"Đơn hàng {order.OrderCode} đã được thanh toán " +
+                                 $"{data.Amount:N0}đ qua PayOS.",
+                        type: "Order",
+                        severity: "Information"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Manager payment notification failed: {ex.Message}");
+            }
         }
 
         return true;
@@ -362,7 +382,49 @@ public class PaymentService : IPaymentService
 
     public async Task<(bool status, string message)> CreatePaymentOrderCashAsync(PaymentOrderCashRequestDTO payment, int userid)
     {
-        return await _paymentRepo.CreatePaymentOrderCashAsync(payment,userid);
+        var (status, msg) = await _paymentRepo.CreatePaymentOrderCashAsync(payment, userid);
+
+        if (status)
+        {
+            try
+            {
+                var order = await _orderRepository.GetOrderByIdAsync(payment.OrderId);
+                if (order != null)
+                {
+                    // Notify Customer
+                    await _notificationService.CreateAutoNotificationAsync(
+                        userId: order.UserId,
+                        senderId: userid,
+                        title: "Thanh toán thành công",
+                        content: $"Đơn hàng {order.OrderCode} đã được thanh toán " +
+                                  $"{payment.Amount:N0}đ bằng tiền mặt. Cảm ơn bạn!",
+                        type: "Order",
+                        severity: "Information"
+                    );
+
+                    // Notify tất cả Manager
+                    var managers = await _orderRepository.GetUsersByRoleAsync("Manager");
+                    foreach (var manager in managers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: manager.UserId,
+                            senderId: userid,
+                            title: "Thanh toán tiền mặt thành công",
+                            content: $"Đơn hàng {order.OrderCode} đã được thanh toán " +
+                                      $"{payment.Amount:N0}đ bằng tiền mặt.",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Cash payment notification failed: {ex.Message}");
+            }
+        }
+
+        return (status, msg);
     }
 
     public async Task<CreatePaymentLinkResponse> CreateRemainingPaymentLinkAsync(RemainingPaymentQrRequestDTO request)
