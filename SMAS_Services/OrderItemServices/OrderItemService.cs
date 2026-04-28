@@ -147,7 +147,7 @@ namespace SMAS_Services.OrderItemServices
                 if (orderItem == null)
                     throw new KeyNotFoundException("Order item not found");
 
-                _ = GetItemName(orderItem);
+                var itemName = GetItemName(orderItem);
 
                 await ValidateOrderActive(orderItem.OrderId);
 
@@ -159,6 +159,26 @@ namespace SMAS_Services.OrderItemServices
                 await _orderItemRepository.UpdateReadyAsync(orderItemId, servedTime);
 
                 await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Ready");
+                if (orderItem.Order.ServedBy.HasValue)
+                {
+                    try
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: orderItem.Order.ServedBy.Value,
+                            senderId: null,
+                            title: "Món ăn đã sẵn sàng",
+                            content: $"Đơn hàng {orderItem.Order.OrderCode} — " +
+                                     $"{itemName} (x{orderItem.Quantity}) đã chế biến xong. " +
+                                     $"Vui lòng mang ra cho khách!",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ERROR] Ready item notification failed: {ex.Message}");
+                    }
+                }
 
                 return new KitchenOrderItemReadyResponseDTO
                 {
@@ -182,8 +202,7 @@ namespace SMAS_Services.OrderItemServices
                 if (orderItem == null)
                     throw new KeyNotFoundException("Order item not found");
 
-                _ = GetItemName(orderItem);
-
+                var itemName = GetItemName(orderItem);
                 await ValidateOrderActive(orderItem.OrderId);
 
                 var currentStatus = orderItem.Status;
@@ -194,6 +213,26 @@ namespace SMAS_Services.OrderItemServices
                 await _orderItemRepository.UpdateServedAsync(orderItemId, servedTime);
 
                 await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Served");
+                try
+                {
+                    var kitchenUsers = await _orderItemRepository.GetUsersByRoleAsync("Kitchen");
+                    foreach (var kitchenUser in kitchenUsers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: kitchenUser.UserId,
+                            senderId: null,
+                            title: "Món đã được phục vụ",
+                            content: $"Đơn hàng {orderItem.Order.OrderCode} — " +
+                                     $"{itemName} (x{orderItem.Quantity}) đã được mang ra cho khách.",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Served item kitchen notification failed: {ex.Message}");
+                }
 
                 return new KitchenOrderItemReadyResponseDTO
                 {
@@ -221,7 +260,7 @@ namespace SMAS_Services.OrderItemServices
                 if (orderItem == null)
                     throw new KeyNotFoundException("Order item not found");
 
-                _ = GetItemName(orderItem);
+                var itemName = GetItemName(orderItem);
 
                 try
                 {
@@ -244,7 +283,26 @@ namespace SMAS_Services.OrderItemServices
                 var newSubTotal = await _orderItemRepository.CancelItemAndRecalculateOrderTotalsAsync(orderItemId, newNote);
 
                 await _kitchenNotifier.NotifyOrderItemStatusChanged(orderItem.OrderId, orderItemId, "Cancelled");
-
+                if (orderItem.Order.ServedBy.HasValue)
+                {
+                    try
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: orderItem.Order.ServedBy.Value,
+                            senderId: null,
+                            title: "Bếp đã hủy một món",
+                            content: $"Đơn hàng {orderItem.Order.OrderCode} — " +
+                                     $"{itemName} (x{orderItem.Quantity}) đã bị hủy bởi bếp. " +
+                                     $"Lý do: {reason}",
+                            type: "Order",
+                            severity: "Warning"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ERROR] Cancel item waiter notification failed: {ex.Message}");
+                    }
+                }
                 return new KitchenOrderItemCancelledResponseDTO
                 {
                     OrderItemId = orderItem.OrderItemId,
@@ -334,6 +392,27 @@ namespace SMAS_Services.OrderItemServices
                 await _orderItemRepository.UpdateAllPreparingToReadyAsync(orderId, servedTime);
 
                 await _kitchenNotifier.NotifyAllItemsStatusChanged(orderId, "Ready", preparingItems.Select(i => i.OrderItemId).ToList());
+                if (order.ServedBy.HasValue)
+                {
+                    try
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: order.ServedBy.Value,
+                            senderId: null,
+                            title: "Tất cả món đã sẵn sàng",
+                            content: $"Đơn hàng {order.OrderCode} — " +
+                                     $"Tất cả {preparingItems.Count} món đã chế biến xong. " +
+                                     $"Vui lòng mang ra cho khách!",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ERROR] All-ready notification failed: {ex.Message}");
+                    }
+                }
+
 
                 return new KitchenUpdateAllReadyResponseDTO
                 {
