@@ -319,5 +319,15 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return reservation;
         }
+
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _context.Users
+                .Include(u => u.Staff)
+                .Where(u => u.Role == role
+                          || (u.Staff != null && u.Staff.Position == role))
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

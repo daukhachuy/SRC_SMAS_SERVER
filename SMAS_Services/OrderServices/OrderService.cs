@@ -19,7 +19,7 @@ namespace SMAS_Services.OrderServices
         private readonly ITableService _tableService;
         private readonly IOrderItemRepository _orderItemRepository;
         private readonly INotificationService _notificationService;
-        public OrderService(IOrderRepository orderRepository,IOrderItemRepository orderItemRepository, ITableService tableService, INotificationService notificationService)
+        public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, ITableService tableService, INotificationService notificationService)
         {
             _orderRepository = orderRepository;
             _orderItemRepository = orderItemRepository;
@@ -46,6 +46,27 @@ namespace SMAS_Services.OrderServices
                     type: "Order",
                     severity: "Information"
                 );
+
+                try
+                {
+                    var managers = await _orderRepository.GetUsersByRoleAsync("Manager");
+                    foreach (var manager in managers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: manager.UserId,
+                            senderId: null,
+                            title: "Có đơn delivery mới",
+                            content: $"Đơn hàng {result.OrderCode} vừa được đặt. " +
+                                     $"Vui lòng kiểm tra và xử lý!",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Manager delivery notification failed: {ex.Message}");
+                }
             }
 
             return result;
@@ -180,6 +201,26 @@ namespace SMAS_Services.OrderServices
                         type: "Order",
                         severity: "Warning"
                     );
+                    try
+                    {
+                        var managers = await _orderRepository.GetUsersByRoleAsync("Manager");
+                        foreach (var manager in managers)
+                        {
+                            await _notificationService.CreateAutoNotificationAsync(
+                                userId: manager.UserId,
+                                senderId: null,
+                                title: "Đơn delivery giao thất bại",
+                                content: $"Đơn hàng {order.OrderCode} giao không thành công. " +
+                                         $"Lý do: {request.reason}",
+                                type: "Order",
+                                severity: "Warning"
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ERROR] Manager failed delivery notification failed: {ex.Message}");
+                    }
                 }
             }
 
@@ -605,6 +646,22 @@ namespace SMAS_Services.OrderServices
                         type: "Order",
                         severity: "Information"
                     );
+                    try
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: request.StaffId,
+                            senderId: null,
+                            title: "Bạn được phân công đơn giao hàng",
+                            content: $"Bạn vừa được phân công giao đơn hàng {request.OrderCode}. " +
+                                     $"Vui lòng kiểm tra và chuẩn bị giao hàng!",
+                            type: "Order",
+                            severity: "Information"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ERROR] Staff assignment notification failed: {ex.Message}");
+                    }
                 }
             }
 
@@ -676,6 +733,25 @@ namespace SMAS_Services.OrderServices
                     type: "Order",
                     severity: "Warning"
                 );
+                try
+                {
+                    var managers = await _orderRepository.GetUsersByRoleAsync("Manager");
+                    foreach (var manager in managers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: manager.UserId,
+                            senderId: null,
+                            title: "Đơn delivery bị hủy",
+                            content: $"Đơn hàng {request} đã bị hủy. Lý do: {dto}",
+                            type: "Order",
+                            severity: "Warning"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Manager cancel delivery notification failed: {ex.Message}");
+                }
             }
 
             return result;
@@ -724,7 +800,26 @@ namespace SMAS_Services.OrderServices
 
         public async Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode)
         {
-            return await _orderRepository.AddDiscountToOrderAsync( ordercode,  discountcode);
+            return await _orderRepository.AddDiscountToOrderAsync(ordercode, discountcode);
+        }
+
+        public async Task<(bool status, string message)> DeleteOrderByOrderCodeAsync(string orderCode, int userId)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode))
+                return (false, "Mã đơn không được để trống !");
+            var result = await _orderRepository.DeleteOrderByOrderCodeAsync(orderCode, userId);
+            if (result.status)
+            {
+                await _notificationService.CreateAutoNotificationAsync(
+                    userId: userId,
+                    senderId: null,
+                    title: "Đơn hàng đã bị hủy",
+                    content: $"Đơn hàng {orderCode} đã bị hủy ",
+                    type: "Order",
+                    severity: "Warning"
+                );
+            }
+            return result;
         }
     }
 }
