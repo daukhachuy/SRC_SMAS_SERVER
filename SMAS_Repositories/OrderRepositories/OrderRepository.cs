@@ -402,7 +402,7 @@ namespace SMAS_Repositories.OrderRepositories
 
                 order.SubTotal = subTotal;
 
-               
+
 
                 // --- Logic Giao hàng (Delivery) ---
                 if (order.OrderType == "Delivery")
@@ -729,14 +729,14 @@ namespace SMAS_Repositories.OrderRepositories
                 buffets
             };
         }
-        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId)=> await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
+        public async Task<string?> GetActiveOrderCodeByTableIdAsync(int tableId) => await _orderDAO.GetActiveOrderCodeByTableIdAsync(tableId);
 
         public async Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode)
         {
 
             var order = await _orderDAO.GetOrderDetailByOrderCodeAsync(ordercode);
             if (order == null) return (false, $"Không tìm thấy đơn hàng với mã {ordercode}.");
-            var isupdate = false ;
+            var isupdate = false;
             if (order.DiscountAmount > 0)
             {
                 order.TotalAmount = order.TotalAmount + (order.DiscountAmount ?? 0);
@@ -751,13 +751,13 @@ namespace SMAS_Repositories.OrderRepositories
             if (order.DiscountAmount > discount.MaxDiscountAmount) order.DiscountAmount = discount.MaxDiscountAmount;
             order.TotalAmount = order.TotalAmount - (order.DiscountAmount ?? 0);
             order.DiscountId = discount.DiscountId;
-            var result  =  await _orderDAO.UpdateOrderAsync(order);
+            var result = await _orderDAO.UpdateOrderAsync(order);
             if (!result) return (false, $"Cập nhật mã giảm giá thất bại cho đơn hàng {ordercode}.");
             if (isupdate) return (true, $"Cập nhật mã giảm giá thành công giảm {order.DiscountAmount}");
             return (true, $"Áp dụng mã thành công giảm {order.DiscountAmount}");
         }
-    
-    
+
+
         public async Task<List<User>> GetUsersByRoleAsync(string role)
         {
             return await _context.Users
@@ -766,6 +766,20 @@ namespace SMAS_Repositories.OrderRepositories
                           || (u.Staff != null && u.Staff.Position == role))
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+
+        public async Task<(bool status, string message)> DeleteOrderByOrderCodeAsync(string orderCode, int userId)
+        {
+            var order = await _orderDAO.GetOrderByCodeNoTrackingAsync(orderCode);
+            if (order == null) return (false, $"Không tìm thấy đơn hàng với mã {orderCode}.");
+            if (order.OrderStatus == "Completed" || order.OrderStatus == "Cencalled") return (false, "Đơn hàng đã hoàn thành không thể huỷ.");
+            if (order.UserId != userId) return (false, "Bạn không có quyền huỷ đơn hàng này.");
+            var checkIsOrderItemServed = order.OrderItems.Any(oi => oi.Status == "Served" || oi.Status == "Ready"); 
+            if (checkIsOrderItemServed)  return (false, "Không thể huỷ đơn hàng khi đã có món đang chuẩn bị hoặc đã huỷ.");
+            var result = await _orderDAO.CancelOrderByOrdercodeAsync(orderCode);
+            if (!result) return (false, $"Huỷ đơn hàng thất bại với mã {orderCode}.");
+            return (true, $"Đơn hàng {orderCode} đã được huỷ thành công.");
         }
     }
 

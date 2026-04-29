@@ -379,5 +379,9 @@ namespace SMAS_Repositories.ManagerRepositories
                 }).ToList()
             };
         }
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _managerDAO.GetUsersByRoleAsync(role);
+        }
     }
 }

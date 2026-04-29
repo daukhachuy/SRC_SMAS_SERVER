@@ -1,8 +1,11 @@
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using SMAS_BusinessObject.Cache;
 using SMAS_BusinessObject.DTOs.OrderDTO;
+using SMAS_BusinessObject.Enums;
 using SMAS_BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -766,5 +769,48 @@ namespace SMAS_DataAccess.DAO
             await _context.SaveChangesAsync();
             return true;
         }
+
+
+        public async Task<bool> CancelOrderByOrdercodeAsync(string orderCode)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var order = await _context.Orders
+                    .Include(o => o.TableOrders)
+                        .ThenInclude(to => to.Table)
+                    .Include(o => o.OrderItems)
+                    .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
+                if (order == null)
+                    return false;
+                order.OrderStatus = "Cancelled";
+                foreach (var item in order.OrderItems)
+                {
+                    if (item.Status != "Cancelled") item.Status = "Cancelled";
+                }
+                foreach (var tableOrder in order.TableOrders)
+                {
+                    if (tableOrder.Table != null)
+                    {
+                        tableOrder.Table.Status = "AVAILABLE";
+                        tableOrder.Table.UpdatedAt = DateTime.UtcNow;
+                        // Xóa session cache — khách không quét QR được nữa
+                        _cache.Remove($"table_session_{tableOrder.Table.TableName.ToUpper()}");
+                    }
+                }
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
     }
 }

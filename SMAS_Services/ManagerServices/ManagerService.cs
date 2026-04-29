@@ -99,6 +99,27 @@ namespace SMAS_Services.ManagerServices
                     type: "Reservation",
                     severity: "Warning"
                 );
+                try
+                {
+                    var managers = await _managerRepository.GetUsersByRoleAsync("Manager");
+                    foreach (var manager in managers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: manager.UserId,
+                            senderId: managerUserId,
+                            title: "Đặt bàn đã bị hủy",
+                            content: $"Đặt bàn {target.ReservationCode} ngày " +
+                                     $"{target.ReservationDate:dd/MM/yyyy} đã bị hủy. " +
+                                     $"Lý do: {cancellationReason}",
+                            type: "Reservation",
+                            severity: "Warning"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Manager cancel reservation notification failed: {ex.Message}");
+                }
             }
 
             return deleted;
@@ -123,6 +144,28 @@ namespace SMAS_Services.ManagerServices
                     type: "Reservation",
                     severity: "Information"
                 );
+                try
+                {
+                    var managers = await _managerRepository.GetUsersByRoleAsync("Manager");
+                    foreach (var manager in managers)
+                    {
+                        await _notificationService.CreateAutoNotificationAsync(
+                            userId: manager.UserId,
+                            senderId: managerUserId,
+                            title: "Đặt bàn đã được xác nhận",
+                            content: $"Đặt bàn {result.ReservationCode} ngày " +
+                                     $"{result.ReservationDate:dd/MM/yyyy} cho " +
+                                      $"{result.ReservationTime:HH\\:mm} cho " +
+                                     $"{result.NumberOfGuests} khách đã được xác nhận.",
+                            type: "Reservation",
+                            severity: "Information"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Manager confirm reservation notification failed: {ex.Message}");
+                }
             }
 
             return result;
