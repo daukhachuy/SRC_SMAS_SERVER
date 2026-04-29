@@ -19,7 +19,7 @@ namespace SMAS_Services.OrderServices
         private readonly ITableService _tableService;
         private readonly IOrderItemRepository _orderItemRepository;
         private readonly INotificationService _notificationService;
-        public OrderService(IOrderRepository orderRepository,IOrderItemRepository orderItemRepository, ITableService tableService, INotificationService notificationService)
+        public OrderService(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, ITableService tableService, INotificationService notificationService)
         {
             _orderRepository = orderRepository;
             _orderItemRepository = orderItemRepository;
@@ -800,7 +800,26 @@ namespace SMAS_Services.OrderServices
 
         public async Task<(bool status, string message)> AddDiscountToOrderAsync(string ordercode, string discountcode)
         {
-            return await _orderRepository.AddDiscountToOrderAsync( ordercode,  discountcode);
+            return await _orderRepository.AddDiscountToOrderAsync(ordercode, discountcode);
+        }
+
+        public async Task<(bool status, string message)> DeleteOrderByOrderCodeAsync(string orderCode, int userId)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode))
+                return (false, "Mã đơn không được để trống !");
+            var result = await _orderRepository.DeleteOrderByOrderCodeAsync(orderCode, userId);
+            if (result.status)
+            {
+                await _notificationService.CreateAutoNotificationAsync(
+                    userId: userId,
+                    senderId: null,
+                    title: "Đơn hàng đã bị hủy",
+                    content: $"Đơn hàng {orderCode} đã bị hủy ",
+                    type: "Order",
+                    severity: "Warning"
+                );
+            }
+            return result;
         }
     }
 }
