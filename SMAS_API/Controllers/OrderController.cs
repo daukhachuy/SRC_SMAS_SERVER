@@ -51,19 +51,19 @@ namespace SMAS_API.Controllers
                 {
                     data = Array.Empty<object>(),
                     total = 0,
-                    revenueToday = 0,                                        
+                    revenueToday = 0,
                     message = "Hôm nay chưa có đơn hàng nào."
                 });
 
             var revenueToday = result
                 .Where(o => o.OrderStatus == "Completed")
-                .Sum(o => o.TotalAmount);                                     
+                .Sum(o => o.TotalAmount);
 
             return Ok(new
             {
                 data = result,
                 total = result.Count(),
-                revenueToday,                                                 
+                revenueToday,
                 message = $"Có {result.Count()} đơn hàng hôm nay."
             });
         }
@@ -624,6 +624,29 @@ namespace SMAS_API.Controllers
             if (!success.status)
                 return NotFound(success.message);
             return Ok(success.message);
+        }
+
+        [Authorize(Roles = "Waiter,Manager,Admin")]
+        [HttpDelete("delete-order/{orderCode}")]
+        public async Task<IActionResult> DeleteOrderAsync([FromRoute] string orderCode)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+
+            try
+            {
+                var result = await _orderService.DeleteOrderByOrderCodeAsync(orderCode, userId);
+                if (!result.status)
+                {
+                    return BadRequest(result.message);
+                }
+                return Ok(result.message);
+            }
+            catch (Exception ex)
+            {
+                return HandleOrderExceptions(ex);
+            }
         }
     }
 }
