@@ -28,7 +28,7 @@ public class OrderItemTimeoutJob : BackgroundService
 
                 var now = DateTime.Now;
                 var items = await context.OrderItems
-                    .Where(x => x.Status == "Preparing" && x.OpeningTime != null)
+                    .Where(x => (x.Status == "Pending" || x.Status == "Preparing" ) && x.OpeningTime != null )
                     .ToListAsync(stoppingToken);
                 var users = await context.Users.Include(u => u.Staff)
                     .Where(u => u.Staff.Position == "Kitchen" && u.Staff.IsWorking == true)
@@ -37,7 +37,7 @@ public class OrderItemTimeoutJob : BackgroundService
                 {
                     var minutes = (now - item.OpeningTime.Value).TotalMinutes;
 
-                    if (minutes == 15 || minutes == 16)
+                    if (minutes >= 15 && minutes < 17)
                     {
                         _logger.LogWarning($"[NOTIFY] Món {item.OrderItemId} đã chờ {minutes} phút!");
                         foreach (var user in users)

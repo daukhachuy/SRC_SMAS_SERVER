@@ -20,7 +20,7 @@ namespace SMAS_Services.PdfServices
         public async Task<byte[]> ExportInvoicePdfAsync(string invoiceId)
         {
             var invoice = await _pdfRepository.GetInvoiceByIdAsync(invoiceId);
-
+            
             if (invoice == null || invoice.OrderCode == null)
                 return Array.Empty<byte>();
 
