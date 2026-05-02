@@ -45,7 +45,7 @@ namespace SMAS_API.BackgroundJobs
                             var orderBuffettime = order.OrderItems.FirstOrDefault(i => i.BuffetId != null)?.OpeningTime;
                             if (orderBuffettime == null) continue;                          
                              minutes = (now - orderBuffettime.Value).TotalMinutes;
-                            if (91 == minutes &&  minutes == 90)
+                            if (92 > minutes &&  minutes >= 90)
                             {
                                 await SendNotification(context, order,
                                     "Sắp hết giờ buffet",
@@ -53,7 +53,7 @@ namespace SMAS_API.BackgroundJobs
                                     "Warning");
                             }
 
-                            if (121 == minutes && minutes == 120)
+                            if (122 > minutes && minutes >= 120)
                             {
 
                                 await SendNotification(context, order,
@@ -66,7 +66,7 @@ namespace SMAS_API.BackgroundJobs
 
                         else
                         {
-                            if (181 == minutes && minutes == 180)
+                            if (182 > minutes && minutes >= 180)
                             {
                                 await SendNotification(context, order,
                                     "Đơn đã ăn lâu",
