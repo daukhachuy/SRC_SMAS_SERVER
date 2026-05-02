@@ -25,6 +25,8 @@ namespace SMAS_Repositories.PdfRepositories
             var order = await pdfDao.GetInvoiceByIdAsync(OrderCode); 
             if (order == null)
                 return new PdfInvoiceDTO();
+            order.OrderItems = order.OrderItems.Where(oi => oi.Status != "Cancelled").ToList();
+
             return new PdfInvoiceDTO
             {
                 OrderCode = order.OrderCode,
